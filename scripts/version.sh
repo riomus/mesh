@@ -39,7 +39,7 @@ if [[ -z "${COMMITS_SINCE}" ]]; then COMMITS_SINCE=0; fi
 if [[ "${COMMITS_SINCE}" -lt 1 ]]; then BUILD_NUMBER=1; else BUILD_NUMBER=${COMMITS_SINCE}; fi
 
 # Describe (allowing dirty / exact form); if no tags exist, synthesize
-if DESC=$(git describe --tags --match "$SEMVER_MATCH" --always --dirty 2>/dev/null); then
+if DESC=$(git describe --tags --match "$SEMVER_MATCH" --always 2>/dev/null); then
   :
 else
   SHORT_SHA=$(git rev-parse --short HEAD)

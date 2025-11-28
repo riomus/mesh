@@ -21,6 +21,15 @@ Artifacts attached to each GitHub Release:
 - Android: `app-release.apk` and `app-release.aab`
 - iOS: unsigned `.ipa` (no codesign)
 
+## Live (GitHub Pages)
+
+The latest web build from the `main` branch is automatically deployed to GitHub Pages:
+
+- Live URL: https://bartusiak.ai/mesh
+- Source: this repository, tracking the current `main` commit
+
+Note: This is a pre‑release build and may change frequently.
+
 ### Versioning
 - The workflow uses `git describe` for versioning.
 - A semantic base tag (e.g., `0.0.1`) is used as the app `--build-name`.
