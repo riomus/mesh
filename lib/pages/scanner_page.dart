@@ -5,6 +5,7 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../l10n/app_localizations.dart';
+import '../services/meshtastic_ble_client.dart';
 import '../widgets/device_tile.dart';
 import '../widgets/empty_state.dart';
 import '../config/lora_config.dart';
@@ -95,7 +96,7 @@ class _ScannerPageState extends State<ScannerPage> {
   Future<void> _startScan() async {
     await _ensurePermissions();
     setState(() => _scanning = true);
-    await FlutterBluePlus.startScan(timeout: const Duration(seconds: 10));
+    await FlutterBluePlus.startScan(timeout: const Duration(seconds: 10), webOptionalServices: [Guid(MeshtasticBleClient.serviceUuid)]);
     // Listen for scan completion and update UI
     FlutterBluePlus.isScanning.listen((isScanning) {
       if (mounted) {
