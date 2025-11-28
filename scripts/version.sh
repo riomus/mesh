@@ -8,7 +8,7 @@ set -euo pipefail
 # - tag_name: a tag/ref to use for the GitHub Release (e.g., 0.0.1-3-gabc1234)
 # - describe: the full `git describe` string (same as tag_name)
 
-SEMVER_MATCH='[0-9]*\.[0-9]*\.[0-9]*'
+SEMVER_MATCH='v[0-9]*\.[0-9]*\.[0-9]*'
 
 # Ensure tags are available
 git fetch --tags --force >/dev/null 2>&1 || true
