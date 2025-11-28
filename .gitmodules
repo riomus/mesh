@@ -1,0 +1,3 @@
+[submodule "mesh/meshtastic"]
+	path = mesh/meshtastic
+	url = https://github.com/musznik/protobufs.git
