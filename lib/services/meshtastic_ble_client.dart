@@ -49,11 +49,17 @@ class MeshtasticBleClient {
 
     await device.connect(timeout: timeout, license: License.free);
 
-    // Try to request MTU 512 when supported (Android). iOS ignores this.
+    // Request MTU 512 only on Android. Other platforms either ignore or don't support it.
+    // On non-Android, just read the current MTU.
     try {
-      await device.requestMtu(512);
-      _mtu = device.mtuNow;
-      _log('MTU negotiated: $_mtu');
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+        await device.requestMtu(512);
+        _mtu = device.mtuNow;
+        _log('MTU negotiated (Android): $_mtu');
+      } else {
+        _mtu = device.mtuNow; // best effort on non-Android
+        _log('MTU (no request on this platform): $_mtu');
+      }
     } catch (e) {
       _log('MTU request failed or unsupported: $e');
       _mtu = device.mtuNow; // best effort
@@ -92,7 +98,7 @@ class MeshtasticBleClient {
     }
 
     // Enable notify on FromNum now, and drain FromRadio on notifications
-    await _fromNum!.setNotifyValue(true);
+    await _fromNum!.setNotifyValue(true,timeout: 60);
     _fromNumSub?.cancel();
     _fromNumSub = _fromNum!.onValueReceived.listen((_) async {
       _log('FromNum notify received -> draining FromRadio');
