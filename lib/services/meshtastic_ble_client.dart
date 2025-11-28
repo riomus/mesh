@@ -96,7 +96,7 @@ class MeshtasticBleClient {
       if (id == fromRadioUuid) _fromRadio = c;
       if (id == fromNumUuid) _fromNum = c;
     }
-
+    _log('Found characteristics for Meshtastic');
     if (_toRadio == null || _fromRadio == null || _fromNum == null) {
       throw StateError('Missing one or more required characteristics');
     }
@@ -106,14 +106,16 @@ class MeshtasticBleClient {
       _log('FromNum notify received -> draining FromRadio');
       await _drainFromRadioUntilEmpty();
     });
+    _log('Subscribed to from num');
     // Enable notify on FromNum now, and drain FromRadio on notifications
     try {
-      await _fromNum!.setNotifyValue(true,timeout: 3600);
+      await _fromNum!.setNotifyValue(true);
     } catch (e) {
       if (!kIsWeb) {
         _log('Failed to enable notifications on FromNum: $e');
       }
     }
+    _log('Discovery done');
   }
 
   Future<void> _startInitialDownload() async {
