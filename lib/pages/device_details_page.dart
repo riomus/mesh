@@ -100,15 +100,16 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                       label: Text(_connected
                           ? AppLocalizations.of(context)!.disconnect
                           : AppLocalizations.of(context)!.connect),
-                      onPressed: (!hasMeshtasticService)
-                          ? null
-                          : () async {
-                              if (_connected || _connecting) {
-                                await _disconnectMeshtastic();
-                              } else {
-                                await _connectMeshtastic();
-                              }
-                            },
+                      // Allow connect even if Meshtastic service is not advertised.
+                      // We will attempt to connect and fail gracefully with an error message if
+                      // the required service/characteristics are not discovered.
+                      onPressed: () async {
+                        if (_connected || _connecting) {
+                          await _disconnectMeshtastic();
+                        } else {
+                          await _connectMeshtastic();
+                        }
+                      },
                     ),
                     const SizedBox(width: 12),
                     if (_connecting) const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
