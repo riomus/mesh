@@ -8,6 +8,7 @@ import '../l10n/app_localizations.dart';
 import '../widgets/device_tile.dart';
 import '../widgets/empty_state.dart';
 import '../config/lora_config.dart';
+import '../config/manufacturer_db.dart';
 
 class ScannerPage extends StatefulWidget {
   final VoidCallback? onToggleTheme;
@@ -46,6 +47,8 @@ class _ScannerPageState extends State<ScannerPage> {
       try {
         // lazy-load config
         await LoraConfig.ensureLoaded();
+        // Also warm up Manufacturer database for company identifiers
+        await ManufacturerDb.ensureLoaded();
         if (mounted) setState(() {});
       } catch (_) {
         // ignore
@@ -289,12 +292,19 @@ List<ScanResult> _filteredDevices(Iterable<ScanResult> input, String query) {
   bool matches(ScanResult r) {
     final advName = r.advertisementData.advName;
     final id = r.device.remoteId.str;
+    // Include manufacturer names in searchable fields
+    final manufIds = r.advertisementData.manufacturerData.keys;
+    final manufNames = manufIds
+        .map((mid) => ManufacturerDb.nameNow(mid))
+        .whereType<String>()
+        .map((s) => s.toLowerCase());
 
     String normalize(String s) => s.toLowerCase();
 
     final fields = <String>{
       normalize(advName),
       normalize(id),
+      ...manufNames,
     }..removeWhere((e) => e.isEmpty);
 
     // A device matches if every token is found in any field (AND across tokens, OR across fields)

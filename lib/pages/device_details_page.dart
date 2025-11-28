@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/rssi_bar.dart';
+import '../config/manufacturer_db.dart';
 
 class DeviceDetailsPage extends StatelessWidget {
   final ScanResult result;
@@ -90,7 +91,7 @@ class DeviceDetailsPage extends StatelessWidget {
                   icon: Icons.factory,
                   title: AppLocalizations.of(context)!
                       .manufacturerDataWithCount(ad.manufacturerData.length),
-                  items: ad.manufacturerData.map((k, v) => MapEntry('0x${k.toRadixString(16).padLeft(4, '0')}', v)),
+                  items: ad.manufacturerData.map((k, v) => MapEntry(_manufacturerKey(k), v)),
                   valueBuilder: (bytes) => _hex(bytes),
                 )
               else
@@ -130,6 +131,12 @@ class DeviceDetailsPage extends StatelessWidget {
       sb.write(' ');
     }
     return sb.toString().trim().toUpperCase();
+  }
+
+  static String _manufacturerKey(int id) {
+    final name = ManufacturerDb.nameNow(id);
+    final idHex = '0x${id.toRadixString(16).padLeft(4, '0').toUpperCase()}';
+    return name != null ? '$name ($idHex)' : idHex;
   }
 }
 

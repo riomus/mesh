@@ -4,6 +4,7 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'rssi_bar.dart';
 import '../pages/device_details_page.dart';
 import '../config/lora_config.dart';
+import '../config/manufacturer_db.dart';
 
 import '../l10n/app_localizations.dart';
 class DeviceTile extends StatelessWidget {
@@ -50,6 +51,7 @@ class DeviceTile extends StatelessWidget {
           children: [
             Text(device.remoteId.str,
                 style: Theme.of(context).textTheme.bodySmall),
+            _manufacturerLine(context, result),
             const SizedBox(height: 4),
             RssiBar(rssi: result.rssi),
           ],
@@ -67,6 +69,26 @@ class DeviceTile extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _manufacturerLine(BuildContext context, ScanResult r) {
+    final ids = r.advertisementData.manufacturerData.keys.toList();
+    if (ids.isEmpty) return const SizedBox.shrink();
+    final id = ids.first;
+    final name = ManufacturerDb.nameNow(id);
+    final t = AppLocalizations.of(context)!;
+    final idHex = '0x${id.toRadixString(16).padLeft(4, '0').toUpperCase()}';
+    final text = name ?? t.unknown;
+    final suffix = ids.length > 1 ? ' (+${ids.length - 1})' : '';
+    return Padding(
+      padding: const EdgeInsets.only(top: 2.0),
+      child: Text(
+        '$text ($idHex)$suffix',
+        style: Theme.of(context).textTheme.bodySmall,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
