@@ -46,8 +46,12 @@ class MeshtasticBleClient {
   Future<void> connect({Duration timeout = const Duration(seconds: 20)}) async {
     _ensureNotDisposed();
     _log('Connecting to ${device.remoteId.str} ...');
+    int? requestMtu = 512;
+    if (kIsWeb){
+      requestMtu=null;
+    }
 
-    await device.connect(timeout: timeout, license: License.free);
+    await device.connect(timeout: timeout, license: License.free, mtu: requestMtu);
 
     // Request MTU 512 only on Android. Other platforms either ignore or don't support it.
     // On non-Android, just read the current MTU.
@@ -97,13 +101,19 @@ class MeshtasticBleClient {
       throw StateError('Missing one or more required characteristics');
     }
 
-    // Enable notify on FromNum now, and drain FromRadio on notifications
-    await _fromNum!.setNotifyValue(true,timeout: 60);
     _fromNumSub?.cancel();
     _fromNumSub = _fromNum!.onValueReceived.listen((_) async {
       _log('FromNum notify received -> draining FromRadio');
       await _drainFromRadioUntilEmpty();
     });
+    // Enable notify on FromNum now, and drain FromRadio on notifications
+    try {
+      await _fromNum!.setNotifyValue(true,timeout: 3600);
+    } catch (e) {
+      if (!kIsWeb) {
+        _log('Failed to enable notifications on FromNum: $e');
+      }
+    }
   }
 
   Future<void> _startInitialDownload() async {
