@@ -25,7 +25,7 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  void _setLocale(Locale locale) {
+  void _setLocale(Locale? locale) {
     setState(() {
       _locale = locale;
     });

@@ -12,7 +12,7 @@ import '../widgets/empty_state.dart';
 class ScannerPage extends StatefulWidget {
   final VoidCallback? onToggleTheme;
   final ThemeMode? themeMode;
-  final void Function(Locale locale)? onChangeLocale;
+  final void Function(Locale? locale)? onChangeLocale;
   final Locale? locale;
   const ScannerPage({super.key, this.onToggleTheme, this.themeMode, this.onChangeLocale, this.locale});
 
@@ -104,15 +104,37 @@ class _ScannerPageState extends State<ScannerPage> {
             tooltip: t.toggleThemeTooltip,
             onPressed: widget.onToggleTheme,
           ),
-          IconButton(
+          PopupMenuButton<Locale?>(
             tooltip: t.languageTooltip,
-            onPressed: () => widget.onChangeLocale?.call(const Locale('en')),
-            icon: const Text('🇬🇧', style: TextStyle(fontSize: 18)),
-          ),
-          IconButton(
-            tooltip: t.languageTooltip,
-            onPressed: () => widget.onChangeLocale?.call(const Locale('pl')),
-            icon: const Text('🇵🇱', style: TextStyle(fontSize: 18)),
+            icon: const Icon(Icons.language),
+            onSelected: (value) => widget.onChangeLocale?.call(value),
+            itemBuilder: (context) {
+              final items = <PopupMenuEntry<Locale?>>[];
+              // System default option (null locale → follow system language)
+              items.add(
+                PopupMenuItem<Locale?> (
+                  value: null,
+                  child: Row(
+                    children: const [
+                      Icon(Icons.settings_suggest, size: 18),
+                      SizedBox(width: 8),
+                      Text('System default'),
+                    ],
+                  ),
+                ),
+              );
+              items.add(const PopupMenuDivider());
+              for (final loc in AppLocalizations.supportedLocales) {
+                final label = _localeLabel(loc);
+                items.add(
+                  PopupMenuItem<Locale?>(
+                    value: loc,
+                    child: Text(label),
+                  ),
+                );
+              }
+              return items;
+            },
           ),
         ],
       ),
@@ -138,5 +160,16 @@ class _ScannerPageState extends State<ScannerPage> {
         label: Text(_scanning ? t.stop : t.scan),
       ),
     );
+  }
+}
+
+String _localeLabel(Locale locale) {
+  switch (locale.languageCode) {
+    case 'en':
+      return 'English';
+    case 'pl':
+      return 'Polski';
+    default:
+      return locale.toLanguageTag();
   }
 }
