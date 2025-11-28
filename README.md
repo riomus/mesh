@@ -51,6 +51,21 @@ Notes:
 - Expect frequent force‑pushes, API/UX churn, and incomplete features.
 - Issues and PRs are welcome, but please understand the pace and volatility.
 
+## Splash screen
+
+This app uses `flutter_native_splash` to generate platform-native splash screens.
+
+- Configuration lives in `pubspec.yaml` under the `flutter_native_splash:` section.
+- Currently it's a color-only splash (light: `#FFFFFF`, dark: `#121212`). You can add images later by providing `image:` and `image_dark:` paths (e.g., `assets/splash/logo.png`).
+- To (re)generate locally:
+
+```
+flutter pub get
+dart run flutter_native_splash:create
+```
+
+- CI automatically generates the splash in release builds and in the GitHub Pages deploy workflow.
+
 ## Getting Started (for contributors)
 
 This is a standard Flutter workspace. If you are setting up your environment:
