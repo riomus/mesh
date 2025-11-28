@@ -33,6 +33,9 @@ migrate_working_dir/
 /build/
 /coverage/
 
+# Generated Protobufs (do not commit)
+lib/generated/
+
 # Symbolication related
 app.*.symbols
 

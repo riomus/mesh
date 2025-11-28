@@ -1,0 +1,5 @@
+version: "v2"
+clean: true
+plugins:
+  - remote: buf.build/protocolbuffers/dart:v25.0.0
+    out: lib/generated/meshtastic

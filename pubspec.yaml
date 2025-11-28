@@ -39,6 +39,8 @@ dependencies:
   flutter_blue_plus: ^1.32.0
   permission_handler: ^11.3.1
   yaml: ^3.1.2
+  # Dart Protobuf runtime for generated Meshtastic protos
+  protobuf: ^3.1.0
 
 dev_dependencies:
   flutter_test:
