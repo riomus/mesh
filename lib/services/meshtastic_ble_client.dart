@@ -111,9 +111,7 @@ class MeshtasticBleClient {
     try {
       await _fromNum!.setNotifyValue(true);
     } catch (e) {
-      if (!kIsWeb) {
         _log('Failed to enable notifications on FromNum: $e');
-      }
     }
     _log('Discovery done');
   }
