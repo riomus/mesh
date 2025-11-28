@@ -52,8 +52,10 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Install buf
-        uses: bufbuild/buf-setup-action@v1
+      - uses: bufbuild/buf-action@v1
+        with:
+          token: ${{ secrets.BUF_TOKEN }}
+          setup_only: true
 
       - name: Generate Protobufs (Dart)
         run: bash scripts/gen_protos.sh
