@@ -1,4 +1,4 @@
-name: Build and Release (Web/Android/iOS)
+name: Build and Release (Web/Android/iOS/macOS)
 
 on:
   push:
@@ -140,10 +140,55 @@ jobs:
           path: |
             build/ios/ipa/*.ipa
 
+  macos:
+    name: Build macOS (unsigned .app zip)
+    runs-on: macos-latest
+    needs: version
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate version asset
+        run: bash scripts/version.sh
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Flutter Pub Get
+        run: flutter pub get
+
+      - name: Build macOS
+        run: flutter build macos --release --build-name "${{ needs.version.outputs.name }}" --build-number "${{ needs.version.outputs.number }}"
+
+      - name: Archive macOS app (.app → zip)
+        run: |
+          set -euo pipefail
+          PRODUCT_DIR="build/macos/Build/Products/Release"
+          mkdir -p build
+          # Create a deterministic zip including the .app bundle (keep parent so the app name is preserved)
+          if compgen -G "$PRODUCT_DIR/*.app" > /dev/null; then
+            ditto -c -k --sequesterRsrc --keepParent "$PRODUCT_DIR"/*.app "build/macos-${{ needs.version.outputs.tag_name }}.zip"
+          else
+            echo "No .app found in $PRODUCT_DIR" >&2
+            ls -la "$PRODUCT_DIR" || true
+            exit 1
+          fi
+
+      - name: Upload Artifact (macos)
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-${{ needs.version.outputs.tag_name }}
+          path: build/macos-*.zip
+
   release:
     name: Publish GitHub Release
     runs-on: ubuntu-latest
-    needs: [version, web, android, ios]
+    needs: [version, web, android, ios, macos]
     steps:
       - name: Download Artifacts
         uses: actions/download-artifact@v4
@@ -164,6 +209,7 @@ jobs:
             - Web ZIP
             - Android APK & AAB
             - iOS IPA (unsigned)
+            - macOS app (.app zipped, unsigned)
           files: |
             dist/**
         env:
