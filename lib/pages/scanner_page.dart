@@ -30,7 +30,7 @@ class _ScannerPageState extends State<ScannerPage> {
   final TextEditingController _searchController = TextEditingController();
   String _query = '';
   Timer? _debounce;
-  bool _loraOnly = true; // ticker: show only LoRa devices by default
+  bool _loraOnly = false; // ticker: show only LoRa devices by default
 
   @override
   void initState() {
