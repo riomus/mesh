@@ -47,22 +47,6 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Install protoc (Ubuntu)
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y protobuf-compiler
-
-      - name: Install protoc (macOS)
-        if: runner.os == 'macOS'
-        run: brew install protobuf
-
-      - name: Activate Dart protoc plugin
-        run: dart pub global activate protoc_plugin
-
-      - name: Generate Dart protobufs
-        run: bash scripts/gen_protos.sh
-
       - name: Flutter Pub Get
         run: flutter pub get
 
