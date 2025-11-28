@@ -32,5 +32,8 @@
   "webNote": "On Web, scanning shows a chooser after tapping Scan (HTTPS required).",
 
   "tapScanToDiscover": "Tap Scan to discover nearby Bluetooth devices",
-  "unknown": "unknown"
+  "unknown": "unknown",
+  "searchHint": "Search devices by name or ID",
+  "loraOnlyFilterLabel": "LoRa only",
+  "meshtasticLabel": "Meshtastic"
 }

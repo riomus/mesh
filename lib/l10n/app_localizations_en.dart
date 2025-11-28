@@ -104,4 +104,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get unknown => 'unknown';
+
+  @override
+  String get searchHint => 'Search devices by name or ID';
+
+  @override
+  String get loraOnlyFilterLabel => 'LoRa only';
+
+  @override
+  String get meshtasticLabel => 'Meshtastic';
 }

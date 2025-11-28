@@ -9,10 +9,10 @@ class AppLocalizationsPl extends AppLocalizations {
   AppLocalizationsPl([String locale = 'pl']) : super(locale);
 
   @override
-  String get appTitle => 'Mesh Skaner BLE';
+  String get appTitle => 'Mesh BLE Skaner';
 
   @override
-  String get nearbyDevicesTitle => 'Bliskie urządzenia Bluetooth';
+  String get nearbyDevicesTitle => 'Najbliższe urządzenia Bluetooth';
 
   @override
   String get scan => 'Skanuj';
@@ -39,10 +39,10 @@ class AppLocalizationsPl extends AppLocalizations {
   String get signalRssi => 'Sygnał (RSSI)';
 
   @override
-  String get advertisement => 'Reklama (Advertising)';
+  String get advertisement => 'Reklama';
 
   @override
-  String get advertisedName => 'Nazwa reklamowana';
+  String get advertisedName => 'Nazwa z reklamy';
 
   @override
   String get connectable => 'Możliwość połączenia';
@@ -81,7 +81,7 @@ class AppLocalizationsPl extends AppLocalizations {
   }
 
   @override
-  String get noneAdvertised => 'Brak w reklamie';
+  String get noneAdvertised => 'Brak danych';
 
   @override
   String get bluetoothOn => 'Bluetooth jest WŁĄCZONY';
@@ -96,12 +96,21 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get webNote =>
-      'W przeglądarce, po naciśnięciu Skanuj pojawi się wybór urządzenia (wymagany HTTPS).';
+      'W wersji Web po kliknięciu Skanuj pojawia się okno wyboru urządzenia (wymagany HTTPS).';
 
   @override
   String get tapScanToDiscover =>
-      'Naciśnij Skanuj, aby wyszukać pobliskie urządzenia Bluetooth';
+      'Kliknij Skanuj, aby wykryć pobliskie urządzenia Bluetooth';
 
   @override
-  String get unknown => 'nieznany';
+  String get unknown => 'nieznane';
+
+  @override
+  String get searchHint => 'Szukaj urządzeń po nazwie lub ID';
+
+  @override
+  String get loraOnlyFilterLabel => 'Tylko LoRa';
+
+  @override
+  String get meshtasticLabel => 'Meshtastic';
 }

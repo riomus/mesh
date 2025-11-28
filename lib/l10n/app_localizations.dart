@@ -271,6 +271,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'unknown'**
   String get unknown;
+
+  /// No description provided for @searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search devices by name or ID'**
+  String get searchHint;
+
+  /// No description provided for @loraOnlyFilterLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'LoRa only'**
+  String get loraOnlyFilterLabel;
+
+  /// No description provided for @meshtasticLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Meshtastic'**
+  String get meshtasticLabel;
 }
 
 class _AppLocalizationsDelegate

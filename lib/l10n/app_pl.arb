@@ -1,6 +1,6 @@
 {
-  "appTitle": "Mesh Skaner BLE",
-  "nearbyDevicesTitle": "Bliskie urządzenia Bluetooth",
+  "appTitle": "Mesh BLE Skaner",
+  "nearbyDevicesTitle": "Najbliższe urządzenia Bluetooth",
   "scan": "Skanuj",
   "stop": "Zatrzymaj",
   "toggleThemeTooltip": "Przełącz motyw",
@@ -11,8 +11,8 @@
   "platformName": "Nazwa platformy",
   "signalRssi": "Sygnał (RSSI)",
 
-  "advertisement": "Reklama (Advertising)",
-  "advertisedName": "Nazwa reklamowana",
+  "advertisement": "Reklama",
+  "advertisedName": "Nazwa z reklamy",
   "connectable": "Możliwość połączenia",
   "yes": "Tak",
   "no": "Nie",
@@ -24,13 +24,16 @@
   "manufacturerDataWithCount": "Dane producenta ({count})",
   "serviceData": "Dane usług",
   "serviceDataWithCount": "Dane usług ({count})",
-  "noneAdvertised": "Brak w reklamie",
+  "noneAdvertised": "Brak danych",
 
   "bluetoothOn": "Bluetooth jest WŁĄCZONY",
   "bluetoothOff": "Bluetooth jest WYŁĄCZONY",
   "bluetoothState": "Stan Bluetooth: {state}",
-  "webNote": "W przeglądarce, po naciśnięciu Skanuj pojawi się wybór urządzenia (wymagany HTTPS).",
+  "webNote": "W wersji Web po kliknięciu Skanuj pojawia się okno wyboru urządzenia (wymagany HTTPS).",
 
-  "tapScanToDiscover": "Naciśnij Skanuj, aby wyszukać pobliskie urządzenia Bluetooth",
-  "unknown": "nieznany"
+  "tapScanToDiscover": "Kliknij Skanuj, aby wykryć pobliskie urządzenia Bluetooth",
+  "unknown": "nieznane",
+  "searchHint": "Szukaj urządzeń po nazwie lub ID",
+  "loraOnlyFilterLabel": "Tylko LoRa",
+  "meshtasticLabel": "Meshtastic"
 }

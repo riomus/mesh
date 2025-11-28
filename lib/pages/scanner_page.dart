@@ -5,9 +5,9 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../l10n/app_localizations.dart';
-import '../widgets/adapter_banner.dart';
 import '../widgets/device_tile.dart';
 import '../widgets/empty_state.dart';
+import '../config/lora_config.dart';
 
 class ScannerPage extends StatefulWidget {
   final VoidCallback? onToggleTheme;
@@ -24,6 +24,10 @@ class _ScannerPageState extends State<ScannerPage> {
   StreamSubscription<List<ScanResult>>? _sub;
   bool _scanning = false;
   final Map<DeviceIdentifier, ScanResult> _results = {};
+  final TextEditingController _searchController = TextEditingController();
+  String _query = '';
+  Timer? _debounce;
+  bool _loraOnly = true; // ticker: show only LoRa devices by default
 
   @override
   void initState() {
@@ -35,11 +39,25 @@ class _ScannerPageState extends State<ScannerPage> {
         }
       });
     });
+    // Warm up LoRa config (async). When loaded, refresh list.
+    // Ignore errors; defaults will be used.
+    // Delayed to next event loop to avoid setState during build warnings.
+    Future.microtask(() async {
+      try {
+        // lazy-load config
+        await LoraConfig.ensureLoaded();
+        if (mounted) setState(() {});
+      } catch (_) {
+        // ignore
+      }
+    });
   }
 
   @override
   void dispose() {
     _sub?.cancel();
+    _debounce?.cancel();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -80,10 +98,21 @@ class _ScannerPageState extends State<ScannerPage> {
     setState(() => _scanning = false);
   }
 
+  void _onQueryChanged(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 200), () {
+      if (!mounted) return;
+      setState(() {
+        _query = value;
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
-    final devices = _results.values.toList()
+    final base = _filteredDevices(_results.values, _query);
+    final devices = (_loraOnly ? base.where(isLoraDevice).toList() : base)
       ..sort((a, b) => (b.rssi).compareTo(a.rssi));
 
     return Scaffold(
@@ -94,6 +123,41 @@ class _ScannerPageState extends State<ScannerPage> {
             icon: Icon(_scanning ? Icons.stop : Icons.refresh),
             tooltip: _scanning ? t.stop : t.scan,
             onPressed: _scanning ? _stopScan : _startScan,
+          ),
+          // Bluetooth adapter state indicator in the top-right corner
+          StreamBuilder<BluetoothAdapterState>(
+            stream: FlutterBluePlus.adapterState,
+            initialData: FlutterBluePlus.adapterStateNow,
+            builder: (context, snapshot) {
+              final state = snapshot.data;
+              IconData icon;
+              Color color;
+              String tooltip;
+              switch (state) {
+                case BluetoothAdapterState.on:
+                  icon = Icons.bluetooth_connected;
+                  color = Colors.green;
+                  tooltip = AppLocalizations.of(context)!.bluetoothOn;
+                  break;
+                case BluetoothAdapterState.off:
+                  icon = Icons.bluetooth_disabled;
+                  color = Colors.red;
+                  tooltip = AppLocalizations.of(context)!.bluetoothOff;
+                  break;
+                default:
+                  final name = state?.name ?? AppLocalizations.of(context)!.unknown;
+                  icon = Icons.bluetooth;
+                  color = Colors.orange;
+                  tooltip = AppLocalizations.of(context)!.bluetoothState(name);
+              }
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Tooltip(
+                  message: tooltip,
+                  child: Icon(icon, color: color),
+                ),
+              );
+            },
           ),
           IconButton(
             icon: Icon(
@@ -140,17 +204,59 @@ class _ScannerPageState extends State<ScannerPage> {
       ),
       body: Column(
         children: [
-          const AdapterBanner(),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    textInputAction: TextInputAction.search,
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.search),
+                      hintText: t.searchHint,
+                      border: const OutlineInputBorder(),
+                      isDense: true,
+                      suffixIcon: _query.isNotEmpty
+                          ? IconButton(
+                              tooltip: MaterialLocalizations.of(context).deleteButtonTooltip,
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _searchController.clear();
+                                _onQueryChanged('');
+                              },
+                            )
+                          : null,
+                    ),
+                    onChanged: _onQueryChanged,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                FilterChip(
+                  label: Text(t.loraOnlyFilterLabel),
+                  // Avoid the checkmark (ticker) drawing over the icon by hiding it
+                  // and use icon color to indicate selection state.
+                  avatar: Icon(
+                    Icons.sensors,
+                    color: _loraOnly ? Theme.of(context).colorScheme.primary : null,
+                  ),
+                  selected: _loraOnly,
+                  showCheckmark: false,
+                  onSelected: (v) => setState(() => _loraOnly = v),
+                ),
+              ],
+            ),
+          ),
           Expanded(
             child: devices.isEmpty
                 ? const EmptyState()
                 : ListView.builder(
-                    itemCount: devices.length,
-                    itemBuilder: (context, index) {
-                      final r = devices[index];
-                      return DeviceTile(result: r);
-                    },
-                  ),
+                  itemCount: devices.length,
+                  itemBuilder: (context, index) {
+                    final r = devices[index];
+                    return DeviceTile(result: r);
+                  },
+                ),
           ),
         ],
       ),
@@ -172,4 +278,33 @@ String _localeLabel(Locale locale) {
     default:
       return locale.toLanguageTag();
   }
+}
+
+List<ScanResult> _filteredDevices(Iterable<ScanResult> input, String query) {
+  final q = query.trim().toLowerCase();
+  if (q.isEmpty) return input.toList();
+
+  final tokens = q.split(RegExp(r"\s+")).where((t) => t.isNotEmpty).toList();
+
+  bool matches(ScanResult r) {
+    final advName = r.advertisementData.advName;
+    final id = r.device.remoteId.str;
+
+    String normalize(String s) => s.toLowerCase();
+
+    final fields = <String>{
+      normalize(advName),
+      normalize(id),
+    }..removeWhere((e) => e.isEmpty);
+
+    // A device matches if every token is found in any field (AND across tokens, OR across fields)
+
+    for (final tok in tokens) {
+      final tokNorm = tok;
+      final ok = fields.any((f) => f.contains(tokNorm));
+      if (!ok) return false;
+    }
+    return true;
+  }
+  return input.where(matches).toList();
 }
