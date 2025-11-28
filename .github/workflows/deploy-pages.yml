@@ -23,11 +23,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Compute version from git describe (and ensure base tag 0.0.1)
-        id: ver
-        run: |
-          bash scripts/version.sh
-
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -44,6 +39,18 @@ jobs:
         run: |
           echo "REPO_NAME=${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
 
+
+      - name: Compute version from git describe (and ensure base tag 0.0.1)
+        id: ver
+        run: |
+          bash scripts/version.sh
+      
+      - name: Generate version asset
+        run: |
+          VERSION_NAME="${{ steps.ver.outputs.name }}" \
+          VERSION_NUMBER="${{ steps.ver.outputs.number }}" \
+          VERSION_DESCRIBE="${{ steps.ver.outputs.describe }}" \
+          bash scripts/gen_version_yaml.sh
       - name: Build Flutter Web
         run: |
           flutter build web \

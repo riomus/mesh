@@ -39,7 +39,11 @@ jobs:
           fetch-depth: 0
 
       - name: Generate version asset
-        run: bash scripts/version.sh
+        run: |
+          VERSION_NAME="${{ needs.version.outputs.name }}" \
+          VERSION_NUMBER="${{ needs.version.outputs.number }}" \
+          VERSION_DESCRIBE="${{ needs.version.outputs.describe }}" \
+          bash scripts/gen_version_yaml.sh
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -79,7 +83,11 @@ jobs:
           submodules: recursive
 
       - name: Generate version asset
-        run: bash scripts/version.sh
+        run: |
+          VERSION_NAME="${{ needs.version.outputs.name }}" \
+          VERSION_NUMBER="${{ needs.version.outputs.number }}" \
+          VERSION_DESCRIBE="${{ needs.version.outputs.describe }}" \
+          bash scripts/gen_version_yaml.sh
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -119,7 +127,11 @@ jobs:
           submodules: recursive
 
       - name: Generate version asset
-        run: bash scripts/version.sh
+        run: |
+          VERSION_NAME="${{ needs.version.outputs.name }}" \
+          VERSION_NUMBER="${{ needs.version.outputs.number }}" \
+          VERSION_DESCRIBE="${{ needs.version.outputs.describe }}" \
+          bash scripts/gen_version_yaml.sh
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -155,7 +167,11 @@ jobs:
           submodules: recursive
 
       - name: Generate version asset
-        run: bash scripts/version.sh
+        run: |
+          VERSION_NAME="${{ needs.version.outputs.name }}" \
+          VERSION_NUMBER="${{ needs.version.outputs.number }}" \
+          VERSION_DESCRIBE="${{ needs.version.outputs.describe }}" \
+          bash scripts/gen_version_yaml.sh
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
