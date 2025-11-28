@@ -1,6 +1,16 @@
 # mesh
 
-A new Flutter project.
+🚧 UNDER CONSTRUCTION 🚧
+
+This repository is an active work‑in‑progress. Interfaces, features, and docs may change rapidly. Expect breaking changes until the first public release.
+
+## What is this?
+
+Multi‑platform, multi‑mesh controlling app aiming to support:
+- Meshtastic (including FW+ versions)
+- MeshCore
+
+Targets: Web, Android, iOS, macOS, Windows, and Linux (where supported by Flutter and platform capabilities like Bluetooth/Web Bluetooth).
 
 ## CI: Build & Release on main
 
@@ -35,15 +45,18 @@ Notes:
 - Android 12+: asks for `BLUETOOTH_SCAN/CONNECT` at runtime. Older Android: location permission.
 - iOS: Bluetooth permission prompt on first use.
 
-## Getting Started
+## Project status
 
-This project is a starting point for a Flutter application.
+- Current state: pre‑alpha, rapid development.
+- Expect frequent force‑pushes, API/UX churn, and incomplete features.
+- Issues and PRs are welcome, but please understand the pace and volatility.
 
-A few resources to get you started if this is your first Flutter project:
+## Getting Started (for contributors)
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+This is a standard Flutter workspace. If you are setting up your environment:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- [Flutter installation guide](https://docs.flutter.dev/get-started/install)
+- [Flutter codelab](https://docs.flutter.dev/get-started/codelab)
+- [Flutter cookbook](https://docs.flutter.dev/cookbook)
+
+Once Flutter is installed, see the Running locally section above.
