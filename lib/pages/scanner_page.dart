@@ -93,7 +93,14 @@ class _ScannerPageState extends State<ScannerPage> {
     await _ensurePermissions();
     setState(() => _scanning = true);
     await FlutterBluePlus.startScan(timeout: const Duration(seconds: 10));
-    setState(() => _scanning = false);
+    // Listen for scan completion and update UI
+    FlutterBluePlus.isScanning.listen((isScanning) {
+      if (mounted) {
+        setState(() {
+          _scanning = isScanning;
+        });
+      }
+    });
   }
 
   Future<void> _stopScan() async {
@@ -123,7 +130,11 @@ class _ScannerPageState extends State<ScannerPage> {
         title: Text(t.nearbyDevicesTitle),
         actions: [
           IconButton(
-            icon: Icon(_scanning ? Icons.stop : Icons.refresh),
+            icon: Icon(
+              _scanning ? Icons.stop : Icons.refresh,
+              // While scanning, show the stop icon in red to indicate active scanning
+              color: _scanning ? Colors.red : null,
+            ),
             tooltip: _scanning ? t.stop : t.scan,
             onPressed: _scanning ? _stopScan : _startScan,
           ),
