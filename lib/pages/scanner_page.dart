@@ -98,6 +98,11 @@ class _ScannerPageState extends State<ScannerPage> {
     setState(() => _scanning = true);
     await FlutterBluePlus.startScan(timeout: const Duration(seconds: 10), webOptionalServices: [Guid(MeshtasticBleClient.serviceUuid)]);
     // Listen for scan completion and update UI
+    if(kIsWeb){
+      await Future.delayed(
+        const Duration(seconds: 1),
+      );
+    }
     FlutterBluePlus.isScanning.listen((isScanning) {
       if (mounted) {
         setState(() {
