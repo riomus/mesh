@@ -48,6 +48,8 @@ jobs:
         run: |
           flutter build web \
             --release \
+            --build-name "${{ steps.ver.outputs.name }}" \
+            --build-number "${{ steps.ver.outputs.number }}" \
             --base-href "/${{ env.REPO_NAME }}/"
 
       - name: Upload Pages artifact

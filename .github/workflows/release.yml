@@ -54,7 +54,7 @@ jobs:
         run: dart run flutter_native_splash:create
 
       - name: Build Web
-        run: flutter build web --release
+        run: flutter build web --release --build-name "${{ needs.version.outputs.name }}" --build-number "${{ needs.version.outputs.number }}"
 
       - name: Archive Web build
         run: |
