@@ -97,8 +97,8 @@ flutter:
 flutter_native_splash:
   # Simple, brand‑neutral splash based on background colors only for now.
   # You can later add `image` and `image_dark` paths under assets/splash/.
-  color: "#30aa49"
-  color_dark: "#30aa49"
+  color: "#000000"
+  color_dark: "#000000"
 
   android: true
   ios: true
