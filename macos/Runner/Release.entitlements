@@ -4,5 +4,8 @@
 <dict>
 	<key>com.apple.security.app-sandbox</key>
 	<true/>
+    <!-- Allow Bluetooth access for CoreBluetooth (BLE) -->
+    <key>com.apple.security.device.bluetooth</key>
+    <true/>
 </dict>
 </plist>

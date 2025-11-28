@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'pages/scanner_page.dart';
 
+import '../l10n/app_localizations.dart';
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -10,6 +11,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   ThemeMode _themeMode = ThemeMode.system;
+  Locale? _locale;
 
   void _toggleTheme() {
     // Toggle relative to the current EFFECTIVE brightness.
@@ -23,11 +25,17 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  void _setLocale(Locale locale) {
+    setState(() {
+      _locale = locale;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final baseSeed = Colors.indigo;
     return MaterialApp(
-      title: 'Mesh BLE Scanner',
+      onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
       themeMode: _themeMode,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: baseSeed, brightness: Brightness.light),
@@ -37,9 +45,14 @@ class _MyAppState extends State<MyApp> {
         colorScheme: ColorScheme.fromSeed(seedColor: baseSeed, brightness: Brightness.dark),
         useMaterial3: true,
       ),
+      locale: _locale,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: ScannerPage(
         onToggleTheme: _toggleTheme,
         themeMode: _themeMode,
+        onChangeLocale: _setLocale,
+        locale: _locale,
       ),
     );
   }

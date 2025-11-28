@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../l10n/app_localizations.dart';
 import '../widgets/adapter_banner.dart';
 import '../widgets/device_tile.dart';
 import '../widgets/empty_state.dart';
@@ -11,7 +12,9 @@ import '../widgets/empty_state.dart';
 class ScannerPage extends StatefulWidget {
   final VoidCallback? onToggleTheme;
   final ThemeMode? themeMode;
-  const ScannerPage({super.key, this.onToggleTheme, this.themeMode});
+  final void Function(Locale locale)? onChangeLocale;
+  final Locale? locale;
+  const ScannerPage({super.key, this.onToggleTheme, this.themeMode, this.onChangeLocale, this.locale});
 
   @override
   State<ScannerPage> createState() => _ScannerPageState();
@@ -41,19 +44,27 @@ class _ScannerPageState extends State<ScannerPage> {
   }
 
   Future<void> _ensurePermissions() async {
+    // Web & desktop (macOS, Windows, Linux) do not use runtime permissions.
     if (kIsWeb) return;
 
+    final platform = Theme.of(context).platform;
+    // Only Android/iOS need runtime permission requests via permission_handler.
+    if (platform != TargetPlatform.android && platform != TargetPlatform.iOS) {
+      return; // e.g., macOS → avoid calling into permission_handler (not implemented)
+    }
+
     final requests = <Permission>[];
-    if (Theme.of(context).platform == TargetPlatform.android) {
+    if (platform == TargetPlatform.android) {
       requests.addAll([
         Permission.bluetoothScan,
         Permission.bluetoothConnect,
       ]);
       requests.add(Permission.locationWhenInUse); // for pre-Android 12
-    } else if (Theme.of(context).platform == TargetPlatform.iOS) {
+    } else if (platform == TargetPlatform.iOS) {
       requests.add(Permission.bluetooth);
     }
 
+    if (requests.isEmpty) return; // Safety: do not invoke plugin with empty list
     await requests.request();
   }
 
@@ -71,16 +82,17 @@ class _ScannerPageState extends State<ScannerPage> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final devices = _results.values.toList()
       ..sort((a, b) => (b.rssi).compareTo(a.rssi));
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Nearby Bluetooth Devices'),
+        title: Text(t.nearbyDevicesTitle),
         actions: [
           IconButton(
             icon: Icon(_scanning ? Icons.stop : Icons.refresh),
-            tooltip: _scanning ? 'Stop' : 'Scan',
+            tooltip: _scanning ? t.stop : t.scan,
             onPressed: _scanning ? _stopScan : _startScan,
           ),
           IconButton(
@@ -89,8 +101,18 @@ class _ScannerPageState extends State<ScannerPage> {
                   ? Icons.dark_mode
                   : Icons.light_mode,
             ),
-            tooltip: 'Toggle dark mode',
+            tooltip: t.toggleThemeTooltip,
             onPressed: widget.onToggleTheme,
+          ),
+          IconButton(
+            tooltip: t.languageTooltip,
+            onPressed: () => widget.onChangeLocale?.call(const Locale('en')),
+            icon: const Text('🇬🇧', style: TextStyle(fontSize: 18)),
+          ),
+          IconButton(
+            tooltip: t.languageTooltip,
+            onPressed: () => widget.onChangeLocale?.call(const Locale('pl')),
+            icon: const Text('🇵🇱', style: TextStyle(fontSize: 18)),
           ),
         ],
       ),
@@ -113,7 +135,7 @@ class _ScannerPageState extends State<ScannerPage> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _scanning ? _stopScan : _startScan,
         icon: Icon(_scanning ? Icons.stop : Icons.search),
-        label: Text(_scanning ? 'Stop' : 'Scan'),
+        label: Text(_scanning ? t.stop : t.scan),
       ),
     );
   }

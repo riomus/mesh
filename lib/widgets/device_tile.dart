@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 import 'rssi_bar.dart';
+import '../pages/device_details_page.dart';
 
+import '../l10n/app_localizations.dart';
 class DeviceTile extends StatelessWidget {
   final ScanResult result;
   const DeviceTile({super.key, required this.result});
@@ -31,11 +33,18 @@ class DeviceTile extends StatelessWidget {
           ],
         ),
         trailing: result.advertisementData.connectable
-            ? const Chip(
-                avatar: Icon(Icons.link, size: 16),
-                label: Text('Connectable'),
+            ? Chip(
+                avatar: const Icon(Icons.link, size: 16),
+                label: Text(AppLocalizations.of(context)!.connectable),
               )
             : const SizedBox.shrink(),
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => DeviceDetailsPage(result: result),
+            ),
+          );
+        },
       ),
     );
   }

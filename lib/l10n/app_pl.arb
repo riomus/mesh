@@ -1,0 +1,36 @@
+{
+  "appTitle": "Mesh Skaner BLE",
+  "nearbyDevicesTitle": "Bliskie urządzenia Bluetooth",
+  "scan": "Skanuj",
+  "stop": "Zatrzymaj",
+  "toggleThemeTooltip": "Przełącz motyw",
+  "languageTooltip": "Zmień język",
+
+  "general": "Ogólne",
+  "identifier": "Identyfikator",
+  "platformName": "Nazwa platformy",
+  "signalRssi": "Sygnał (RSSI)",
+
+  "advertisement": "Reklama (Advertising)",
+  "advertisedName": "Nazwa reklamowana",
+  "connectable": "Możliwość połączenia",
+  "yes": "Tak",
+  "no": "Nie",
+
+  "service": "Usługa",
+  "serviceUuids": "UUID usług",
+  "serviceUuidsWithCount": "UUID usług ({count})",
+  "manufacturerData": "Dane producenta",
+  "manufacturerDataWithCount": "Dane producenta ({count})",
+  "serviceData": "Dane usług",
+  "serviceDataWithCount": "Dane usług ({count})",
+  "noneAdvertised": "Brak w reklamie",
+
+  "bluetoothOn": "Bluetooth jest WŁĄCZONY",
+  "bluetoothOff": "Bluetooth jest WYŁĄCZONY",
+  "bluetoothState": "Stan Bluetooth: {state}",
+  "webNote": "W przeglądarce, po naciśnięciu Skanuj pojawi się wybór urządzenia (wymagany HTTPS).",
+
+  "tapScanToDiscover": "Naciśnij Skanuj, aby wyszukać pobliskie urządzenia Bluetooth",
+  "unknown": "nieznany"
+}

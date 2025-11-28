@@ -28,5 +28,8 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+    <!-- Bluetooth usage description for macOS 10.15+ -->
+    <key>NSBluetoothAlwaysUsageDescription</key>
+    <string>This app uses Bluetooth to scan for and interact with nearby devices.</string>
 </dict>
 </plist>

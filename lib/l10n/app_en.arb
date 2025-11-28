@@ -1,0 +1,36 @@
+{
+  "appTitle": "Mesh BLE Scanner",
+  "nearbyDevicesTitle": "Nearby Bluetooth Devices",
+  "scan": "Scan",
+  "stop": "Stop",
+  "toggleThemeTooltip": "Toggle theme",
+  "languageTooltip": "Change language",
+
+  "general": "General",
+  "identifier": "Identifier",
+  "platformName": "Platform name",
+  "signalRssi": "Signal (RSSI)",
+
+  "advertisement": "Advertisement",
+  "advertisedName": "Advertised name",
+  "connectable": "Connectable",
+  "yes": "Yes",
+  "no": "No",
+
+  "service": "Service",
+  "serviceUuids": "Service UUIDs",
+  "serviceUuidsWithCount": "Service UUIDs ({count})",
+  "manufacturerData": "Manufacturer Data",
+  "manufacturerDataWithCount": "Manufacturer Data ({count})",
+  "serviceData": "Service Data",
+  "serviceDataWithCount": "Service Data ({count})",
+  "noneAdvertised": "None advertised",
+
+  "bluetoothOn": "Bluetooth is ON",
+  "bluetoothOff": "Bluetooth is OFF",
+  "bluetoothState": "Bluetooth state: {state}",
+  "webNote": "On Web, scanning shows a chooser after tapping Scan (HTTPS required).",
+
+  "tapScanToDiscover": "Tap Scan to discover nearby Bluetooth devices",
+  "unknown": "unknown"
+}

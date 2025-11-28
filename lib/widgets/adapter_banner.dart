@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
+import '../l10n/app_localizations.dart';
 class AdapterBanner extends StatelessWidget {
   const AdapterBanner({super.key});
 
@@ -16,17 +17,18 @@ class AdapterBanner extends StatelessWidget {
         Color color;
         switch (state) {
           case BluetoothAdapterState.on:
-            text = 'Bluetooth is ON';
+            text = AppLocalizations.of(context)!.bluetoothOn;
             icon = Icons.bluetooth_connected;
             color = Colors.green;
             break;
           case BluetoothAdapterState.off:
-            text = 'Bluetooth is OFF';
+            text = AppLocalizations.of(context)!.bluetoothOff;
             icon = Icons.bluetooth_disabled;
             color = Colors.red;
             break;
           default:
-            text = 'Bluetooth state: ${state?.name ?? 'unknown'}';
+            final name = state?.name ?? AppLocalizations.of(context)!.unknown;
+            text = AppLocalizations.of(context)!.bluetoothState(name);
             icon = Icons.bluetooth;
             color = Colors.orange;
         }
@@ -35,8 +37,7 @@ class AdapterBanner extends StatelessWidget {
           child: ListTile(
             leading: Icon(icon, color: color),
             title: Text(text),
-            subtitle: const Text(
-                'On Web, scanning shows a chooser after tapping Scan (HTTPS required).'),
+            subtitle: Text(AppLocalizations.of(context)!.webNote),
           ),
         );
       },

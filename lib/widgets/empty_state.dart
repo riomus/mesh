@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
 class EmptyState extends StatelessWidget {
   const EmptyState({super.key});
 
@@ -15,7 +16,7 @@ class EmptyState extends StatelessWidget {
             color: Colors.indigo.withOpacity(0.6),
           ),
           const SizedBox(height: 12),
-          const Text('Tap Scan to discover nearby Bluetooth devices'),
+          Text(AppLocalizations.of(context)!.tapScanToDiscover),
         ],
       ),
     );
