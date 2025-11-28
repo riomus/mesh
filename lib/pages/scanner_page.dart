@@ -9,6 +9,7 @@ import '../widgets/device_tile.dart';
 import '../widgets/empty_state.dart';
 import '../config/lora_config.dart';
 import '../config/manufacturer_db.dart';
+import '../config/version_info.dart';
 
 class ScannerPage extends StatefulWidget {
   final VoidCallback? onToggleTheme;
@@ -49,6 +50,8 @@ class _ScannerPageState extends State<ScannerPage> {
         await LoraConfig.ensureLoaded();
         // Also warm up Manufacturer database for company identifiers
         await ManufacturerDb.ensureLoaded();
+        // Load app version info (from assets)
+        await VersionInfo.ensureLoaded();
         if (mounted) setState(() {});
       } catch (_) {
         // ignore
@@ -129,6 +132,23 @@ class _ScannerPageState extends State<ScannerPage> {
       appBar: AppBar(
         title: Text(t.nearbyDevicesTitle),
         actions: [
+          if (VersionInfo.instance != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Center(
+                child: Tooltip(
+                  message: 'Build: ${VersionInfo.instance!.displayDescribe}' +
+                      (VersionInfo.instance!.buildTimeUtc != null
+                          ? '\nBuilt: ${VersionInfo.instance!.buildTimeUtc!.toIso8601String()}'
+                          : ''),
+                  child: Text(
+                    VersionInfo.instance!.displayDescribe,
+                    style: Theme.of(context).textTheme.labelSmall,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+            ),
           IconButton(
             icon: Icon(
               _scanning ? Icons.stop : Icons.refresh,

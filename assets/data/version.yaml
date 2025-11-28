@@ -1,0 +1,6 @@
+# Placeholder; overwritten by scripts/version.sh during CI or local release builds.
+version:
+  name: "0.0.0"
+  number: 1
+  describe: "0.0.0-1-gdev"
+  build_time_utc: "1970-01-01T00:00:00Z"
