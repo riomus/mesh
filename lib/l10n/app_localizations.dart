@@ -176,6 +176,18 @@ abstract class AppLocalizations {
   /// **'Connectable'**
   String get connectable;
 
+  /// No description provided for @connect.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get connect;
+
+  /// No description provided for @disconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect'**
+  String get disconnect;
+
   /// No description provided for @yes.
   ///
   /// In en, this message translates to:

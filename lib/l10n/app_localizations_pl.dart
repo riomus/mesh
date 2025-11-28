@@ -48,6 +48,12 @@ class AppLocalizationsPl extends AppLocalizations {
   String get connectable => 'Możliwość połączenia';
 
   @override
+  String get connect => 'Connect';
+
+  @override
+  String get disconnect => 'Disconnect';
+
+  @override
   String get yes => 'Tak';
 
   @override

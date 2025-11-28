@@ -14,6 +14,8 @@
   "advertisement": "Reklama",
   "advertisedName": "Nazwa z reklamy",
   "connectable": "Możliwość połączenia",
+  "connect": "Connect",
+  "disconnect": "Disconnect",
   "yes": "Tak",
   "no": "Nie",
 

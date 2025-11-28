@@ -14,6 +14,8 @@
   "advertisement": "Advertisement",
   "advertisedName": "Advertised name",
   "connectable": "Connectable",
+  "connect": "Connect",
+  "disconnect": "Disconnect",
   "yes": "Yes",
   "no": "No",
 

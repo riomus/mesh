@@ -48,6 +48,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connectable => 'Connectable';
 
   @override
+  String get connect => 'Connect';
+
+  @override
+  String get disconnect => 'Disconnect';
+
+  @override
   String get yes => 'Yes';
 
   @override
