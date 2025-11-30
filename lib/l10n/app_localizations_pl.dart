@@ -119,4 +119,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get meshtasticLabel => 'Meshtastic';
+
+  @override
+  String get settingsButtonLabel => 'Ustawienia';
 }

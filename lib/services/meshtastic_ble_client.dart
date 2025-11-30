@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'logging_service.dart';
 
 // Protobufs
 import '../generated/meshtastic/meshtastic/mesh.pb.dart' as mesh;
@@ -21,6 +22,18 @@ class MeshtasticBleClient {
   static const String fromRadioUuid = '2c55e69e-4993-11ed-b878-0242ac120002';
   static const String fromNumUuid = 'ed9da18c-a800-4f66-a670-aa7547e34453';
 
+  /// Structured logging tags for Meshtastic devices.
+  /// Example: {'network': ['meshtastic'], 'deviceId': [<id>], 'class': ['MeshtasticBleClient']}
+  static Map<String, Object?> logTagsForDeviceId(String deviceId) => {
+        'network': 'meshtastic',
+        'deviceId': deviceId,
+        'class': 'MeshtasticBleClient',
+      };
+
+  /// Convenience overload to build structured tags directly from a device.
+  static Map<String, Object?> logTagsForDevice(BluetoothDevice device) =>
+      logTagsForDeviceId(device.remoteId.str);
+
   final BluetoothDevice device;
 
   BluetoothCharacteristic? _toRadio;
@@ -30,7 +43,6 @@ class MeshtasticBleClient {
   StreamSubscription<List<int>>? _fromNumSub;
 
   final _fromRadioController = StreamController<mesh.FromRadio>.broadcast();
-  final _logController = StreamController<String>.broadcast();
 
   // Cache last negotiated MTU; default to a conservative 185, will request 512
   int _mtu = 185;
@@ -41,7 +53,6 @@ class MeshtasticBleClient {
   MeshtasticBleClient(this.device);
 
   Stream<mesh.FromRadio> get fromRadioStream => _fromRadioController.stream;
-  Stream<String> get logStream => _logController.stream;
 
   Future<void> connect({Duration timeout = const Duration(seconds: 20)}) async {
     _ensureNotDisposed();
@@ -65,7 +76,7 @@ class MeshtasticBleClient {
         _log('MTU (no request on this platform): $_mtu');
       }
     } catch (e) {
-      _log('MTU request failed or unsupported: $e');
+      _log('MTU request failed or unsupported: $e', level: 'warn');
       _mtu = device.mtuNow; // best effort
     }
 
@@ -87,6 +98,7 @@ class MeshtasticBleClient {
       }
     }
     if (targetService == null) {
+      _log('Meshtastic service not found: $serviceUuid', level: 'error');
       throw StateError('Meshtastic service not found: $serviceUuid');
     }
 
@@ -98,6 +110,7 @@ class MeshtasticBleClient {
     }
     _log('Found characteristics for Meshtastic');
     if (_toRadio == null || _fromRadio == null || _fromNum == null) {
+      _log('Missing one or more required characteristics', level: 'error');
       throw StateError('Missing one or more required characteristics');
     }
 
@@ -111,7 +124,7 @@ class MeshtasticBleClient {
     try {
       await _fromNum!.setNotifyValue(true);
     } catch (e) {
-        _log('Failed to enable notifications on FromNum: $e');
+        _log('Failed to enable notifications on FromNum: $e', level: 'error');
     }
     _log('Discovery done');
   }
@@ -137,7 +150,7 @@ class MeshtasticBleClient {
         final msg = mesh.FromRadio.fromBuffer(value);
         _fromRadioController.add(msg);
       } catch (e, st) {
-        _log('Failed to parse FromRadio: $e');
+        _log('Failed to parse FromRadio: $e', level: 'error');
         if (kDebugMode) {
           // ignore: avoid_print
           print(st);
@@ -176,7 +189,6 @@ class MeshtasticBleClient {
       await _fromNumSub?.cancel();
     } catch (_) {}
     await _fromRadioController.close();
-    await _logController.close();
     try {
       await device.disconnect();
     } catch (_) {}
@@ -195,9 +207,8 @@ class MeshtasticBleClient {
     }
   }
 
-  void _log(String msg) {
-    if (!_logController.isClosed) {
-      _logController.add(msg);
-    }
+  void _log(String msg, {String level = 'info'}) {
+    final t = MeshtasticBleClient.logTagsForDevice(device);
+    LoggingService.instance.push(tags: t, level: level, message: msg);
   }
 }

@@ -37,5 +37,7 @@
   "unknown": "nieznane",
   "searchHint": "Szukaj urządzeń po nazwie lub ID",
   "loraOnlyFilterLabel": "Tylko LoRa",
-  "meshtasticLabel": "Meshtastic"
+  "meshtasticLabel": "Meshtastic",
+
+  "settingsButtonLabel": "Ustawienia"
 }

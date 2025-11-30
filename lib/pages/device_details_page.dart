@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -6,6 +7,7 @@ import '../l10n/app_localizations.dart';
 import '../widgets/rssi_bar.dart';
 import '../config/manufacturer_db.dart';
 import '../services/meshtastic_ble_client.dart';
+import '../services/logging_service.dart';
 import '../generated/meshtastic/meshtastic/mesh.pb.dart' as mesh;
 
 class DeviceDetailsPage extends StatefulWidget {
@@ -21,7 +23,7 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
   bool _connecting = false;
   bool _connected = false;
   final List<String> _logs = [];
-  StreamSubscription<String>? _logSub;
+  StreamSubscription<LogEvent>? _logSub;
   // Capture every FromRadio packet
   final List<mesh.FromRadio> _fromRadioPackets = [];
   StreamSubscription<mesh.FromRadio>? _fromRadioSub;
@@ -201,11 +203,20 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                                   leading: const Icon(Icons.markunread_mailbox_outlined),
                                   title: Text(summary, overflow: TextOverflow.ellipsis),
                                   children: [
+                                    // Structured details
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                                      child: FromRadioDetails(packet: item),
+                                    ),
+                                    // Raw bytes (hex)
                                     Padding(
                                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
+                                          Text('Raw (hex)',
+                                              style: Theme.of(context).textTheme.labelLarge),
+                                          const SizedBox(height: 6),
                                           SelectableText(
                                             rawHex,
                                             style: Theme.of(context)
@@ -322,9 +333,15 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
     });
     try {
       final client = MeshtasticBleClient(widget.result.device);
-      _logSub = client.logStream.listen((e) {
+      // Subscribe to logs for this device via global LoggingService using structured tags
+      final deviceId = widget.result.device.remoteId.str;
+      _logSub = LoggingService.instance.listen(
+        allEquals: {'network': 'meshtastic', 'deviceId': deviceId},
+      ).listen((e) {
+        final time = _formatTime(e.timestamp);
+        final msg = '[$time] ${e.level.toUpperCase()}: ${e.message}';
         setState(() {
-          _logs.add(e);
+          _logs.add(msg);
           if (_logs.length > 200) _logs.removeRange(0, _logs.length - 200);
         });
       });
@@ -385,6 +402,11 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
         });
       }
     }
+  }
+
+  String _formatTime(DateTime dt) {
+    String two(int v) => v.toString().padLeft(2, '0');
+    return two(dt.hour) + ':' + two(dt.minute) + ':' + two(dt.second);
   }
 
   String _fromRadioSummary(mesh.FromRadio fr) {
@@ -497,6 +519,306 @@ class _ExpandableMap<T> extends StatelessWidget {
             ),
           )
           .toList(),
+    );
+  }
+}
+
+/// Structured, formatted view of a single FromRadio packet
+class FromRadioDetails extends StatelessWidget {
+  final mesh.FromRadio packet;
+  const FromRadioDetails({required this.packet});
+
+  @override
+  Widget build(BuildContext context) {
+    final pv = packet.whichPayloadVariant();
+    final children = <Widget>[];
+
+    children.add(_SubHeader('${pv.name}'));
+
+    switch (pv) {
+      case mesh.FromRadio_PayloadVariant.packet:
+        final p = packet.packet;
+        // Envelope
+        children.add(_SubHeader('Envelope'));
+        children.addAll([
+          _Kv('from', p.hasFrom() ? '${p.from}' : '—'),
+          _Kv('to', p.hasTo() ? '${p.to}' : '—'),
+          _Kv('channel', p.hasChannel() ? '${p.channel}' : '—'),
+          _Kv('id', p.hasId() ? '${p.id}' : '—'),
+          _Kv('rxTime', p.hasRxTime() ? _fmtTime(p.rxTime) : '—'),
+          _Kv('rxRssi', p.hasRxRssi() ? '${p.rxRssi} dBm' : '—'),
+          _Kv('rxSnr', p.hasRxSnr() ? '${p.rxSnr.toStringAsFixed(1)} dB' : '—'),
+          _Kv('hopLimit', p.hasHopLimit() ? '${p.hopLimit}' : '—'),
+          _Kv('hopStart', p.hasHopStart() ? '${p.hopStart}' : '—'),
+          _Kv('wantAck', p.hasWantAck() ? _fmtBool(p.wantAck) : '—'),
+          _Kv('priority', p.hasPriority() ? p.priority.name : '—'),
+          _Kv('viaMqtt', p.hasViaMqtt() ? _fmtBool(p.viaMqtt) : '—'),
+          _Kv('nextHop', p.hasNextHop() ? '${p.nextHop}' : '—'),
+          _Kv('relayNode', p.hasRelayNode() ? '${p.relayNode}' : '—'),
+          _Kv('txAfter', p.hasTxAfter() ? '${p.txAfter}s' : '—'),
+          _Kv('transport', p.hasTransportMechanism() ? p.transportMechanism.name : '—'),
+        ]);
+        // Payload
+        if (p.hasDecoded()) {
+          final d = p.decoded;
+          children.add(_SubHeader('Decoded payload'));
+          children.addAll([
+            _Kv('portnum', d.hasPortnum() ? d.portnum.name : '—'),
+            _Kv('wantResponse', d.hasWantResponse() ? _fmtBool(d.wantResponse) : '—'),
+            _Kv('source', d.hasSource() ? '${d.source}' : '—'),
+            _Kv('dest', d.hasDest() ? '${d.dest}' : '—'),
+            _Kv('requestId', d.hasRequestId() ? '${d.requestId}' : '—'),
+            _Kv('replyId', d.hasReplyId() ? '${d.replyId}' : '—'),
+            _Kv('emoji', d.hasEmoji() ? String.fromCharCode(d.emoji) : '—'),
+            _Kv('bitfield', d.hasBitfield() ? '0x${d.bitfield.toRadixString(16)}' : '—'),
+          ]);
+          if (d.hasPayload()) {
+            final hex = _hexLimited(d.payload, 256);
+            final txt = _tryUtf8(d.payload);
+            children.addAll([
+              _Kv('payload bytes', '${d.payload.length}'),
+              _MonospaceBlock('payload (hex)', hex),
+              if (txt != null && txt.isNotEmpty) _MonospaceBlock('payload (utf8)', txt),
+            ]);
+          }
+        } else if (p.hasEncrypted()) {
+          children.add(_SubHeader('Encrypted payload'));
+          children.addAll([
+            _Kv('bytes', '${p.encrypted.length}'),
+            _MonospaceBlock('ciphertext (hex)', _hexLimited(p.encrypted, 256)),
+            _Kv('pkiEncrypted', p.hasPkiEncrypted() ? _fmtBool(p.pkiEncrypted) : '—'),
+            if (p.hasPublicKey()) _Kv('publicKey bytes', '${p.publicKey.length}'),
+          ]);
+        } else {
+          children.add(const Text('No payload variant in MeshPacket'));
+        }
+        break;
+      case mesh.FromRadio_PayloadVariant.myInfo:
+        final i = packet.myInfo;
+        children.addAll([
+          _Kv('myNodeNum', i.hasMyNodeNum() ? '${i.myNodeNum}' : '—'),
+          _Kv('rebootCount', i.hasRebootCount() ? '${i.rebootCount}' : '—'),
+          _Kv('minAppVersion', i.hasMinAppVersion() ? '${i.minAppVersion}' : '—'),
+          _Kv('pioEnv', i.hasPioEnv() ? i.pioEnv : '—'),
+          _Kv('firmwareEdition', i.hasFirmwareEdition() ? i.firmwareEdition.name : '—'),
+          _Kv('nodedbCount', i.hasNodedbCount() ? '${i.nodedbCount}' : '—'),
+          if (i.hasDeviceId()) _MonospaceBlock('deviceId (hex)', _hexLimited(i.deviceId, 64)),
+        ]);
+        break;
+      case mesh.FromRadio_PayloadVariant.nodeInfo:
+        final n = packet.nodeInfo;
+        children.addAll([
+          _Kv('num', n.hasNum() ? '${n.num}' : '—'),
+          if (n.hasUser()) ...[
+            _SubHeader('User'),
+            _Kv('id', n.user.hasId() ? n.user.id : '—'),
+            _Kv('longName', n.user.hasLongName() ? n.user.longName : '—'),
+            _Kv('shortName', n.user.hasShortName() ? n.user.shortName : '—'),
+            _Kv('hwModel', n.user.hasHwModel() ? n.user.hwModel.name : '—'),
+            _Kv('role', n.user.hasRole() ? n.user.role.name : '—'),
+            _Kv('licensed', n.user.hasIsLicensed() ? _fmtBool(n.user.isLicensed) : '—'),
+          ],
+          if (n.hasPosition()) ...[
+            _SubHeader('Position'),
+            _Kv('lat/lon', _formatLatLon(n.position)),
+            _Kv('altitude', n.position.hasAltitude() ? '${n.position.altitude} m' : '—'),
+            _Kv('timestamp', n.position.hasTime() ? _fmtTime(n.position.time) : '—'),
+          ],
+          _Kv('snr', n.hasSnr() ? '${n.snr.toStringAsFixed(1)} dB' : '—'),
+          _Kv('lastHeard', n.hasLastHeard() ? _fmtTime(n.lastHeard) : '—'),
+          _Kv('channel', n.hasChannel() ? '${n.channel}' : '—'),
+          _Kv('viaMqtt', n.hasViaMqtt() ? _fmtBool(n.viaMqtt) : '—'),
+          _Kv('hopsAway', n.hasHopsAway() ? '${n.hopsAway}' : '—'),
+          _Kv('favorite', n.hasIsFavorite() ? _fmtBool(n.isFavorite) : '—'),
+          _Kv('ignored', n.hasIsIgnored() ? _fmtBool(n.isIgnored) : '—'),
+        ]);
+        break;
+      case mesh.FromRadio_PayloadVariant.config:
+        children.add(const Text('Config update received'));
+        break;
+      case mesh.FromRadio_PayloadVariant.moduleConfig:
+        children.add(const Text('ModuleConfig update received'));
+        break;
+      case mesh.FromRadio_PayloadVariant.channel:
+        children.add(const Text('Channel update received'));
+        break;
+      case mesh.FromRadio_PayloadVariant.logRecord:
+        final l = packet.logRecord;
+        children.addAll([
+          _Kv('level', l.hasLevel() ? l.level.name : '—'),
+          _Kv('source', l.hasSource() ? l.source : '—'),
+          _Kv('message', l.hasMessage() ? l.message : '—'),
+        ]);
+        break;
+      case mesh.FromRadio_PayloadVariant.queueStatus:
+        final q = packet.queueStatus;
+        children.addAll([
+          _Kv('meshPacketId', q.hasMeshPacketId() ? '${q.meshPacketId}' : '—'),
+          _Kv('free', q.hasFree() ? '${q.free}' : '—'),
+        ]);
+        break;
+      case mesh.FromRadio_PayloadVariant.xmodemPacket:
+        final xm = packet.xmodemPacket;
+        children.addAll([
+          _Kv('buffer bytes', xm.hasBuffer() ? '${xm.buffer.length}' : '—'),
+          if (xm.hasBuffer()) _MonospaceBlock('buffer (hex)', _hexLimited(xm.buffer, 256)),
+        ]);
+        break;
+      case mesh.FromRadio_PayloadVariant.metadata:
+        final m = packet.metadata;
+        children.addAll([
+          _Kv('hwModel', m.hasHwModel() ? m.hwModel.name : '—'),
+          _Kv('firmwareVersion', m.hasFirmwareVersion() ? m.firmwareVersion : '—'),
+          // Only show fields that exist in current proto
+        ]);
+        break;
+      case mesh.FromRadio_PayloadVariant.mqttClientProxyMessage:
+        final mp = packet.mqttClientProxyMessage;
+        children.addAll([
+          _Kv('topic', mp.hasTopic() ? mp.topic : '—'),
+          _Kv('retained', mp.hasRetained() ? _fmtBool(mp.retained) : '—'),
+        ]);
+        final which = mp.whichPayloadVariant();
+        if (which == mesh.MqttClientProxyMessage_PayloadVariant.text && mp.hasText()) {
+          children.add(_MonospaceBlock('text', mp.text));
+        } else if (which == mesh.MqttClientProxyMessage_PayloadVariant.data && mp.hasData()) {
+          children.addAll([
+            _Kv('data bytes', '${mp.data.length}'),
+            _MonospaceBlock('data (hex)', _hexLimited(mp.data, 256)),
+          ]);
+        }
+        break;
+      case mesh.FromRadio_PayloadVariant.fileInfo:
+        final f = packet.fileInfo;
+        children.addAll([
+          _Kv('fileName', f.hasFileName() ? f.fileName : '—'),
+          _Kv('sizeBytes', f.hasSizeBytes() ? '${f.sizeBytes}' : '—'),
+          // fileId might not exist in current proto
+        ]);
+        break;
+      case mesh.FromRadio_PayloadVariant.clientNotification:
+        final cn = packet.clientNotification;
+        children.addAll([
+          _Kv('message', cn.hasMessage() ? cn.message : '—'),
+          // severity might not exist in current proto
+        ]);
+        break;
+      case mesh.FromRadio_PayloadVariant.deviceuiConfig:
+        children.add(const Text('Device UI config update'));
+        break;
+      case mesh.FromRadio_PayloadVariant.configCompleteId:
+        children.add(_Kv('configCompleteId', '${packet.configCompleteId}'));
+        break;
+      case mesh.FromRadio_PayloadVariant.rebooted:
+        children.add(_Kv('rebooted', _fmtBool(packet.rebooted)));
+        break;
+      case mesh.FromRadio_PayloadVariant.notSet:
+        children.add(const Text('No payload set'));
+        break;
+    }
+
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
+  }
+
+  static String _fmtTime(int epochSeconds) {
+    final dt = DateTime.fromMillisecondsSinceEpoch(epochSeconds * 1000, isUtc: true).toLocal();
+    return dt.toIso8601String();
+  }
+
+  static String _fmtBool(bool v) => v ? 'Yes' : 'No';
+
+  static String _hexLimited(List<int> bytes, int max) {
+    if (bytes.isEmpty) return '—';
+    final slice = bytes.length > max ? bytes.sublist(0, max) : bytes;
+    final hex = _hexLocal(slice);
+    if (slice.length < bytes.length) {
+      return '$hex … (+${bytes.length - slice.length} bytes)';
+    }
+    return hex;
+  }
+
+  static String? _tryUtf8(List<int> bytes) {
+    try {
+      final s = utf8.decode(bytes, allowMalformed: true);
+      // show only printable subset
+      if (s.trim().isEmpty) return null;
+      return s;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static String _hexLocal(List<int> bytes) {
+    final sb = StringBuffer();
+    for (final b in bytes) {
+      sb.write(b.toRadixString(16).padLeft(2, '0'));
+      sb.write(' ');
+    }
+    return sb.toString().trim().toUpperCase();
+  }
+
+  static String _formatLatLon(mesh.Position p) {
+    final hasLat = p.hasLatitudeI();
+    final hasLon = p.hasLongitudeI();
+    if (!hasLat || !hasLon) return '—';
+    // latitudeI/longitudeI are scaled by 1e-7 in Meshtastic
+    final lat = p.latitudeI / 1e7;
+    final lon = p.longitudeI / 1e7;
+    return '${lat.toStringAsFixed(7)}, ${lon.toStringAsFixed(7)}';
+  }
+}
+
+class _SubHeader extends StatelessWidget {
+  final String text;
+  const _SubHeader(this.text);
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, bottom: 4),
+      child: Text(text, style: Theme.of(context).textTheme.labelLarge),
+    );
+  }
+}
+
+class _Kv extends StatelessWidget {
+  final String keyText;
+  final String valueText;
+  const _Kv(this.keyText, this.valueText);
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(width: 140, child: Text(keyText, style: Theme.of(context).textTheme.bodySmall)),
+          const SizedBox(width: 8),
+          Expanded(child: Text(valueText, style: Theme.of(context).textTheme.bodyMedium)),
+        ],
+      ),
+    );
+  }
+}
+
+class _MonospaceBlock extends StatelessWidget {
+  final String title;
+  final String content;
+  const _MonospaceBlock(this.title, this.content);
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 6, bottom: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: Theme.of(context).textTheme.labelMedium),
+          const SizedBox(height: 4),
+          SelectableText(
+            content,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(fontFamily: 'monospace'),
+          ),
+        ],
+      ),
     );
   }
 }

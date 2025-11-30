@@ -301,6 +301,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Meshtastic'**
   String get meshtasticLabel;
+
+  /// No description provided for @settingsButtonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsButtonLabel;
 }
 
 class _AppLocalizationsDelegate

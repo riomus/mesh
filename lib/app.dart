@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'pages/scanner_page.dart';
+import 'pages/settings_page.dart';
+import 'services/settings_service.dart';
+import 'pages/logs_page.dart';
 
 import '../l10n/app_localizations.dart';
 class MyApp extends StatefulWidget {
@@ -12,6 +15,23 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   ThemeMode _themeMode = ThemeMode.system;
   Locale? _locale;
+  final SettingsService _settings = SettingsService();
+  bool _loaded = false;
+  int _selectedIndex = 0; // 0 = Scanner, 1 = Logs
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    final s = await _settings.load();
+    setState(() {
+      _locale = s.locale;
+      _loaded = true;
+    });
+  }
 
   void _toggleTheme() {
     // Toggle relative to the current EFFECTIVE brightness.
@@ -29,6 +49,8 @@ class _MyAppState extends State<MyApp> {
     setState(() {
       _locale = locale;
     });
+    // Persist
+    _settings.save(AppSettings(locale: locale));
   }
 
   @override
@@ -48,12 +70,40 @@ class _MyAppState extends State<MyApp> {
       locale: _locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: ScannerPage(
-        onToggleTheme: _toggleTheme,
-        themeMode: _themeMode,
-        onChangeLocale: _setLocale,
-        locale: _locale,
-      ),
+      home: !_loaded
+          ? const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            )
+          : Scaffold(
+              body: IndexedStack(
+                index: _selectedIndex,
+                children: [
+                  ScannerPage(
+                    onToggleTheme: _toggleTheme,
+                    themeMode: _themeMode,
+                    onOpenSettings: (ctx) {
+                      Navigator.of(ctx).push(
+                        MaterialPageRoute(
+                          builder: (_) => SettingsPage(
+                            initialLocale: _locale,
+                            onChangedLocale: _setLocale,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const LogsPage(),
+                ],
+              ),
+              bottomNavigationBar: NavigationBar(
+                selectedIndex: _selectedIndex,
+                destinations: const [
+                  NavigationDestination(icon: Icon(Icons.devices), label: 'Devices'),
+                  NavigationDestination(icon: Icon(Icons.list_alt), label: 'Logs'),
+                ],
+                onDestinationSelected: (i) => setState(() => _selectedIndex = i),
+              ),
+            ),
     );
   }
 }
