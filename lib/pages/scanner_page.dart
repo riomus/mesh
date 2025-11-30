@@ -11,6 +11,7 @@ import '../widgets/empty_state.dart';
 import '../config/lora_config.dart';
 import '../config/manufacturer_db.dart';
 import '../config/version_info.dart';
+import '../widgets/mesh_app_bar.dart';
 
 class ScannerPage extends StatefulWidget {
   final VoidCallback? onToggleTheme;
@@ -134,9 +135,12 @@ class _ScannerPageState extends State<ScannerPage> {
       ..sort((a, b) => (b.rssi).compareTo(a.rssi));
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: MeshAppBar(
         title: Text(t.nearbyDevicesTitle),
-        actions: [
+        onToggleTheme: widget.onToggleTheme,
+        themeMode: widget.themeMode,
+        onOpenSettings: widget.onOpenSettings,
+        extraActions: [
           if (VersionInfo.instance != null)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -157,60 +161,10 @@ class _ScannerPageState extends State<ScannerPage> {
           IconButton(
             icon: Icon(
               _scanning ? Icons.stop : Icons.refresh,
-              // While scanning, show the stop icon in red to indicate active scanning
               color: _scanning ? Colors.red : null,
             ),
             tooltip: _scanning ? t.stop : t.scan,
             onPressed: _scanning ? _stopScan : _startScan,
-          ),
-          // Bluetooth adapter state indicator in the top-right corner
-          StreamBuilder<BluetoothAdapterState>(
-            stream: FlutterBluePlus.adapterState,
-            initialData: FlutterBluePlus.adapterStateNow,
-            builder: (context, snapshot) {
-              final state = snapshot.data;
-              IconData icon;
-              Color color;
-              String tooltip;
-              switch (state) {
-                case BluetoothAdapterState.on:
-                  icon = Icons.bluetooth_connected;
-                  color = Colors.green;
-                  tooltip = AppLocalizations.of(context)!.bluetoothOn;
-                  break;
-                case BluetoothAdapterState.off:
-                  icon = Icons.bluetooth_disabled;
-                  color = Colors.red;
-                  tooltip = AppLocalizations.of(context)!.bluetoothOff;
-                  break;
-                default:
-                  final name = state?.name ?? AppLocalizations.of(context)!.unknown;
-                  icon = Icons.bluetooth;
-                  color = Colors.orange;
-                  tooltip = AppLocalizations.of(context)!.bluetoothState(name);
-              }
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Tooltip(
-                  message: tooltip,
-                  child: Icon(icon, color: color),
-                ),
-              );
-            },
-          ),
-          IconButton(
-            icon: Icon(
-              Theme.of(context).brightness == Brightness.dark
-                  ? Icons.dark_mode
-                  : Icons.light_mode,
-            ),
-            tooltip: t.toggleThemeTooltip,
-            onPressed: widget.onToggleTheme,
-          ),
-          IconButton(
-            tooltip: AppLocalizations.of(context).settingsButtonLabel,
-            icon: const Icon(Icons.settings),
-            onPressed: () => widget.onOpenSettings?.call(context),
           ),
         ],
       ),
@@ -266,7 +220,12 @@ class _ScannerPageState extends State<ScannerPage> {
                   itemCount: devices.length,
                   itemBuilder: (context, index) {
                     final r = devices[index];
-                    return DeviceTile(result: r);
+                    return DeviceTile(
+                      result: r,
+                      onToggleTheme: widget.onToggleTheme,
+                      themeMode: widget.themeMode,
+                      onOpenSettings: widget.onOpenSettings,
+                    );
                   },
                 ),
           ),

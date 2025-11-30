@@ -9,7 +9,10 @@ import '../config/manufacturer_db.dart';
 import '../l10n/app_localizations.dart';
 class DeviceTile extends StatelessWidget {
   final ScanResult result;
-  const DeviceTile({super.key, required this.result});
+  final VoidCallback? onToggleTheme;
+  final ThemeMode? themeMode;
+  final void Function(BuildContext context)? onOpenSettings;
+  const DeviceTile({super.key, required this.result, this.onToggleTheme, this.themeMode, this.onOpenSettings});
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +68,12 @@ class DeviceTile extends StatelessWidget {
         onTap: () {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) => DeviceDetailsPage(result: result),
+              builder: (_) => DeviceDetailsPage(
+                result: result,
+                onToggleTheme: onToggleTheme,
+                themeMode: themeMode,
+                onOpenSettings: onOpenSettings,
+              ),
             ),
           );
         },

@@ -10,10 +10,14 @@ import '../services/meshtastic_ble_client.dart';
 import '../services/logging_service.dart';
 import '../generated/meshtastic/meshtastic/mesh.pb.dart' as mesh;
 import '../widgets/logs_viewer.dart';
+import '../widgets/mesh_app_bar.dart';
 
 class DeviceDetailsPage extends StatefulWidget {
   final ScanResult result;
-  const DeviceDetailsPage({super.key, required this.result});
+  final VoidCallback? onToggleTheme;
+  final ThemeMode? themeMode;
+  final void Function(BuildContext context)? onOpenSettings;
+  const DeviceDetailsPage({super.key, required this.result, this.onToggleTheme, this.themeMode, this.onOpenSettings});
 
   @override
   State<DeviceDetailsPage> createState() => _DeviceDetailsPageState();
@@ -84,8 +88,11 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
         .any((g) => g.str.toLowerCase() == MeshtasticBleClient.serviceUuid);
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: MeshAppBar(
         title: Text(_bestName(result)),
+        onToggleTheme: widget.onToggleTheme,
+        themeMode: widget.themeMode,
+        onOpenSettings: widget.onOpenSettings,
       ),
       body: ListView(
         children: [

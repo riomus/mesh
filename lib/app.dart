@@ -87,12 +87,29 @@ class _MyAppState extends State<MyApp> {
                           builder: (_) => SettingsPage(
                             initialLocale: _locale,
                             onChangedLocale: _setLocale,
+                            onToggleTheme: _toggleTheme,
+                            themeMode: _themeMode,
                           ),
                         ),
                       );
                     },
                   ),
-                  const LogsPage(),
+                  LogsPage(
+                    onToggleTheme: _toggleTheme,
+                    themeMode: _themeMode,
+                    onOpenSettings: (ctx) {
+                      Navigator.of(ctx).push(
+                        MaterialPageRoute(
+                          builder: (_) => SettingsPage(
+                            initialLocale: _locale,
+                            onChangedLocale: _setLocale,
+                            onToggleTheme: _toggleTheme,
+                            themeMode: _themeMode,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ],
               ),
               bottomNavigationBar: NavigationBar(

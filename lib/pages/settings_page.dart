@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
+import '../widgets/mesh_app_bar.dart';
 
 class SettingsPage extends StatelessWidget {
   final Locale? initialLocale; // null → system default
   final void Function(Locale? locale) onChangedLocale;
+  final VoidCallback? onToggleTheme;
+  final ThemeMode? themeMode;
 
   const SettingsPage({
     super.key,
     required this.initialLocale,
     required this.onChangedLocale,
+    this.onToggleTheme,
+    this.themeMode,
   });
 
   @override
@@ -17,8 +22,12 @@ class SettingsPage extends StatelessWidget {
     final options = <Locale?>[null, ...AppLocalizations.supportedLocales];
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: MeshAppBar(
         title: Text(t.appTitle),
+        onToggleTheme: onToggleTheme,
+        themeMode: themeMode,
+        // Do not show settings button on the Settings page itself
+        onOpenSettings: null,
       ),
       body: ListView(
         padding: const EdgeInsets.all(12),
