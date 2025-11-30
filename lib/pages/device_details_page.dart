@@ -9,6 +9,7 @@ import '../config/manufacturer_db.dart';
 import '../services/meshtastic_ble_client.dart';
 import '../services/logging_service.dart';
 import '../generated/meshtastic/meshtastic/mesh.pb.dart' as mesh;
+import '../widgets/logs_viewer.dart';
 
 class DeviceDetailsPage extends StatefulWidget {
   final ScanResult result;
@@ -22,8 +23,10 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
   MeshtasticBleClient? _client;
   bool _connecting = false;
   bool _connected = false;
-  final List<String> _logs = [];
-  StreamSubscription<LogEvent>? _logSub;
+  // Logs are now shown via reusable LogsViewer widget; no manual buffering here.
+  StreamSubscription<LogEvent>? _logSub; // kept for backwards-compat, but unused
+  // Stable device-scoped log stream (with replay) to avoid re-subscribe on rebuilds
+  Stream<LogEvent>? _deviceLogStream;
   // Capture every FromRadio packet
   final List<mesh.FromRadio> _fromRadioPackets = [];
   StreamSubscription<mesh.FromRadio>? _fromRadioSub;
@@ -32,6 +35,34 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
     if (r.advertisementData.advName.isNotEmpty) return r.advertisementData.advName;
     if (r.device.platformName.isNotEmpty) return r.device.platformName;
     return r.device.remoteId.str;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _initDeviceLogStream();
+  }
+
+  void _initDeviceLogStream() {
+    final deviceId = widget.result.device.remoteId.str;
+    _deviceLogStream = LoggingService.instance.listenWithReplay(
+      takeLast: 200,
+      allEquals: {
+        'network': 'meshtastic',
+        'deviceId': deviceId,
+      },
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant DeviceDetailsPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final oldId = oldWidget.result.device.remoteId.str;
+    final newId = widget.result.device.remoteId.str;
+    if (oldId != newId) {
+      _initDeviceLogStream();
+      setState(() {});
+    }
   }
 
   @override
@@ -129,29 +160,35 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                   ],
                 ),
               ),
-              // Simple log console
-              if (_logs.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: Theme.of(context).dividerColor,
+              // Logs (scoped to this device) using shared LogsViewer
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.list_alt),
+                        const SizedBox(width: 8),
+                        Text('Logs', style: Theme.of(context).textTheme.titleSmall),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Theme.of(context).dividerColor),
+                      ),
+                      child: LogsViewer(
+                        key: ValueKey('deviceLogs-' + result.device.remoteId.str),
+                        maxHeight: 160,
+                        stream: _deviceLogStream,
                       ),
                     ),
-                    constraints: const BoxConstraints(maxHeight: 160),
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: _logs.length,
-                      itemBuilder: (context, i) => Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        child: Text(_logs[i]),
-                      ),
-                    ),
-                  ),
+                  ],
                 ),
+              ),
               // FromRadio packets viewer
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
@@ -328,23 +365,11 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
   Future<void> _connectMeshtastic() async {
     setState(() {
       _connecting = true;
-      _logs.clear();
       _fromRadioPackets.clear();
     });
     try {
       final client = MeshtasticBleClient(widget.result.device);
-      // Subscribe to logs for this device via global LoggingService using structured tags
-      final deviceId = widget.result.device.remoteId.str;
-      _logSub = LoggingService.instance.listen(
-        allEquals: {'network': 'meshtastic', 'deviceId': deviceId},
-      ).listen((e) {
-        final time = _formatTime(e.timestamp);
-        final msg = '[$time] ${e.level.toUpperCase()}: ${e.message}';
-        setState(() {
-          _logs.add(msg);
-          if (_logs.length > 200) _logs.removeRange(0, _logs.length - 200);
-        });
-      });
+      // Logs are displayed via LogsViewer widget; no explicit subscription here.
       // subscribe to incoming packets
       _fromRadioSub?.cancel();
       _fromRadioSub = client.fromRadioStream.listen((pkt) {

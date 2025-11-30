@@ -46,6 +46,10 @@ class LoggingService {
   final StreamController<LogEvent> _controller =
       StreamController<LogEvent>.broadcast();
 
+  // In-memory replay buffer (ring-like via truncate at capacity)
+  final List<LogEvent> _buffer = <LogEvent>[];
+  int _bufferCapacity = 1000; // configurable via setter if needed
+
   /// Push a log entry.
   ///
   /// Required: [level], [message]. Optional: [tags], [timestamp].
@@ -65,6 +69,12 @@ class LoggingService {
       message: message,
     );
     _controller.add(evt);
+    // store in replay buffer
+    _buffer.add(evt);
+    final overflow = _buffer.length - _bufferCapacity;
+    if (overflow > 0) {
+      _buffer.removeRange(0, overflow);
+    }
   }
 
   /// Stream all log events.
@@ -121,10 +131,105 @@ class LoggingService {
     return s;
   }
 
+  /// Stream of log events that first replays up to [takeLast] matching historical
+  /// events from the in-memory buffer, then continues with live updates.
+  Stream<LogEvent> listenWithReplay({
+    int takeLast = 200,
+    String? level,
+    String? key,
+    String? value,
+    Map<String, String>? allEquals,
+    Map<String, List<String>>? keyAnyOf,
+    String? containsText,
+    String? keyForText,
+    Pattern? pattern,
+    String? keyForPattern,
+    bool caseSensitive = false,
+  }) {
+    return Stream<LogEvent>.multi((multi) {
+      // Emit replay from a snapshot of the buffer to avoid mutation while iterating
+      final snap = List<LogEvent>.from(_buffer);
+      final Iterable<LogEvent> matches = snap.where((e) => _matches(
+            e,
+            level: level,
+            key: key,
+            value: value,
+            allEquals: allEquals,
+            keyAnyOf: keyAnyOf,
+            containsText: containsText,
+            keyForText: keyForText,
+            pattern: pattern,
+            keyForPattern: keyForPattern,
+            caseSensitive: caseSensitive,
+          ));
+      final List<LogEvent> tail = takeLast <= 0
+          ? const <LogEvent>[]
+          : (matches.length <= takeLast
+              ? matches.toList()
+              : matches.skip(matches.length - takeLast).toList());
+      for (final e in tail) {
+        multi.add(e);
+      }
+      // Then live subscription with the same filters
+      final sub = listen(
+        level: level,
+        key: key,
+        value: value,
+        allEquals: allEquals,
+        keyAnyOf: keyAnyOf,
+        containsText: containsText,
+        keyForText: keyForText,
+        pattern: pattern,
+        keyForPattern: keyForPattern,
+        caseSensitive: caseSensitive,
+      ).listen(multi.add, onError: multi.addError, onDone: multi.close);
+      multi.onCancel = () => sub.cancel();
+    });
+  }
+
   /// Close the underlying stream controller. Typically not needed for apps.
   Future<void> dispose() => _controller.close();
 
   // ---- Helpers ----
+
+  bool _matches(
+    LogEvent e, {
+    String? level,
+    String? key,
+    String? value,
+    Map<String, String>? allEquals,
+    Map<String, List<String>>? keyAnyOf,
+    String? containsText,
+    String? keyForText,
+    Pattern? pattern,
+    String? keyForPattern,
+    bool caseSensitive = false,
+  }) {
+    if (level != null && e.level != level) return false;
+    if (allEquals != null && allEquals.isNotEmpty) {
+      if (!_matchAllEquals(e.tags, allEquals)) return false;
+    }
+    if (key != null) {
+      if (!e.tags.containsKey(key)) return false;
+      if (value != null) {
+        if (!(e.tags[key] ?? const <String>[]).contains(value)) return false;
+      }
+    }
+    if (keyAnyOf != null && keyAnyOf.isNotEmpty) {
+      if (!_matchKeyAnyOf(e.tags, keyAnyOf)) return false;
+    }
+    if ((containsText != null && containsText.isNotEmpty) || pattern != null) {
+      if (!_matchTextOrPattern(
+        e.tags,
+        containsText: containsText,
+        keyForText: keyForText,
+        pattern: pattern,
+        keyForPattern: keyForPattern,
+        caseSensitive: caseSensitive,
+      )) return false;
+    }
+    return true;
+  }
 
   static Map<String, List<String>> _normalizeTags(Map<String, Object?>? input) {
     if (input == null || input.isEmpty) return const <String, List<String>>{};
