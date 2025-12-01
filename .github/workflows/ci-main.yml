@@ -5,8 +5,28 @@ on:
     branches: [ "main" ]
 
 jobs:
+  version:
+    name: Compute Version (git describe)
+    runs-on: ubuntu-latest
+    outputs:
+      name: ${{ steps.ver.outputs.name }}
+      number: ${{ steps.ver.outputs.number }}
+      tag_name: ${{ steps.ver.outputs.tag_name }}
+      describe: ${{ steps.ver.outputs.describe }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Compute version from git describe (and ensure base tag 0.0.1)
+        id: ver
+        run: |
+          bash scripts/version.sh
   web_smoke:
     runs-on: ubuntu-latest
+    needs: version
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -49,6 +69,7 @@ jobs:
 
   web_integration:
     runs-on: ubuntu-latest
+    needs: version
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -93,6 +114,7 @@ jobs:
 
   android_integration:
     runs-on: ubuntu-latest
+    needs: version
     timeout-minutes: 30
     steps:
       - name: Checkout
