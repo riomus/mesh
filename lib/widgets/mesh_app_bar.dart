@@ -42,18 +42,18 @@ class MeshAppBar extends StatelessWidget implements PreferredSizeWidget {
               case BluetoothAdapterState.on:
                 icon = Icons.bluetooth_connected;
                 color = Colors.green;
-                tooltip = t?.bluetoothOn ?? 'Bluetooth: On';
+                tooltip = t.bluetoothOn;
                 break;
               case BluetoothAdapterState.off:
                 icon = Icons.bluetooth_disabled;
                 color = Colors.red;
-                tooltip = t?.bluetoothOff ?? 'Bluetooth: Off';
+                tooltip = t.bluetoothOff;
                 break;
               default:
-                final name = state?.name ?? (t?.unknown ?? 'Unknown');
+                final name = state?.name ?? t.unknown;
                 icon = Icons.bluetooth;
                 color = Colors.orange;
-                tooltip = t?.bluetoothState(name) ?? 'Bluetooth: $name';
+                tooltip = t.bluetoothState(name);
             }
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -73,13 +73,13 @@ class MeshAppBar extends StatelessWidget implements PreferredSizeWidget {
                   ? Icons.dark_mode
                   : Icons.light_mode,
             ),
-            tooltip: t?.toggleThemeTooltip ?? 'Toggle theme',
+            tooltip: t.toggleThemeTooltip,
             onPressed: onToggleTheme,
           ),
         // Settings shortcut
         if (onOpenSettings != null)
           IconButton(
-            tooltip: t?.settingsButtonLabel ?? 'Settings',
+            tooltip: t.settingsButtonLabel,
             icon: const Icon(Icons.settings),
             onPressed: () => onOpenSettings!.call(context),
           ),

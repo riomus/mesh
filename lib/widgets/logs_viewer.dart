@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:ui' show FontFeature;
+// Removed: import 'dart:ui' show FontFeature; (unnecessary)
 
 import 'package:flutter/material.dart';
 
@@ -71,13 +71,15 @@ class _LogsViewerState extends State<LogsViewer> {
 
   // Builder controls for adding a new exact filter pill
   String? _newFilterKey;
-  String _newFilterValue = '';
-  _ChipOp _newFilterOp = _ChipOp.exact;
+  final String _newFilterValue = '';
+  final _ChipOp _newFilterOp = _ChipOp.exact;
 
   // Value pattern filter (contains/regex). Optionally scoped to a single key.
   final TextEditingController _valuePatternCtrl = TextEditingController(); // partial/regex filter for values
   String? _patternKey; // when null, search across all tag values
+  // ignore: prefer_final_fields
   bool _useRegex = false;
+  // ignore: prefer_final_fields
   bool _caseSensitive = false;
   final TextEditingController _textCtrl = TextEditingController(); // global search across rendered line
   final FocusNode _searchFocus = FocusNode();
@@ -177,14 +179,12 @@ class _LogsViewerState extends State<LogsViewer> {
           .asMap()
           .entries
           .where((e) => e.value.isLevel)
-          .map((entry) => _buildChip(entry.key, entry.value))
-          .toList(),
+          .map((entry) => _buildChip(entry.key, entry.value)),
       ..._chips
           .asMap()
           .entries
           .where((e) => !e.value.isLevel)
-          .map((entry) => _buildChip(entry.key, entry.value))
-          .toList(),
+          .map((entry) => _buildChip(entry.key, entry.value)),
     ];
     return Padding(
       padding: const EdgeInsets.all(8.0),
@@ -356,7 +356,7 @@ class _LogsViewerState extends State<LogsViewer> {
                     if (draftKind == _ChipKind.tag) ...[
                       DropdownButtonFormField<String>(
                         decoration: const InputDecoration(labelText: 'Key'),
-                        value: draftKey,
+                        initialValue: draftKey,
                         items: [
                           if (draftKey != null) DropdownMenuItem(value: draftKey, child: Text(draftKey!)),
                           ..._seenKeys
@@ -599,8 +599,9 @@ class _LogsViewerState extends State<LogsViewer> {
             ? (e.tags[_patternKey!] ?? const <String>[])
             : e.tags.values.expand((v) => v);
         bool hit = false;
-        if (regex != null) {
-          for (final v in values) { if (regex!.hasMatch(v)) { hit = true; break; } }
+        final r = regex; // may be null
+        if (r != null) {
+          for (final v in values) { if (r.hasMatch(v)) { hit = true; break; } }
         } else {
           if (_caseSensitive) {
             for (final v in values) { if (v.contains(valueQuery)) { hit = true; break; } }
@@ -636,7 +637,7 @@ class _LogsViewerState extends State<LogsViewer> {
     for (final k in keys) {
       final values = e.tags[k] ?? const <String>[];
       if (values.isEmpty) continue;
-      final v = values.length == 1 ? values.first : '[' + values.join(', ') + ']';
+      final v = values.length == 1 ? values.first : '[${values.join(', ')}]';
       parts.add('$k=$v');
     }
     return parts.join(' • ');
@@ -665,7 +666,7 @@ class _LogTile extends StatelessWidget {
         text: TextSpan(
           style: Theme.of(context).textTheme.bodyMedium,
           children: [
-            TextSpan(text: '[$time] ', style: TextStyle(color: Theme.of(context).hintColor, fontFeatures: const [FontFeature.tabularFigures()])),
+            TextSpan(text: '[$time] ', style: TextStyle(color: Theme.of(context).hintColor)),
             TextSpan(text: level, style: TextStyle(fontWeight: FontWeight.w600, color: color)),
             const TextSpan(text: '  '),
             TextSpan(text: srcDisplay, style: TextStyle(color: Theme.of(context).colorScheme.secondary)),
@@ -704,7 +705,7 @@ class _LogTile extends StatelessWidget {
     for (final k in keys) {
       final values = e.tags[k] ?? const <String>[];
       if (values.isEmpty) continue;
-      final v = values.length == 1 ? values.first : '[' + values.join(', ') + ']';
+      final v = values.length == 1 ? values.first : '[${values.join(', ')}]';
       parts.add('$k=$v');
     }
     return parts.join(' • ');

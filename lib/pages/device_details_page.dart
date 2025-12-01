@@ -10,7 +10,7 @@ import '../services/logging_service.dart';
 import '../widgets/logs_viewer.dart';
 import '../widgets/mesh_app_bar.dart';
 import '../meshtastic/model/meshtastic_event.dart';
-import '../meshtastic/model/meshtastic_models.dart';
+// Removed unused import: meshtastic_models.dart
 import '../widgets/meshtastic_event_tiles.dart';
 
 class DeviceDetailsPage extends StatefulWidget {
@@ -100,21 +100,21 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
           const SizedBox(height: 8),
           // General section
           _Section(
-            title: AppLocalizations.of(context)!.general,
+            title: AppLocalizations.of(context).general,
             children: [
               ListTile(
                 leading: const Icon(Icons.bluetooth),
-                title: Text(AppLocalizations.of(context)!.identifier),
+                title: Text(AppLocalizations.of(context).identifier),
                 subtitle: Text(device.remoteId.str),
               ),
               ListTile(
                 leading: const Icon(Icons.badge),
-                title: Text(AppLocalizations.of(context)!.platformName),
+                title: Text(AppLocalizations.of(context).platformName),
                 subtitle: Text(device.platformName.isNotEmpty ? device.platformName : '—'),
               ),
               ListTile(
                 leading: const Icon(Icons.network_cell),
-                title: Text(AppLocalizations.of(context)!.signalRssi),
+                title: Text(AppLocalizations.of(context).signalRssi),
                 subtitle: Padding(
                   padding: const EdgeInsets.only(top: 8.0),
                   child: RssiBar(rssi: result.rssi),
@@ -139,8 +139,8 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                     ElevatedButton.icon(
                       icon: Icon(_connected ? Icons.link_off : Icons.link),
                       label: Text(_connected
-                          ? AppLocalizations.of(context)!.disconnect
-                          : AppLocalizations.of(context)!.connect),
+                          ? AppLocalizations.of(context).disconnect
+                          : AppLocalizations.of(context).connect),
                       // Allow connect even if Meshtastic service is not advertised.
                       // We will attempt to connect and fail gracefully with an error message if
                       // the required service/characteristics are not discovered.
@@ -189,7 +189,7 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                         border: Border.all(color: Theme.of(context).dividerColor),
                       ),
                       child: LogsViewer(
-                        key: ValueKey('deviceLogs-' + result.device.remoteId.str),
+                        key: ValueKey('deviceLogs-${result.device.remoteId.str}'),
                         maxHeight: 160,
                         stream: _deviceLogStream,
                       ),
@@ -256,43 +256,43 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
           ),
           // Advertisement section
           _Section(
-            title: AppLocalizations.of(context)!.advertisement,
+            title: AppLocalizations.of(context).advertisement,
             children: [
               ListTile(
                 leading: const Icon(Icons.label),
-                title: Text(AppLocalizations.of(context)!.advertisedName),
+                title: Text(AppLocalizations.of(context).advertisedName),
                 subtitle: Text(ad.advName.isNotEmpty ? ad.advName : '—'),
               ),
               ListTile(
                 leading: const Icon(Icons.link),
-                title: Text(AppLocalizations.of(context)!.connectable),
+                title: Text(AppLocalizations.of(context).connectable),
                 subtitle: Text(ad.connectable
-                    ? AppLocalizations.of(context)!.yes
-                    : AppLocalizations.of(context)!.no),
+                    ? AppLocalizations.of(context).yes
+                    : AppLocalizations.of(context).no),
               ),
               // Service UUIDs
               if (ad.serviceUuids.isNotEmpty)
                 _ExpandableMap<List<Guid>>(
                   icon: Icons.widgets,
-                  title: AppLocalizations.of(context)!
+                  title: AppLocalizations.of(context)
                       .serviceUuidsWithCount(ad.serviceUuids.length),
                   items: {
                     for (var i = 0; i < ad.serviceUuids.length; i++)
-                      '${AppLocalizations.of(context)!.service} ${i + 1}': [ad.serviceUuids[i]]
+                      '${AppLocalizations.of(context).service} ${i + 1}': [ad.serviceUuids[i]]
                   },
                   valueBuilder: (gList) => gList.map((g) => g.str).join(', '),
                 )
               else
                 ListTile(
                   leading: const Icon(Icons.widgets),
-                  title: Text(AppLocalizations.of(context)!.serviceUuids),
-                  subtitle: Text(AppLocalizations.of(context)!.noneAdvertised),
+                  title: Text(AppLocalizations.of(context).serviceUuids),
+                  subtitle: Text(AppLocalizations.of(context).noneAdvertised),
                 ),
               // Manufacturer Data
               if (ad.manufacturerData.isNotEmpty)
                 _ExpandableMap<List<int>>(
                   icon: Icons.factory,
-                  title: AppLocalizations.of(context)!
+                  title: AppLocalizations.of(context)
                       .manufacturerDataWithCount(ad.manufacturerData.length),
                   items: ad.manufacturerData.map((k, v) => MapEntry(_manufacturerKey(k), v)),
                   valueBuilder: (bytes) => _hex(bytes),
@@ -300,23 +300,23 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
               else
                 ListTile(
                   leading: const Icon(Icons.factory),
-                  title: Text(AppLocalizations.of(context)!.manufacturerData),
-                  subtitle: Text(AppLocalizations.of(context)!.noneAdvertised),
+                  title: Text(AppLocalizations.of(context).manufacturerData),
+                  subtitle: Text(AppLocalizations.of(context).noneAdvertised),
                 ),
               // Service Data
               if (ad.serviceData.isNotEmpty)
                 _ExpandableMap<List<int>>(
                   icon: Icons.storage,
                   title:
-                      AppLocalizations.of(context)!.serviceDataWithCount(ad.serviceData.length),
+                      AppLocalizations.of(context).serviceDataWithCount(ad.serviceData.length),
                   items: ad.serviceData.map((k, v) => MapEntry(k.str, v)),
                   valueBuilder: (bytes) => _hex(bytes),
                 )
               else
                 ListTile(
                   leading: const Icon(Icons.storage),
-                  title: Text(AppLocalizations.of(context)!.serviceData),
-                  subtitle: Text(AppLocalizations.of(context)!.noneAdvertised),
+                  title: Text(AppLocalizations.of(context).serviceData),
+                  subtitle: Text(AppLocalizations.of(context).noneAdvertised),
                 ),
             ],
           ),
@@ -409,12 +409,6 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
     }
   }
 
-  String _formatTime(DateTime dt) {
-    String two(int v) => v.toString().padLeft(2, '0');
-    return two(dt.hour) + ':' + two(dt.minute) + ':' + two(dt.second);
-  }
-
-  // Legacy summary removed; events are rendered by MeshtasticEventTile
 }
 
 class _Section extends StatelessWidget {
@@ -477,57 +471,4 @@ class _ExpandableMap<T> extends StatelessWidget {
 // Removed legacy FromRadioDetails widget that exposed protobufs. Events are now
 // rendered using MeshtasticEventTile with internal DTOs only.
 
-class _SubHeader extends StatelessWidget {
-  final String text;
-  const _SubHeader(this.text);
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8, bottom: 4),
-      child: Text(text, style: Theme.of(context).textTheme.labelLarge),
-    );
-  }
-}
-
-class _Kv extends StatelessWidget {
-  final String keyText;
-  final String valueText;
-  const _Kv(this.keyText, this.valueText);
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(width: 140, child: Text(keyText, style: Theme.of(context).textTheme.bodySmall)),
-          const SizedBox(width: 8),
-          Expanded(child: Text(valueText, style: Theme.of(context).textTheme.bodyMedium)),
-        ],
-      ),
-    );
-  }
-}
-
-class _MonospaceBlock extends StatelessWidget {
-  final String title;
-  final String content;
-  const _MonospaceBlock(this.title, this.content);
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 6, bottom: 6),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: Theme.of(context).textTheme.labelMedium),
-          const SizedBox(height: 4),
-          SelectableText(
-            content,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(fontFamily: 'monospace'),
-          ),
-        ],
-      ),
-    );
-  }
-}
+// Legacy summary removed; events are rendered by MeshtasticEventTile

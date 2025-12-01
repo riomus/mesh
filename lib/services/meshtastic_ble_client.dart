@@ -49,7 +49,7 @@ class MeshtasticBleClient {
   // Cache last negotiated MTU; default to a conservative 185, will request 512
   int _mtu = 185;
 
-  bool _isInitialized = false;
+  // removed unused _isInitialized flag
   bool _isDisposed = false;
 
   MeshtasticBleClient(this.device);
@@ -85,8 +85,6 @@ class MeshtasticBleClient {
 
     await _discoverAndBindCharacteristics();
     await _startInitialDownload();
-
-    _isInitialized = true;
   }
 
   Future<void> _discoverAndBindCharacteristics() async {
@@ -203,12 +201,6 @@ class MeshtasticBleClient {
     } catch (_) {}
   }
 
-  void _ensureInitialized() {
-    _ensureNotDisposed();
-    if (!_isInitialized) {
-      throw StateError('MeshtasticBleClient not initialized. Call connect() first.');
-    }
-  }
 
   void _ensureNotDisposed() {
     if (_isDisposed) {

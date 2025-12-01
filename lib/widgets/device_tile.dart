@@ -17,7 +17,7 @@ class DeviceTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final device = result.device;
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     final name = result.advertisementData.advName.isNotEmpty
         ? result.advertisementData.advName
         : (device.platformName.isNotEmpty
@@ -62,7 +62,7 @@ class DeviceTile extends StatelessWidget {
         trailing: result.advertisementData.connectable
             ? Chip(
                 avatar: const Icon(Icons.link, size: 16),
-                label: Text(AppLocalizations.of(context)!.connectable),
+                label: Text(AppLocalizations.of(context).connectable),
               )
             : const SizedBox.shrink(),
         onTap: () {
@@ -86,7 +86,7 @@ class DeviceTile extends StatelessWidget {
     if (ids.isEmpty) return const SizedBox.shrink();
     final id = ids.first;
     final name = ManufacturerDb.nameNow(id);
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     final idHex = '0x${id.toRadixString(16).padLeft(4, '0').toUpperCase()}';
     final text = name ?? t.unknown;
     final suffix = ids.length > 1 ? ' (+${ids.length - 1})' : '';
@@ -112,7 +112,7 @@ class DeviceTile extends StatelessWidget {
       icon = Icons.phone_android;
     }
     return CircleAvatar(
-      backgroundColor: Colors.indigo.withOpacity(0.1),
+      backgroundColor: Colors.indigo.withValues(alpha: 0.1),
       child: Icon(icon, color: Colors.indigo),
     );
   }

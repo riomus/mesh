@@ -28,7 +28,7 @@ class MeshtasticEventTile extends StatelessWidget {
           subtitle: e.nodeInfo.num != null ? 'num=${e.nodeInfo.num}' : null,
           color: Colors.deepPurple,
         );
-      case ConfigEvent e:
+      case ConfigEvent _:
         return _SimpleTile(
           emoji: '⚙️',
           title: 'Config update',
@@ -49,7 +49,7 @@ class MeshtasticEventTile extends StatelessWidget {
           subtitle: e.rebooted ? 'Device reported reboot' : 'No reboot',
           color: Colors.orange,
         );
-      case ModuleConfigEvent e:
+      case ModuleConfigEvent _:
         return _SimpleTile(
           emoji: '🧩',
           title: 'Module config',
@@ -77,7 +77,7 @@ class MeshtasticEventTile extends StatelessWidget {
           subtitle: e.metadata.myNodeNum != null ? 'myNodeNum=${e.metadata.myNodeNum}' : null,
           color: Colors.brown,
         );
-      case MqttClientProxyEvent e:
+      case MqttClientProxyEvent _:
         return _SimpleTile(
           emoji: '☁️',
           title: 'MQTT proxy',
@@ -98,7 +98,7 @@ class MeshtasticEventTile extends StatelessWidget {
           subtitle: e.notification.message,
           color: Colors.pink,
         );
-      case DeviceUiConfigEvent e:
+      case DeviceUiConfigEvent _:
         return _SimpleTile(
           emoji: '🖥️',
           title: 'Device UI config',
@@ -193,8 +193,8 @@ class _PacketTile extends StatelessWidget {
     final latI = pos.latitudeI;
     final lonI = pos.longitudeI;
     if (latI != null && lonI != null) {
-      final lat = latI! / 1e7;
-      final lon = lonI! / 1e7;
+      final lat = latI / 1e7;
+      final lon = lonI / 1e7;
       return '📍 ${lat.toStringAsFixed(5)}, ${lon.toStringAsFixed(5)}';
     }
     return '📍 Position update';
@@ -298,7 +298,7 @@ class _LogTile extends StatelessWidget {
       ),
       child: ListTile(
         leading: Text(emoji, style: const TextStyle(fontSize: 20)),
-        title: Text(src.isNotEmpty ? '$src' : 'Log'),
+        title: Text(src.isNotEmpty ? src : 'Log'),
         subtitle: Text(msg),
         dense: true,
       ),

@@ -13,10 +13,10 @@ class EmptyState extends StatelessWidget {
           Icon(
             Icons.bluetooth_searching,
             size: 48,
-            color: Colors.indigo.withOpacity(0.6),
+            color: Colors.indigo.withValues(alpha: 0.6),
           ),
           const SizedBox(height: 12),
-          Text(AppLocalizations.of(context)!.tapScanToDiscover),
+          Text(AppLocalizations.of(context).tapScanToDiscover),
         ],
       ),
     );

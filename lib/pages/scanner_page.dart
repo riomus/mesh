@@ -129,7 +129,7 @@ class _ScannerPageState extends State<ScannerPage> {
 
   @override
   Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     final base = _filteredDevices(_results.values, _query);
     final devices = (_loraOnly ? base.where(isLoraDevice).toList() : base)
       ..sort((a, b) => (b.rssi).compareTo(a.rssi));
@@ -146,10 +146,8 @@ class _ScannerPageState extends State<ScannerPage> {
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Center(
                 child: Tooltip(
-                  message: 'Build: ${VersionInfo.instance!.displayDescribe}' +
-                      (VersionInfo.instance!.buildTimeUtc != null
-                          ? '\nBuilt: ${VersionInfo.instance!.buildTimeUtc!.toIso8601String()}'
-                          : ''),
+                  message: 'Build: ${VersionInfo.instance!.displayDescribe}'
+                      '${VersionInfo.instance!.buildTimeUtc != null ? '\nBuilt: ${VersionInfo.instance!.buildTimeUtc!.toIso8601String()}' : ''}',
                   child: Text(
                     VersionInfo.instance!.displayDescribe,
                     style: Theme.of(context).textTheme.labelSmall,

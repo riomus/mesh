@@ -19,17 +19,17 @@ class LogEvent {
   @override
   String toString() {
     if (tags.isEmpty) {
-      return 'LogEvent(time: ' + timestamp.toIso8601String() + ', tags: (no-tags), level: ' + level + ', message: ' + message + ')';
+      return 'LogEvent(time: ${timestamp.toIso8601String()}, tags: (no-tags), level: $level, message: $message)';
     }
     final keys = tags.keys.toList()..sort();
     final parts = <String>[];
     for (final k in keys) {
       final vs = List<String>.from(tags[k] ?? const <String>[])..sort();
       if (vs.isEmpty) continue;
-      final vStr = vs.length == 1 ? vs.first : '[' + vs.join(', ') + ']';
+      final vStr = vs.length == 1 ? vs.first : '[${vs.join(', ')}]';
       parts.add('$k=$vStr');
     }
-    return 'LogEvent(time: ' + timestamp.toIso8601String() + ', tags: ' + parts.join(' • ') + ', level: ' + level + ', message: ' + message + ')';
+    return 'LogEvent(time: ${timestamp.toIso8601String()}, tags: ${parts.join(' • ')}, level: $level, message: $message)';
   }
 }
 
@@ -48,7 +48,7 @@ class LoggingService {
 
   // In-memory replay buffer (ring-like via truncate at capacity)
   final List<LogEvent> _buffer = <LogEvent>[];
-  int _bufferCapacity = 1000; // configurable via setter if needed
+  final int _bufferCapacity = 1000; // configurable via setter if needed
 
   /// Push a log entry.
   ///
@@ -226,7 +226,9 @@ class LoggingService {
         pattern: pattern,
         keyForPattern: keyForPattern,
         caseSensitive: caseSensitive,
-      )) return false;
+      )) {
+        return false;
+      }
     }
     return true;
   }
