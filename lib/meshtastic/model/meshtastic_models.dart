@@ -254,7 +254,9 @@ class ConfigDto {
 // Structured ModuleConfig DTO (incremental: starts with MQTT fields)
 class ModuleConfigDto {
   final MqttConfigDto? mqtt;
-  const ModuleConfigDto({this.mqtt});
+  final TelemetryConfigDto? telemetry;
+  final SerialConfigDto? serial;
+  const ModuleConfigDto({this.mqtt, this.telemetry, this.serial});
 }
 
 class MqttConfigDto {
@@ -294,6 +296,62 @@ class MapReportSettingsDto {
     this.publishIntervalSecs,
     this.positionPrecision,
     this.shouldReportLocation,
+  });
+}
+
+class TelemetryConfigDto {
+  final int? deviceUpdateInterval;
+  final int? environmentUpdateInterval;
+  final bool? environmentMeasurementEnabled;
+  final bool? environmentScreenEnabled;
+  final bool? environmentDisplayFahrenheit;
+  final bool? airQualityEnabled;
+  final int? airQualityInterval;
+  final bool? powerMeasurementEnabled;
+  final int? powerUpdateInterval;
+  final bool? powerScreenEnabled;
+  final bool? healthMeasurementEnabled;
+  final int? healthUpdateInterval;
+  final bool? healthScreenEnabled;
+  final bool? deviceTelemetryEnabled;
+
+  const TelemetryConfigDto({
+    this.deviceUpdateInterval,
+    this.environmentUpdateInterval,
+    this.environmentMeasurementEnabled,
+    this.environmentScreenEnabled,
+    this.environmentDisplayFahrenheit,
+    this.airQualityEnabled,
+    this.airQualityInterval,
+    this.powerMeasurementEnabled,
+    this.powerUpdateInterval,
+    this.powerScreenEnabled,
+    this.healthMeasurementEnabled,
+    this.healthUpdateInterval,
+    this.healthScreenEnabled,
+    this.deviceTelemetryEnabled,
+  });
+}
+
+class SerialConfigDto {
+  final bool? enabled;
+  final bool? echo;
+  final int? rxd;
+  final int? txd;
+  final String? baud; // enum name
+  final int? timeout;
+  final String? mode; // enum name
+  final bool? overrideConsoleSerialPort;
+
+  const SerialConfigDto({
+    this.enabled,
+    this.echo,
+    this.rxd,
+    this.txd,
+    this.baud,
+    this.timeout,
+    this.mode,
+    this.overrideConsoleSerialPort,
   });
 }
 

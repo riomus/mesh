@@ -111,6 +111,8 @@ class MeshtasticMappers {
 
   static ModuleConfigDto _toModuleConfigDto(module.ModuleConfig mc) {
     MqttConfigDto? mqtt;
+    TelemetryConfigDto? telemetry;
+    SerialConfigDto? serial;
     if (mc.hasMqtt()) {
       final m = mc.mqtt;
       MapReportSettingsDto? mapReport;
@@ -141,7 +143,62 @@ class MeshtasticMappers {
         mapReportSettings: mapReport,
       );
     }
-    return ModuleConfigDto(mqtt: mqtt);
+    if (mc.hasTelemetry()) {
+      final t = mc.telemetry;
+      telemetry = TelemetryConfigDto(
+        deviceUpdateInterval:
+            t.hasDeviceUpdateInterval() ? t.deviceUpdateInterval : null,
+        environmentUpdateInterval: t.hasEnvironmentUpdateInterval()
+            ? t.environmentUpdateInterval
+            : null,
+        environmentMeasurementEnabled: t.hasEnvironmentMeasurementEnabled()
+            ? t.environmentMeasurementEnabled
+            : null,
+        environmentScreenEnabled: t.hasEnvironmentScreenEnabled()
+            ? t.environmentScreenEnabled
+            : null,
+        environmentDisplayFahrenheit: t.hasEnvironmentDisplayFahrenheit()
+            ? t.environmentDisplayFahrenheit
+            : null,
+        airQualityEnabled:
+            t.hasAirQualityEnabled() ? t.airQualityEnabled : null,
+        airQualityInterval:
+            t.hasAirQualityInterval() ? t.airQualityInterval : null,
+        powerMeasurementEnabled: t.hasPowerMeasurementEnabled()
+            ? t.powerMeasurementEnabled
+            : null,
+        powerUpdateInterval:
+            t.hasPowerUpdateInterval() ? t.powerUpdateInterval : null,
+        powerScreenEnabled:
+            t.hasPowerScreenEnabled() ? t.powerScreenEnabled : null,
+        healthMeasurementEnabled: t.hasHealthMeasurementEnabled()
+            ? t.healthMeasurementEnabled
+            : null,
+        healthUpdateInterval:
+            t.hasHealthUpdateInterval() ? t.healthUpdateInterval : null,
+        healthScreenEnabled:
+            t.hasHealthScreenEnabled() ? t.healthScreenEnabled : null,
+        deviceTelemetryEnabled: t.hasDeviceTelemetryEnabled()
+            ? t.deviceTelemetryEnabled
+            : null,
+      );
+    }
+    if (mc.hasSerial()) {
+      final s = mc.serial;
+      serial = SerialConfigDto(
+        enabled: s.hasEnabled() ? s.enabled : null,
+        echo: s.hasEcho() ? s.echo : null,
+        rxd: s.hasRxd() ? s.rxd : null,
+        txd: s.hasTxd() ? s.txd : null,
+        baud: s.hasBaud() ? s.baud.name : null,
+        timeout: s.hasTimeout() ? s.timeout : null,
+        mode: s.hasMode() ? s.mode.name : null,
+        overrideConsoleSerialPort: s.hasOverrideConsoleSerialPort()
+            ? s.overrideConsoleSerialPort
+            : null,
+      );
+    }
+    return ModuleConfigDto(mqtt: mqtt, telemetry: telemetry, serial: serial);
   }
 
   static MeshPacketDto _toMeshPacketDto(mesh.MeshPacket packet) {
