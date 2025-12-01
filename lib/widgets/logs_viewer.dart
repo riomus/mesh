@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 // Removed: import 'dart:ui' show FontFeature; (unnecessary)
 
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../services/logging_service.dart';
 
@@ -248,6 +251,16 @@ class _LogsViewerState extends State<LogsViewer> {
             ),
           ),
           const SizedBox(width: 8),
+          // Share filtered logs as JSON
+          Tooltip(
+            message: 'Share logs (JSON)',
+            child: IconButton(
+              key: const Key('logs_share_button'),
+              icon: const Icon(Icons.ios_share),
+              onPressed: _shareFilteredLogs,
+            ),
+          ),
+          const SizedBox(width: 8),
           // Fullscreen toggle
           Tooltip(
             message: 'Fullscreen',
@@ -308,6 +321,38 @@ class _LogsViewerState extends State<LogsViewer> {
         ],
       ),
     );
+  }
+
+  Future<void> _shareFilteredLogs() async {
+    try {
+      final items = _filtered().map((e) => {
+            'timestamp': e.timestamp.toIso8601String(),
+            'tags': e.tags,
+            'level': e.level,
+            'message': e.message,
+          }).toList(growable: false);
+      final jsonStr = const JsonEncoder.withIndent('  ').convert(items);
+      final bytes = Uint8List.fromList(utf8.encode(jsonStr));
+      final ts = DateTime.now();
+      final name = 'logs-${ts.year.toString().padLeft(4, '0')}'
+          '${ts.month.toString().padLeft(2, '0')}'
+          '${ts.day.toString().padLeft(2, '0')}-'
+          '${ts.hour.toString().padLeft(2, '0')}'
+          '${ts.minute.toString().padLeft(2, '0')}'
+          '${ts.second.toString().padLeft(2, '0')}.json';
+      final file = XFile.fromData(
+        bytes,
+        name: name,
+        mimeType: 'application/json',
+      );
+      await Share.shareXFiles([file], text: 'Logs export');
+    } catch (err) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to share logs: $err')),
+        );
+      }
+    }
   }
 
   // Build a single filter chip

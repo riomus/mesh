@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../services/device_communication_event_service.dart';
 import 'meshtastic_event_tiles.dart';
@@ -85,9 +88,54 @@ class _EventsListWidgetState extends State<EventsListWidget> {
     return true;
   }
 
+  List<DeviceEvent> _filtered() => _events.where(_matchFilters).toList().reversed.toList();
+
+  Future<void> _shareFilteredEvents() async {
+    try {
+      final items = _filtered().map((e) {
+        final payload = e.payload;
+        Object? payloadJson;
+        if (payload == null) {
+          payloadJson = null;
+        } else if (payload is MeshtasticDeviceEventPayload) {
+          // Keep it lightweight; include a brief structured snapshot
+          payloadJson = {
+            'type': 'MeshtasticDeviceEventPayload',
+            'eventType': payload.event.runtimeType.toString(),
+          };
+        } else {
+          payloadJson = {'type': payload.runtimeType.toString()};
+        }
+        return {
+          'timestamp': e.timestamp.toIso8601String(),
+          'tags': e.tags,
+          'summary': e.summary,
+          'payload': payloadJson,
+        };
+      }).toList(growable: false);
+      final jsonStr = const JsonEncoder.withIndent('  ').convert(items);
+      final bytes = Uint8List.fromList(utf8.encode(jsonStr));
+      final ts = DateTime.now();
+      final name = 'events-${ts.year.toString().padLeft(4, '0')}'
+          '${ts.month.toString().padLeft(2, '0')}'
+          '${ts.day.toString().padLeft(2, '0')}-'
+          '${ts.hour.toString().padLeft(2, '0')}'
+          '${ts.minute.toString().padLeft(2, '0')}'
+          '${ts.second.toString().padLeft(2, '0')}.json';
+      final file = XFile.fromData(bytes, name: name, mimeType: 'application/json');
+      await Share.shareXFiles([file], text: 'Events export');
+    } catch (err) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to share events: $err')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final filtered = _events.where(_matchFilters).toList().reversed.toList();
+    final filtered = _filtered();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -100,6 +148,7 @@ class _EventsListWidgetState extends State<EventsListWidget> {
           deviceIds: _deviceIds.toList()..sort(),
           selectedDeviceId: _selectedDeviceId,
           onDeviceIdSelected: (v) => setState(() => _selectedDeviceId = v),
+          onShare: _shareFilteredEvents,
         ),
         const SizedBox(height: 8),
         Expanded(
@@ -124,6 +173,7 @@ class _Toolbar extends StatelessWidget {
   final List<String> deviceIds;
   final String? selectedDeviceId;
   final ValueChanged<String?> onDeviceIdSelected;
+  final VoidCallback? onShare;
 
   const _Toolbar({
     required this.search,
@@ -134,6 +184,7 @@ class _Toolbar extends StatelessWidget {
     required this.deviceIds,
     required this.selectedDeviceId,
     required this.onDeviceIdSelected,
+    this.onShare,
   });
 
   @override
@@ -154,6 +205,16 @@ class _Toolbar extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
+            if (onShare != null)
+              Tooltip(
+                message: 'Share events (JSON)',
+                child: IconButton(
+                  key: const Key('events_share_button'),
+                  icon: const Icon(Icons.ios_share),
+                  onPressed: onShare,
+                ),
+              ),
+            if (onShare != null) const SizedBox(width: 8),
             Tooltip(
               message: 'Fullscreen',
               child: IconButton(
