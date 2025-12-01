@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import '../../generated/meshtastic/meshtastic/mesh.pb.dart' as mesh;
 import '../../generated/meshtastic/meshtastic/portnums.pbenum.dart' as port;
 import '../../generated/meshtastic/meshtastic/module_config.pb.dart' as module;
+import '../../generated/meshtastic/meshtastic/config.pb.dart' as cfgpb;
 import '../../generated/meshtastic/meshtastic/admin.pb.dart' as admin;
 import '../../generated/meshtastic/meshtastic/telemetry.pb.dart' as telem;
 import 'meshtastic_event.dart';
@@ -46,10 +47,7 @@ class MeshtasticMappers {
           isKeyManuallyVerified: n.hasIsKeyManuallyVerified() ? n.isKeyManuallyVerified : null,
         ));
       case mesh.FromRadio_PayloadVariant.config:
-        return ConfigEvent(ConfigDto(
-          rawBytes: Uint8List.fromList(fr.config.writeToBuffer()),
-          rawProto: fr.config.toProto3Json() as Map<String, dynamic>,
-        ));
+        return ConfigEvent(_toConfigDto(fr.config));
       case mesh.FromRadio_PayloadVariant.logRecord:
         return LogRecordEvent(LogRecordDto(
           level: fr.logRecord.hasLevel() ? fr.logRecord.level.name : null,
@@ -107,6 +105,33 @@ class MeshtasticMappers {
         return const LogRecordEvent(
             LogRecordDto(level: 'WARN', message: 'FromRadio payload not set'));
     }
+  }
+
+  static ConfigDto _toConfigDto(cfgpb.Config cfg) {
+    DeviceConfigDto? device;
+    if (cfg.hasDevice()) {
+      final d = cfg.device;
+      device = DeviceConfigDto(
+        role: d.hasRole() ? d.role.name : null,
+        serialEnabled: d.hasSerialEnabled() ? d.serialEnabled : null,
+        buttonGpio: d.hasButtonGpio() ? d.buttonGpio : null,
+        buzzerGpio: d.hasBuzzerGpio() ? d.buzzerGpio : null,
+        rebroadcastMode:
+            d.hasRebroadcastMode() ? d.rebroadcastMode.name : null,
+        nodeInfoBroadcastSecs:
+            d.hasNodeInfoBroadcastSecs() ? d.nodeInfoBroadcastSecs : null,
+        doubleTapAsButtonPress:
+            d.hasDoubleTapAsButtonPress() ? d.doubleTapAsButtonPress : null,
+        isManaged: d.hasIsManaged() ? d.isManaged : null,
+        disableTripleClick:
+            d.hasDisableTripleClick() ? d.disableTripleClick : null,
+        tzdef: d.hasTzdef() ? d.tzdef : null,
+        ledHeartbeatDisabled:
+            d.hasLedHeartbeatDisabled() ? d.ledHeartbeatDisabled : null,
+        buzzerMode: d.hasBuzzerMode() ? d.buzzerMode.name : null,
+      );
+    }
+    return ConfigDto(device: device);
   }
 
   static ModuleConfigDto _toModuleConfigDto(module.ModuleConfig mc) {

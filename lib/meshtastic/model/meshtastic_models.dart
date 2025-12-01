@@ -244,11 +244,38 @@ class NodeInfoDto {
 }
 
 class ConfigDto {
-  // Raw JSON (proto3) of meshtastic.Config
-  final Map<String, dynamic>? rawProto;
-  // Raw serialized bytes
-  final Uint8List? rawBytes;
-  const ConfigDto({this.rawProto, this.rawBytes});
+  final DeviceConfigDto? device;
+  const ConfigDto({this.device});
+}
+
+class DeviceConfigDto {
+  final String? role; // enum name
+  final bool? serialEnabled; // deprecated upstream
+  final int? buttonGpio;
+  final int? buzzerGpio;
+  final String? rebroadcastMode; // enum name
+  final int? nodeInfoBroadcastSecs;
+  final bool? doubleTapAsButtonPress;
+  final bool? isManaged; // deprecated upstream
+  final bool? disableTripleClick;
+  final String? tzdef;
+  final bool? ledHeartbeatDisabled;
+  final String? buzzerMode; // enum name
+
+  const DeviceConfigDto({
+    this.role,
+    this.serialEnabled,
+    this.buttonGpio,
+    this.buzzerGpio,
+    this.rebroadcastMode,
+    this.nodeInfoBroadcastSecs,
+    this.doubleTapAsButtonPress,
+    this.isManaged,
+    this.disableTripleClick,
+    this.tzdef,
+    this.ledHeartbeatDisabled,
+    this.buzzerMode,
+  });
 }
 
 // Structured ModuleConfig DTO (incremental: starts with MQTT fields)
