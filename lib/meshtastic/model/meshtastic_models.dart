@@ -173,6 +173,95 @@ class RawPayloadDto extends DecodedPayloadDto {
   const RawPayloadDto(this.portnum, this.bytes);
 }
 
+// Additional Meshtastic app payloads
+
+class WaypointDto {
+  final int? id;
+  final int? latitudeI;
+  final int? longitudeI;
+  final int? expire;
+  final int? lockedTo;
+  final String? name;
+  final String? description;
+  final int? icon;
+  const WaypointDto({
+    this.id,
+    this.latitudeI,
+    this.longitudeI,
+    this.expire,
+    this.lockedTo,
+    this.name,
+    this.description,
+    this.icon,
+  });
+}
+
+class WaypointPayloadDto extends DecodedPayloadDto {
+  final WaypointDto waypoint;
+  const WaypointPayloadDto(this.waypoint);
+}
+
+class RemoteHardwarePayloadDto extends DecodedPayloadDto {
+  final String? type; // enum name
+  final int? gpioMask;
+  final int? gpioValue;
+  const RemoteHardwarePayloadDto({this.type, this.gpioMask, this.gpioValue});
+}
+
+class NeighborEntryDto {
+  final int? nodeId;
+  final double? snr;
+  final int? lastRxTime;
+  final int? nodeBroadcastIntervalSecs;
+  const NeighborEntryDto({
+    this.nodeId,
+    this.snr,
+    this.lastRxTime,
+    this.nodeBroadcastIntervalSecs,
+  });
+}
+
+class NeighborInfoPayloadDto extends DecodedPayloadDto {
+  final int? nodeId;
+  final int? lastSentById;
+  final int? nodeBroadcastIntervalSecs;
+  final List<NeighborEntryDto>? neighbors;
+  const NeighborInfoPayloadDto({
+    this.nodeId,
+    this.lastSentById,
+    this.nodeBroadcastIntervalSecs,
+    this.neighbors,
+  });
+}
+
+class StoreForwardPayloadDto extends DecodedPayloadDto {
+  final String? variant; // stats/history/heartbeat/text
+  const StoreForwardPayloadDto({this.variant});
+}
+
+class TelemetryPayloadDto extends DecodedPayloadDto {
+  final String? variant; // which telemetry message variant
+  const TelemetryPayloadDto({this.variant});
+}
+
+class PaxcounterPayloadDto extends DecodedPayloadDto {
+  final int? wifi;
+  final int? ble;
+  final int? uptime;
+  const PaxcounterPayloadDto({this.wifi, this.ble, this.uptime});
+}
+
+class TraceroutePayloadDto extends DecodedPayloadDto {
+  const TraceroutePayloadDto();
+}
+
+class KeyVerificationPayloadDto extends DecodedPayloadDto {
+  final int? nonce;
+  final Uint8List? hash1;
+  final Uint8List? hash2;
+  const KeyVerificationPayloadDto({this.nonce, this.hash1, this.hash2});
+}
+
 // FromRadio variant DTOs (typed, minimal fields used by UI)
 class MyInfoDto {
   final NodeNum? myNodeNum;

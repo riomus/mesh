@@ -9,6 +9,10 @@ import '../../generated/meshtastic/meshtastic/device_ui.pb.dart' as dui;
 import '../../generated/meshtastic/meshtastic/config.pb.dart' as cfgpb;
 import '../../generated/meshtastic/meshtastic/admin.pb.dart' as admin;
 import '../../generated/meshtastic/meshtastic/telemetry.pb.dart' as telem;
+import '../../generated/meshtastic/meshtastic/remote_hardware.pb.dart'
+    as rhw;
+import '../../generated/meshtastic/meshtastic/storeforward.pb.dart' as sfwd;
+import '../../generated/meshtastic/meshtastic/paxcount.pb.dart' as pax;
 import 'meshtastic_event.dart';
 import 'meshtastic_models.dart';
 
@@ -548,6 +552,121 @@ class MeshtasticMappers {
         } catch (_) {
           return RawPayloadDto(portInternal, bytes);
         }
+      case port.PortNum.WAYPOINT_APP:
+        try {
+          final w = mesh.Waypoint.fromBuffer(bytes);
+          return WaypointPayloadDto(WaypointDto(
+            id: w.hasId() ? w.id : null,
+            latitudeI: w.hasLatitudeI() ? w.latitudeI : null,
+            longitudeI: w.hasLongitudeI() ? w.longitudeI : null,
+            expire: w.hasExpire() ? w.expire : null,
+            lockedTo: w.hasLockedTo() ? w.lockedTo : null,
+            name: w.hasName() ? w.name : null,
+            description: w.hasDescription() ? w.description : null,
+            icon: w.hasIcon() ? w.icon : null,
+          ));
+        } catch (_) {
+          return RawPayloadDto(portInternal, bytes);
+        }
+      case port.PortNum.REMOTE_HARDWARE_APP:
+        try {
+          final m = rhw.HardwareMessage.fromBuffer(bytes);
+          return RemoteHardwarePayloadDto(
+            type: m.hasType() ? m.type.name : null,
+            gpioMask: m.hasGpioMask() ? m.gpioMask.toInt() : null,
+            gpioValue: m.hasGpioValue() ? m.gpioValue.toInt() : null,
+          );
+        } catch (_) {
+          return RawPayloadDto(portInternal, bytes);
+        }
+      case port.PortNum.NEIGHBORINFO_APP:
+        try {
+          final ni = mesh.NeighborInfo.fromBuffer(bytes);
+          return NeighborInfoPayloadDto(
+            nodeId: ni.hasNodeId() ? ni.nodeId : null,
+            lastSentById: ni.hasLastSentById() ? ni.lastSentById : null,
+            nodeBroadcastIntervalSecs: ni.hasNodeBroadcastIntervalSecs()
+                ? ni.nodeBroadcastIntervalSecs
+                : null,
+            neighbors: ni.neighbors.isNotEmpty
+                ? ni.neighbors
+                    .map((n) => NeighborEntryDto(
+                          nodeId: n.hasNodeId() ? n.nodeId : null,
+                          snr: n.hasSnr() ? n.snr : null,
+                          lastRxTime: n.hasLastRxTime() ? n.lastRxTime : null,
+                          nodeBroadcastIntervalSecs:
+                              n.hasNodeBroadcastIntervalSecs()
+                                  ? n.nodeBroadcastIntervalSecs
+                                  : null,
+                        ))
+                    .toList()
+                : null,
+          );
+        } catch (_) {
+          return RawPayloadDto(portInternal, bytes);
+        }
+      case port.PortNum.STORE_FORWARD_APP:
+        try {
+          final s = sfwd.StoreAndForward.fromBuffer(bytes);
+          final v = s.whichVariant().name;
+          return StoreForwardPayloadDto(variant: v);
+        } catch (_) {
+          return RawPayloadDto(portInternal, bytes);
+        }
+      case port.PortNum.TELEMETRY_APP:
+        try {
+          final t = telem.Telemetry.fromBuffer(bytes);
+          final v = t.whichVariant().name;
+          return TelemetryPayloadDto(variant: v);
+        } catch (_) {
+          return RawPayloadDto(portInternal, bytes);
+        }
+      case port.PortNum.PAXCOUNTER_APP:
+        try {
+          final p = pax.Paxcount.fromBuffer(bytes);
+          return PaxcounterPayloadDto(
+            wifi: p.hasWifi() ? p.wifi : null,
+            ble: p.hasBle() ? p.ble : null,
+            uptime: p.hasUptime() ? p.uptime : null,
+          );
+        } catch (_) {
+          return RawPayloadDto(portInternal, bytes);
+        }
+      case port.PortNum.DETECTION_SENSOR_APP:
+      case port.PortNum.ALERT_APP:
+      case port.PortNum.REPLY_APP:
+      case port.PortNum.RANGE_TEST_APP:
+        // Treat these as simple text messages when possible
+        final text = _safeUtf8(bytes);
+        return TextPayloadDto(text, emoji: data.hasEmoji() ? data.emoji : null);
+      case port.PortNum.TRACEROUTE_APP:
+        // RouteDiscovery type exists, but payloads may vary, keep minimal
+        try {
+          mesh.RouteDiscovery.fromBuffer(bytes);
+          return const TraceroutePayloadDto();
+        } catch (_) {
+          return RawPayloadDto(portInternal, bytes);
+        }
+      case port.PortNum.KEY_VERIFICATION_APP:
+        // Expose main fields of KeyVerification
+        try {
+          final kv = mesh.KeyVerification.fromBuffer(bytes);
+          return KeyVerificationPayloadDto(
+            nonce: kv.hasNonce() ? kv.nonce.toInt() : null,
+            hash1: kv.hasHash1() ? Uint8List.fromList(kv.hash1) : null,
+            hash2: kv.hasHash2() ? Uint8List.fromList(kv.hash2) : null,
+          );
+        } catch (_) {
+          return RawPayloadDto(portInternal, bytes);
+        }
+      case port.PortNum.AUDIO_APP:
+      case port.PortNum.IP_TUNNEL_APP:
+      case port.PortNum.ZPS_APP:
+      case port.PortNum.SIMULATOR_APP:
+      case port.PortNum.ATAK_PLUGIN:
+      case port.PortNum.SERIAL_APP:
+        // For now surface raw bytes for these less common or opaque types
+        return RawPayloadDto(portInternal, bytes);
       default:
         return RawPayloadDto(portInternal, bytes);
     }

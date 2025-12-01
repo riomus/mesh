@@ -140,31 +140,55 @@ class _PacketTile extends StatelessWidget {
     final p = e.packet;
     final decoded = e.decoded;
     final emoji = switch (decoded) {
-      TextPayloadDto _ => '💬',
-      PositionPayloadDto _ => '📍',
-      UserPayloadDto _ => '🪪',
-      RoutingPayloadDto _ => '🧭',
-      AdminPayloadDto _ => '🛠️',
-      RawPayloadDto _ => '📦',
+      TextPayloadDto() => '💬',
+      PositionPayloadDto() => '📍',
+      WaypointPayloadDto() => '📍',
+      UserPayloadDto() => '🪪',
+      RoutingPayloadDto() => '🧭',
+      AdminPayloadDto() => '🛠️',
+      RemoteHardwarePayloadDto() => '🔧',
+      NeighborInfoPayloadDto() => '🕸️',
+      StoreForwardPayloadDto() => '🗄️',
+      TelemetryPayloadDto() => '📊',
+      PaxcounterPayloadDto() => '👥',
+      TraceroutePayloadDto() => '🔎',
+      KeyVerificationPayloadDto() => '🔐',
+      RawPayloadDto() => '📦',
       null => '📦',
     };
 
     final color = switch (decoded) {
-      TextPayloadDto _ => Colors.green,
-      PositionPayloadDto _ => Colors.blue,
-      UserPayloadDto _ => Colors.purple,
-      RoutingPayloadDto _ => Colors.orange,
-      AdminPayloadDto _ => Colors.teal,
-      RawPayloadDto _ => Colors.grey,
+      TextPayloadDto() => Colors.green,
+      PositionPayloadDto() => Colors.blue,
+      WaypointPayloadDto() => Colors.lightBlue,
+      UserPayloadDto() => Colors.purple,
+      RoutingPayloadDto() => Colors.orange,
+      AdminPayloadDto() => Colors.teal,
+      RemoteHardwarePayloadDto() => Colors.indigo,
+      NeighborInfoPayloadDto() => Colors.deepPurple,
+      StoreForwardPayloadDto() => Colors.brown,
+      TelemetryPayloadDto() => Colors.cyan,
+      PaxcounterPayloadDto() => Colors.deepOrange,
+      TraceroutePayloadDto() => Colors.amber,
+      KeyVerificationPayloadDto() => Colors.lime,
+      RawPayloadDto() => Colors.grey,
       null => Colors.grey,
     };
 
     final title = switch (decoded) {
       TextPayloadDto t => _textTitle(t),
       PositionPayloadDto pos => _posTitle(pos),
+      WaypointPayloadDto w => _waypointTitle(w),
       UserPayloadDto u => _userTitle(u),
       RoutingPayloadDto _ => 'Routing message',
       AdminPayloadDto _ => 'Admin message',
+      RemoteHardwarePayloadDto rh => _remoteHardwareTitle(rh),
+      NeighborInfoPayloadDto ni => _neighborInfoTitle(ni),
+      StoreForwardPayloadDto sf => _storeForwardTitle(sf),
+      TelemetryPayloadDto t => _telemetryTitle(t),
+      PaxcounterPayloadDto p => _paxcounterTitle(p),
+      TraceroutePayloadDto _ => 'Traceroute',
+      KeyVerificationPayloadDto kv => _keyVerificationTitle(kv),
       RawPayloadDto r => 'Raw payload (${r.portnum.name}:${r.portnum.id}, ${r.bytes.length} bytes)',
       null => 'Encrypted/unknown payload',
     };
@@ -212,6 +236,19 @@ class _PacketTile extends StatelessWidget {
     return '📍 Position update';
   }
 
+  String _waypointTitle(WaypointPayloadDto w) {
+    final wp = w.waypoint;
+    if ((wp.name ?? '').isNotEmpty) {
+      return '📍 Waypoint: ${wp.name}';
+    }
+    final latI = wp.latitudeI;
+    final lonI = wp.longitudeI;
+    if (latI != null && lonI != null) {
+      return '📍 Waypoint ${ (latI / 1e7).toStringAsFixed(5) }, ${ (lonI / 1e7).toStringAsFixed(5) }';
+    }
+    return '📍 Waypoint';
+  }
+
   String _userTitle(UserPayloadDto u) {
     final longName = u.user.longName ?? u.user.shortName ?? '';
     return longName.isNotEmpty ? '🪪 $longName' : '🪪 User info';
@@ -224,6 +261,42 @@ class _PacketTile extends StatelessWidget {
     if (p.channel != null) parts.add('ch=${p.channel}');
     if (p.id != null) parts.add('id=${p.id}');
     return parts.join('  ');
+  }
+
+  String _remoteHardwareTitle(RemoteHardwarePayloadDto rh) {
+    final type = rh.type ?? 'unknown';
+    return '🔧 Remote HW: $type mask=${rh.gpioMask ?? 0} value=${rh.gpioValue ?? 0}';
+  }
+
+  String _neighborInfoTitle(NeighborInfoPayloadDto ni) {
+    final n = ni.neighbors?.length ?? 0;
+    final id = ni.nodeId != null ? 'node=${ni.nodeId} · ' : '';
+    return '🕸️ Neighbor info · ${id}edges=$n';
+  }
+
+  String _storeForwardTitle(StoreForwardPayloadDto sf) {
+    final v = sf.variant ?? 'unknown';
+    return '🗄️ Store & Forward ($v)';
+    }
+
+  String _telemetryTitle(TelemetryPayloadDto t) {
+    final v = t.variant ?? 'unknown';
+    return '📊 Telemetry ($v)';
+  }
+
+  String _paxcounterTitle(PaxcounterPayloadDto p) {
+    final w = p.wifi != null ? 'wifi=${p.wifi}' : null;
+    final b = p.ble != null ? 'ble=${p.ble}' : null;
+    final parts = [w, b].whereType<String>().toList();
+    final rest = parts.isNotEmpty ? ' · ${parts.join(' ')}' : '';
+    return '👥 Paxcounter$rest';
+  }
+
+  String _keyVerificationTitle(KeyVerificationPayloadDto kv) {
+    final n = kv.nonce != null ? 'nonce=${kv.nonce}' : null;
+    final parts = [n].whereType<String>().toList();
+    final rest = parts.isNotEmpty ? ' (${parts.join(' · ')})' : '';
+    return '🔐 Key verification$rest';
   }
 }
 

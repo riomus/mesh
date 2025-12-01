@@ -11,10 +11,11 @@
 - [x] Create issue/PR templates
 - [x] Update release creation to include changelog based on all git commits since last release
 - [x] Create DeviceCommunicationEventService that should work like logging service - it should gather tagged events (for now just meshtastic), and allow for subscription
-- [ ] Update mapped meshtastic events to include all data avialble after protobuf parsing - create DTOs with parsed fields etc in structured format using classes- replace fileds rawBytes and rawProto with correct parsed data from the protos
-- [ ] DeviceCommunicationEventService to keep structured events hierarchy not a raw object - for now only wrapped meshtastic event
-- [ ] Create widget for events list display - similar to logging widget - show events with ability to search and filter using chips
-- [ ] Use widget for events on device details page 
+- [x] Update mapped meshtastic events to include all data avialble after protobuf parsing - create DTOs with parsed fields etc in structured format using classes- replace fileds rawBytes and rawProto with correct parsed data from the protos
+- [x] DeviceCommunicationEventService to keep structured events hierarchy not a raw object - for now only wrapped meshtastic event
+- [x] Create widget for events list display - similar to logging widget - show events with ability to search and filter using chips
+- [ ] support rest of meshtastic apps by mapping messages in meshtastic mapper (cases for port.PortNum) - create missing dtos
+- [ ] Use event list display widget for events on device details page 
 - [ ] Create new page for device events that will show all events from all devices
 - [ ] Update logging widget to have "full screen" button that will enlarge the log view to full screen
 - [ ] Update event list widget to have "full screen" button that will enlarge the event list view to full screen
