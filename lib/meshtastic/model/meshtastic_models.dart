@@ -266,6 +266,8 @@ class ModuleConfigDto {
   final CannedMessageConfigDto? cannedMessage;
   final AmbientLightingConfigDto? ambientLighting;
   final DetectionSensorConfigDto? detectionSensor;
+  final DtnOverlayConfigDto? dtnOverlay;
+  final BroadcastAssistConfigDto? broadcastAssist;
   const ModuleConfigDto({
     this.mqtt,
     this.telemetry,
@@ -280,6 +282,8 @@ class ModuleConfigDto {
     this.cannedMessage,
     this.ambientLighting,
     this.detectionSensor,
+    this.dtnOverlay,
+    this.broadcastAssist,
   });
 }
 
@@ -579,6 +583,56 @@ class DetectionSensorConfigDto {
     this.monitorPin,
     this.detectionTriggerType,
     this.usePullup,
+  });
+}
+
+class DtnOverlayConfigDto {
+  final bool? enabled;
+  final int? ttlMinutes;
+  final int? initialDelayBaseMs;
+  final int? retryBackoffMs;
+  final int? maxTries;
+  final bool? lateFallbackEnabled;
+  final int? fallbackTailPercent;
+  final bool? milestonesEnabled;
+  final int? perDestMinSpacingMs;
+  final int? maxActiveDm;
+  final bool? probeFwplusNearDeadline;
+
+  const DtnOverlayConfigDto({
+    this.enabled,
+    this.ttlMinutes,
+    this.initialDelayBaseMs,
+    this.retryBackoffMs,
+    this.maxTries,
+    this.lateFallbackEnabled,
+    this.fallbackTailPercent,
+    this.milestonesEnabled,
+    this.perDestMinSpacingMs,
+    this.maxActiveDm,
+    this.probeFwplusNearDeadline,
+  });
+}
+
+class BroadcastAssistConfigDto {
+  final bool? enabled;
+  final int? degreeThreshold;
+  final int? dupThreshold;
+  final int? windowMs;
+  final int? maxExtraHops;
+  final int? jitterMs;
+  final bool? airtimeGuard;
+  final List<int>? allowedPorts;
+
+  const BroadcastAssistConfigDto({
+    this.enabled,
+    this.degreeThreshold,
+    this.dupThreshold,
+    this.windowMs,
+    this.maxExtraHops,
+    this.jitterMs,
+    this.airtimeGuard,
+    this.allowedPorts,
   });
 }
 

@@ -355,6 +355,45 @@ class MeshtasticMappers {
         sendBell: cm.hasSendBell() ? cm.sendBell : null,
       );
     }
+    DtnOverlayConfigDto? dtnOverlay;
+    if (mc.hasDtnOverlay()) {
+      final d = mc.dtnOverlay;
+      dtnOverlay = DtnOverlayConfigDto(
+        enabled: d.hasEnabled() ? d.enabled : null,
+        ttlMinutes: d.hasTtlMinutes() ? d.ttlMinutes : null,
+        initialDelayBaseMs:
+            d.hasInitialDelayBaseMs() ? d.initialDelayBaseMs : null,
+        retryBackoffMs: d.hasRetryBackoffMs() ? d.retryBackoffMs : null,
+        maxTries: d.hasMaxTries() ? d.maxTries : null,
+        lateFallbackEnabled:
+            d.hasLateFallbackEnabled() ? d.lateFallbackEnabled : null,
+        fallbackTailPercent:
+            d.hasFallbackTailPercent() ? d.fallbackTailPercent : null,
+        milestonesEnabled:
+            d.hasMilestonesEnabled() ? d.milestonesEnabled : null,
+        perDestMinSpacingMs:
+            d.hasPerDestMinSpacingMs() ? d.perDestMinSpacingMs : null,
+        maxActiveDm: d.hasMaxActiveDm() ? d.maxActiveDm : null,
+        probeFwplusNearDeadline: d.hasProbeFwplusNearDeadline()
+            ? d.probeFwplusNearDeadline
+            : null,
+      );
+    }
+    BroadcastAssistConfigDto? broadcastAssist;
+    if (mc.hasBroadcastAssist()) {
+      final b = mc.broadcastAssist;
+      broadcastAssist = BroadcastAssistConfigDto(
+        enabled: b.hasEnabled() ? b.enabled : null,
+        degreeThreshold: b.hasDegreeThreshold() ? b.degreeThreshold : null,
+        dupThreshold: b.hasDupThreshold() ? b.dupThreshold : null,
+        windowMs: b.hasWindowMs() ? b.windowMs : null,
+        maxExtraHops: b.hasMaxExtraHops() ? b.maxExtraHops : null,
+        jitterMs: b.hasJitterMs() ? b.jitterMs : null,
+        airtimeGuard: b.hasAirtimeGuard() ? b.airtimeGuard : null,
+        allowedPorts:
+            b.allowedPorts.isNotEmpty ? List<int>.from(b.allowedPorts) : null,
+      );
+    }
     return ModuleConfigDto(
       mqtt: mqtt,
       telemetry: telemetry,
@@ -369,6 +408,8 @@ class MeshtasticMappers {
       cannedMessage: cannedMessage,
       ambientLighting: ambientLighting,
       detectionSensor: detectionSensor,
+      dtnOverlay: dtnOverlay,
+      broadcastAssist: broadcastAssist,
     );
   }
 
