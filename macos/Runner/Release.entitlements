@@ -4,6 +4,9 @@
 <dict>
 	<key>com.apple.security.app-sandbox</key>
 	<true/>
+    <!-- Allow outgoing network connections (e.g., map tiles over HTTPS) -->
+    <key>com.apple.security.network.client</key>
+    <true/>
     <!-- Allow Bluetooth access for CoreBluetooth (BLE) -->
     <key>com.apple.security.device.bluetooth</key>
     <true/>

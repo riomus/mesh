@@ -1,4 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Network permissions required for loading map tiles (OSM) and general HTTP(S) access -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- Bluetooth permissions -->
     <!-- For Android 12 (API 31)+ -->
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN"
