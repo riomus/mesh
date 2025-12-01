@@ -5,6 +5,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as latlng;
 
 import '../services/nodes_service.dart';
+import '../utils/text_sanitize.dart';
 
 class NodesMapWidget extends StatefulWidget {
   const NodesMapWidget({super.key});
@@ -125,13 +126,13 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
             children: [
               Icon(Icons.location_pin, color: colorFor(n)),
               const SizedBox(width: 8),
-              Expanded(child: Text(n.displayName, style: Theme.of(ctx).textTheme.titleMedium)),
+              Expanded(child: Text(safeText(n.displayName), style: Theme.of(ctx).textTheme.titleMedium)),
             ],
           ));
           parts.add(const SizedBox(height: 8));
           final hex = n.num?.toRadixString(16);
           if (hex != null) parts.add(Text('ID: 0x$hex'));
-          if (n.user?.role != null) parts.add(Text('Role: ${n.user!.role!}'));
+          if (n.user?.role != null) parts.add(Text(safeText('Role: ${n.user!.role!}')));
           if (n.hopsAway != null) parts.add(Text('Hops: ${n.hopsAway}'));
           if (n.deviceMetrics?.batteryLevel != null) parts.add(Text('Battery: ${n.deviceMetrics!.batteryLevel}%'));
           if (n.lastHeard != null) parts.add(Text('Last seen: ${_formatAgo(n.lastHeard!)}'));
@@ -188,7 +189,7 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
           width: 44,
           height: 44,
           child: Tooltip(
-            message: p.$1.displayName,
+            message: safeText(p.$1.displayName),
             child: InkWell(
               onTap: () => showNodeSheet(p.$1, p.$2, p.$3),
               child: Icon(Icons.location_pin, size: 36, color: colorFor(p.$1)),

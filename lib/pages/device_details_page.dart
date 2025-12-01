@@ -12,6 +12,7 @@ import '../widgets/mesh_app_bar.dart';
 import '../meshtastic/model/meshtastic_event.dart';
 // Removed unused import: meshtastic_models.dart
 import '../widgets/events_list_widget.dart';
+import '../utils/text_sanitize.dart';
 
 class DeviceDetailsPage extends StatefulWidget {
   final ScanResult result;
@@ -90,7 +91,7 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
 
     return Scaffold(
       appBar: MeshAppBar(
-        title: Text(_bestName(result)),
+        title: Text(safeText(_bestName(result))),
         onToggleTheme: widget.onToggleTheme,
         themeMode: widget.themeMode,
         onOpenSettings: widget.onOpenSettings,

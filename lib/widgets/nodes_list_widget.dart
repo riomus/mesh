@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
 import '../services/nodes_service.dart';
+import '../utils/text_sanitize.dart';
 
 // Logs-like chip filtering primitives for Nodes
 enum _NodeChipOp { exact, regex }
@@ -144,8 +145,8 @@ class _NodesListWidgetState extends State<NodesListWidget>
             itemBuilder: (context, index) {
               final n = filtered[index];
               return ListTile(
-                leading: CircleAvatar(child: Text(n.displayName.isNotEmpty ? n.displayName[0] : '?')),
-                title: Text(n.displayName),
+                leading: CircleAvatar(child: Text(safeInitial(n.displayName))),
+                title: Text(safeText(n.displayName)),
                 subtitle: _buildSubtitle(n),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -179,14 +180,14 @@ class _NodesListWidgetState extends State<NodesListWidget>
       final label = [if (srcName != null) srcName, if (srcHex != null) '0x$srcHex'].join(' ');
       parts.add('via $label');
     }
-    return Text(parts.join(' • '));
+    return Text(safeText(parts.join(' • ')));
   }
   Widget _buildTopBar(BuildContext context) {
     final chips = _chips
         .asMap()
         .entries
         .map((entry) => InputChip(
-              label: Text(entry.value.label),
+              label: Text(safeText(entry.value.label)),
               onDeleted: () => setState(() => _chips.removeAt(entry.key)),
             ))
         .toList(growable: false);
@@ -333,7 +334,7 @@ class _NodesListWidgetState extends State<NodesListWidget>
           final values = draftKey == null ? const <String>{} : (_seenValuesByKey[draftKey!] ?? const <String>{});
           final valuesSorted = values.toList()..sort();
           final keyItems = (_seenKeys.toList()..sort())
-              .map((k) => DropdownMenuItem<String>(value: k, child: Text(k)))
+              .map((k) => DropdownMenuItem<String>(value: k, child: Text(safeText(k))))
               .toList();
 
           return AlertDialog(
@@ -376,12 +377,12 @@ class _NodesListWidgetState extends State<NodesListWidget>
                           runSpacing: 8,
                           children: [
                             FilterChip(
-                              label: Text('has ${draftKey ?? 'value'}'),
+                              label: Text(safeText('has ${draftKey ?? 'value'}')),
                               selected: presence,
                               onSelected: (v) => setDlg(() => presence = v),
                             ),
                             ...valuesSorted.map((v) => FilterChip(
-                                  label: Text(v),
+                                  label: Text(safeText(v)),
                                   selected: selectedValues.contains(v),
                                   onSelected: (sel) => setDlg(() {
                                     if (sel) {

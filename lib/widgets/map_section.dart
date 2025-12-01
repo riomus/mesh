@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as latlng;
+import '../utils/text_sanitize.dart';
 
 /// Simple reusable map section using flutter_map (OpenStreetMap tiles).
 ///
@@ -96,7 +97,7 @@ class _MapSectionState extends State<MapSection> {
                           child: ConstrainedBox(
                             constraints: const BoxConstraints(maxWidth: 120),
                             child: Text(
-                              widget.label!,
+                              safeText(widget.label!),
                               style: theme.textTheme.labelSmall,
                               maxLines: 1,
                               softWrap: false,
