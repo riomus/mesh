@@ -9,6 +9,7 @@ class MeshAppBar extends StatelessWidget implements PreferredSizeWidget {
   final ThemeMode? themeMode;
   final void Function(BuildContext context)? onOpenSettings;
   final List<Widget>? extraActions;
+  final PreferredSizeWidget? bottom;
 
   const MeshAppBar({
     super.key,
@@ -17,6 +18,7 @@ class MeshAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.themeMode,
     this.onOpenSettings,
     this.extraActions,
+    this.bottom,
   });
 
   @override
@@ -27,6 +29,7 @@ class MeshAppBar extends StatelessWidget implements PreferredSizeWidget {
     final t = AppLocalizations.of(context);
     return AppBar(
       title: title,
+      bottom: bottom,
       actions: [
         if (extraActions != null) ...extraActions!,
         // Bluetooth adapter state indicator

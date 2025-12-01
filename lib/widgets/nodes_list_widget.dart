@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 
 import '../services/nodes_service.dart';
 
@@ -37,6 +38,15 @@ class _NodesListWidgetState extends State<NodesListWidget> {
   final List<_NodeChipFilter> _chips = <_NodeChipFilter>[];
 
   // Local chip types (hints removed as unused)
+  // Sorting configuration
+  static const _defaultSort = <_SortEntry>[
+    _SortEntry(_SortField.favoriteFirst, true),
+    _SortEntry(_SortField.lastSeen, false), // desc (most recent first)
+    _SortEntry(_SortField.name, true),
+  ];
+  List<_SortEntry> _sorters = List<_SortEntry>.from(_defaultSort);
+
+  String? _firstOrNull(List<String>? list) => (list == null || list.isEmpty) ? null : list.first;
 
   @override
   void initState() {
@@ -116,18 +126,7 @@ class _NodesListWidgetState extends State<NodesListWidget> {
   @override
   Widget build(BuildContext context) {
     final filtered = _nodes.where(_matches).toList()
-      ..sort((a, b) {
-        // Sort favorites first, then most recently heard, then by name
-        final fa = (a.isFavorite ?? false) ? 0 : 1;
-        final fb = (b.isFavorite ?? false) ? 0 : 1;
-        final byFav = fa.compareTo(fb);
-        if (byFav != 0) return byFav;
-        final la = a.lastHeard ?? 0;
-        final lb = b.lastHeard ?? 0;
-        final byHeard = lb.compareTo(la); // desc
-        if (byHeard != 0) return byHeard;
-        return a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase());
-      });
+      ..sort((a, b) => _compareNodes(a, b));
 
     return Column(
       children: [
@@ -168,7 +167,13 @@ class _NodesListWidgetState extends State<NodesListWidget> {
     if (n.hopsAway != null) parts.add('${n.hopsAway} hops');
     if (n.position?.latitudeI != null && n.position?.longitudeI != null) parts.add('📍');
     if (n.deviceMetrics?.batteryLevel != null) parts.add('🔋${n.deviceMetrics!.batteryLevel}%');
-    if (n.lastHeard != null) parts.add('⏱️ ${n.lastHeard}s');
+    if (n.lastHeard != null) parts.add('⏱️ ${_formatAgo(n.lastHeard!)}');
+    final srcHex = _firstOrNull(n.tags['sourceDeviceId']);
+    final srcName = _firstOrNull(n.tags['sourceNodeName']);
+    if (srcHex != null || srcName != null) {
+      final label = [if (srcName != null) srcName, if (srcHex != null) '0x$srcHex'].join(' ');
+      parts.add('via $label');
+    }
     return Text(parts.join(' • '));
   }
   Widget _buildTopBar(BuildContext context) {
@@ -253,6 +258,15 @@ class _NodesListWidgetState extends State<NodesListWidget> {
               icon: const Icon(Icons.filter_alt),
               label: const Text('Add filter'),
               onPressed: _openAddChipDialog,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Tooltip(
+            message: 'Sorting',
+            child: FilledButton.tonalIcon(
+              icon: const Icon(Icons.sort),
+              label: const Text('Sort'),
+              onPressed: _openSortDialog,
             ),
           ),
           const SizedBox(width: 8),
@@ -409,6 +423,191 @@ class _NodesListWidgetState extends State<NodesListWidget> {
       ),
     );
   }
+
+  // ===== Sorting helpers =====
+  int _compareNodes(MeshNodeView a, MeshNodeView b) {
+    for (final s in _sorters) {
+      int r = 0;
+      switch (s.field) {
+        case _SortField.favoriteFirst:
+          final fa = (a.isFavorite ?? false) ? 0 : 1;
+          final fb = (b.isFavorite ?? false) ? 0 : 1;
+          r = fa.compareTo(fb);
+          break;
+        case _SortField.distance:
+          final da = _distanceMeters(a);
+          final db = _distanceMeters(b);
+          r = _nullSafeCompare(da, db);
+          break;
+        case _SortField.snr:
+          r = _nullSafeCompare(a.snr, b.snr);
+          break;
+        case _SortField.lastSeen:
+          // Higher lastHeard means more recent; default desc -> nearest begin
+          r = _nullSafeCompare(a.lastHeard, b.lastHeard);
+          break;
+        case _SortField.role:
+          r = _stringCompare(a.user?.role, b.user?.role);
+          break;
+        case _SortField.name:
+          r = a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase());
+          break;
+      }
+      if (r != 0) return s.asc ? r : -r;
+    }
+    return 0;
+  }
+
+  int _nullSafeCompare<T extends num>(T? a, T? b) {
+    if (a == null && b == null) return 0;
+    if (a == null) return 1; // nulls last
+    if (b == null) return -1;
+    return a.compareTo(b);
+  }
+
+  int _stringCompare(String? a, String? b) {
+    if (a == null && b == null) return 0;
+    if (a == null) return 1;
+    if (b == null) return -1;
+    return a.toLowerCase().compareTo(b.toLowerCase());
+  }
+
+  double? _distanceMeters(MeshNodeView n) {
+    final ref = _svc.effectiveDistanceReference;
+    final p = n.position;
+    if (ref == null || p?.latitudeI == null || p?.longitudeI == null) return null;
+    final lat1 = ref.$1 * math.pi / 180.0;
+    final lon1 = ref.$2 * math.pi / 180.0;
+    final lat2 = (p!.latitudeI! / 1e7) * math.pi / 180.0;
+    final lon2 = (p.longitudeI! / 1e7) * math.pi / 180.0;
+    final dLat = lat2 - lat1;
+    final dLon = lon2 - lon1;
+    final a = math.pow(math.sin(dLat / 2), 2) + math.cos(lat1) * math.cos(lat2) * math.pow(math.sin(dLon / 2), 2);
+    final c = 2 * math.atan2(math.sqrt(a.toDouble()), math.sqrt(1 - a.toDouble()));
+    const R = 6371000.0; // meters
+    return R * c;
+  }
+
+  String _formatAgo(int seconds) {
+    if (seconds < 60) return '${seconds}s ago';
+    final minutes = seconds ~/ 60;
+    if (minutes < 60) return '${minutes}m ago';
+    final hours = minutes ~/ 60;
+    if (hours < 24) return '${hours}h ago';
+    final days = hours ~/ 24;
+    return '${days}d ago';
+  }
+
+  Future<void> _openSortDialog() async {
+    List<_SortEntry> local = List<_SortEntry>.from(_sorters);
+    await showDialog<void>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDlg) {
+          void addIfMissing(_SortField f) {
+            if (!local.any((e) => e.field == f)) local.add(_SortEntry(f, true));
+          }
+          return AlertDialog(
+            title: const Text('Sorting'),
+            content: SizedBox(
+              width: 420,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Wrap(
+                      spacing: 8,
+                      children: [
+                        OutlinedButton.icon(onPressed: () { setDlg(() { addIfMissing(_SortField.distance); }); }, icon: const Icon(Icons.place), label: const Text('Distance')),
+                        OutlinedButton.icon(onPressed: () { setDlg(() { addIfMissing(_SortField.snr); }); }, icon: const Icon(Icons.network_cell), label: const Text('SNR')),
+                        OutlinedButton.icon(onPressed: () { setDlg(() { addIfMissing(_SortField.lastSeen); }); }, icon: const Icon(Icons.access_time), label: const Text('Last seen')),
+                        OutlinedButton.icon(onPressed: () { setDlg(() { addIfMissing(_SortField.role); }); }, icon: const Icon(Icons.badge), label: const Text('Role')),
+                        OutlinedButton.icon(onPressed: () { setDlg(() { addIfMissing(_SortField.name); }); }, icon: const Icon(Icons.abc), label: const Text('Name')),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Flexible(
+                    child: ReorderableListView(
+                      shrinkWrap: true,
+                      onReorder: (oldIndex, newIndex) {
+                        setDlg(() {
+                          if (newIndex > oldIndex) newIndex--;
+                          final item = local.removeAt(oldIndex);
+                          local.insert(newIndex, item);
+                        });
+                      },
+                      children: [
+                        for (int i = 0; i < local.length; i++)
+                          ListTile(
+                            key: ValueKey('sort_$i'),
+                            title: Text(_labelForField(local[i].field)),
+                            leading: const Icon(Icons.drag_handle),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(local[i].asc ? 'ASC' : 'DESC'),
+                                IconButton(
+                                  icon: const Icon(Icons.swap_vert),
+                                  onPressed: () => setDlg(() => local[i] = local[i].toggle()),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline),
+                                  onPressed: () => setDlg(() => local.removeAt(i)),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Wrap(spacing: 8, children: [
+                      FilledButton.tonal(
+                        onPressed: () { setDlg(() { local = List<_SortEntry>.from(_defaultSort); }); },
+                        child: const Text('Reset to default'),
+                      ),
+                      TextButton(
+                        onPressed: () { _svc.setCustomDistanceReference(lat: null, lon: null); Navigator.of(context).maybePop(); },
+                        child: const Text('Use source device as distance ref'),
+                      ),
+                      Text('Tip: set a custom reference by long‑pressing on the Map tab'),
+                    ]),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+              FilledButton(onPressed: () { setState(() { _sorters = List<_SortEntry>.from(local); }); Navigator.of(context).pop(); }, child: const Text('Apply')),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  String _labelForField(_SortField f) {
+    switch (f) {
+      case _SortField.favoriteFirst:
+        return 'Favorites first';
+      case _SortField.distance:
+        return 'Distance';
+      case _SortField.snr:
+        return 'SNR';
+      case _SortField.lastSeen:
+        return 'Last seen';
+      case _SortField.role:
+        return 'Role';
+      case _SortField.name:
+        return 'Name';
+    }
+    // Fallback (should be unreachable)
+    return 'Unknown';
+  }
   bool _addChipUnique(_NodeChipFilter c) {
     final exists = _chips.any((x) => x.key == c.key && x.value == c.value && x.op == c.op);
     if (!exists) {
@@ -417,4 +616,13 @@ class _NodesListWidgetState extends State<NodesListWidget> {
     }
     return false;
   }
+}
+
+enum _SortField { favoriteFirst, distance, snr, lastSeen, role, name }
+
+class _SortEntry {
+  final _SortField field;
+  final bool asc;
+  const _SortEntry(this.field, this.asc);
+  _SortEntry toggle() => _SortEntry(field, !asc);
 }

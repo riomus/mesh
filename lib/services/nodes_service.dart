@@ -49,6 +49,21 @@ class NodesService {
   final Map<NodeNum, MeshNodeView> _nodes = <NodeNum, MeshNodeView>{};
   final StreamController<List<MeshNodeView>> _controller = StreamController<List<MeshNodeView>>.broadcast();
   StreamSubscription<DeviceEvent>? _sub;
+  NodeNum? _lastReporterNodeNum;
+  // Optional custom reference for distance calculations (lat/lon degrees)
+  double? _customRefLat;
+  double? _customRefLon;
+
+  /// Helper to parse lowercase hex string node id to int, returns null if invalid.
+  NodeNum? _parseHexNodeId(String hex) {
+    try {
+      final cleaned = hex.trim().toLowerCase().replaceAll('0x', '');
+      if (cleaned.isEmpty) return null;
+      return int.parse(cleaned, radix: 16);
+    } catch (_) {
+      return null;
+    }
+  }
 
   void _onDeviceEvent(DeviceEvent e) {
     final payload = e.payload;
@@ -64,6 +79,12 @@ class NodesService {
             'network': const ['meshtastic'],
             // deviceId on Nodes should represent the NODE id
             'deviceId': [nodeHexId],
+            if (info.user?.longName != null && info.user!.longName!.isNotEmpty)
+              'name': [info.user!.longName!]
+            else if (info.user?.shortName != null && info.user!.shortName!.isNotEmpty)
+              'name': [info.user!.shortName!]
+            else
+              'name': ['0x$nodeHexId'],
             if (info.user?.role != null) 'role': [info.user!.role!],
             if (info.hopsAway != null) 'hops': ['${info.hopsAway}'],
             if (info.isFavorite == true) 'favorite': const ['true'] else 'favorite': const ['false'],
@@ -74,6 +95,16 @@ class NodesService {
           final reporterIds = e.tags['deviceId'];
           if (reporterIds != null && reporterIds.isNotEmpty) {
             tags['sourceDeviceId'] = List<String>.from(reporterIds);
+            // Try to resolve reporter id to a friendly node name as well
+            final first = reporterIds.first;
+            final asNum = _parseHexNodeId(first);
+            if (asNum != null) {
+              _lastReporterNodeNum = asNum;
+              final src = _nodes[asNum];
+              if (src != null) {
+                tags['sourceNodeName'] = [src.displayName];
+              }
+            }
           }
 
           _nodes[num] = MeshNodeView(
@@ -104,6 +135,32 @@ class NodesService {
 
   /// Snapshot of current nodes.
   List<MeshNodeView> get snapshot => _nodes.values.toList(growable: false);
+
+  /// Best-effort guess of the connected source device's current position.
+  /// Returns null if not known.
+  PositionDto? get sourcePosition => _lastReporterNodeNum != null ? _nodes[_lastReporterNodeNum!]?.position : null;
+
+  /// Sets a custom reference point (lat, lon in degrees) used for distance sorting.
+  /// Pass nulls to clear and fall back to source device position when available.
+  void setCustomDistanceReference({double? lat, double? lon}) {
+    _customRefLat = lat;
+    _customRefLon = lon;
+    // Re-emit so listeners can recompute distances/sorting
+    _emit();
+  }
+
+  /// Returns the effective distance reference point to use: custom if present,
+  /// otherwise the source device position converted to (lat, lon) doubles.
+  (double lat, double lon)? get effectiveDistanceReference {
+    if (_customRefLat != null && _customRefLon != null) {
+      return (_customRefLat!, _customRefLon!);
+    }
+    final src = sourcePosition;
+    if (src?.latitudeI != null && src?.longitudeI != null) {
+      return (src!.latitudeI! / 1e7, src.longitudeI! / 1e7);
+    }
+    return null;
+  }
 
   Future<void> dispose() async {
     await _sub?.cancel();
