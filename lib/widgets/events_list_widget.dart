@@ -22,8 +22,19 @@ class EventsListWidget extends StatefulWidget {
   final String? network;
   /// Maximum number of events rendered (helps performance on long sessions)
   final int maxVisible;
+  /// Optional initial list of events to seed the view (used for fullscreen to mirror current view).
+  final List<DeviceEvent>? initialEvents;
+  /// Optional initial search text to seed the view.
+  final String? initialSearch;
 
-  const EventsListWidget({super.key, this.deviceId, this.network, this.maxVisible = 1000});
+  const EventsListWidget({
+    super.key,
+    this.deviceId,
+    this.network,
+    this.maxVisible = 1000,
+    this.initialEvents,
+    this.initialSearch,
+  });
 
   @override
   State<EventsListWidget> createState() => _EventsListWidgetState();
@@ -48,6 +59,22 @@ class _EventsListWidgetState extends State<EventsListWidget> {
     super.initState();
     _selectedNetwork = widget.network;
     _selectedDeviceId = widget.deviceId;
+    // Seed from provided initial state (e.g., when opening fullscreen so content matches).
+    if (widget.initialEvents != null && widget.initialEvents!.isNotEmpty) {
+      for (final e in widget.initialEvents!) {
+        // collect chip values
+        final networks = e.tags['network'] ?? const <String>[];
+        _networkValues.addAll(networks);
+        final devices = e.tags['deviceId'] ?? const <String>[];
+        _deviceIds.addAll(devices);
+      }
+      _events.addAll(widget.initialEvents!);
+      final overflow = _events.length - widget.maxVisible;
+      if (overflow > 0) _events.removeRange(0, overflow);
+    }
+    if (widget.initialSearch != null) {
+      _search = widget.initialSearch!;
+    }
     _sub = _svc.listenAll().listen(_onEvent);
   }
 
@@ -149,15 +176,39 @@ class _EventsListWidgetState extends State<EventsListWidget> {
           selectedDeviceId: _selectedDeviceId,
           onDeviceIdSelected: (v) => setState(() => _selectedDeviceId = v),
           onShare: _shareFilteredEvents,
+          onFullscreen: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (ctx) => Scaffold(
+                  appBar: AppBar(
+                    title: const Text('Events'),
+                    actions: [
+                      IconButton(
+                        tooltip: 'Close',
+                        icon: const Icon(Icons.close_fullscreen),
+                        onPressed: () => Navigator.of(ctx).maybePop(),
+                      ),
+                    ],
+                  ),
+                  body: EventsListWidget(
+                    network: _selectedNetwork,
+                    deviceId: _selectedDeviceId,
+                    initialEvents: _events.toList(growable: false),
+                    initialSearch: _search,
+                  ),
+                ),
+              ),
+            );
+          },
         ),
         const SizedBox(height: 8),
         Expanded(
           child: filtered.isEmpty
               ? const _Empty()
               : ListView.builder(
-                  itemCount: filtered.length,
-                  itemBuilder: (context, i) => _EventTile(e: filtered[i]),
-                ),
+                itemCount: filtered.length,
+                itemBuilder: (context, i) => _EventTile(e: filtered[i]),
+              ),
         ),
       ],
     );
@@ -174,6 +225,7 @@ class _Toolbar extends StatelessWidget {
   final String? selectedDeviceId;
   final ValueChanged<String?> onDeviceIdSelected;
   final VoidCallback? onShare;
+  final VoidCallback? onFullscreen;
 
   const _Toolbar({
     required this.search,
@@ -185,6 +237,7 @@ class _Toolbar extends StatelessWidget {
     required this.selectedDeviceId,
     required this.onDeviceIdSelected,
     this.onShare,
+    this.onFullscreen,
   });
 
   @override
@@ -220,28 +273,7 @@ class _Toolbar extends StatelessWidget {
               child: IconButton(
                 key: const Key('events_fullscreen_button'),
                 icon: const Icon(Icons.fullscreen),
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (ctx) => Scaffold(
-                        appBar: AppBar(
-                          title: const Text('Events'),
-                          actions: [
-                            IconButton(
-                              tooltip: 'Close',
-                              icon: const Icon(Icons.close_fullscreen),
-                              onPressed: () => Navigator.of(ctx).maybePop(),
-                            ),
-                          ],
-                        ),
-                        body: EventsListWidget(
-                          network: selectedNetwork,
-                          deviceId: selectedDeviceId,
-                        ),
-                      ),
-                    ),
-                  );
-                },
+                onPressed: onFullscreen,
               ),
             ),
           ],
