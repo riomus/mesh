@@ -74,7 +74,7 @@ class MeshtasticEventTile extends StatelessWidget {
         return _SimpleTile(
           emoji: '🧰',
           title: 'Device metadata',
-          subtitle: e.metadata.myNodeNum != null ? 'myNodeNum=${e.metadata.myNodeNum}' : null,
+          subtitle: _deviceMetadataPreview(e.metadata),
           color: Colors.brown,
         );
       case MqttClientProxyEvent _:
@@ -117,6 +117,18 @@ class MeshtasticEventTile extends StatelessWidget {
         ? 'Node $name${num != null ? ' ($num)' : ''}'
         : (num != null ? 'Node ($num)' : 'NodeInfo');
   }
+}
+
+String? _deviceMetadataPreview(DeviceMetadataDto dm) {
+  final parts = <String>[];
+  if (dm.firmwareVersion != null) parts.add('fw=${dm.firmwareVersion}');
+  if (dm.hwModel != null) parts.add('hw=${dm.hwModel}');
+  if (dm.role != null) parts.add('role=${dm.role}');
+  if (dm.hasWifi == true) parts.add('wifi');
+  if (dm.hasBluetooth == true) parts.add('bt');
+  if (dm.hasEthernet == true) parts.add('eth');
+  if (parts.isEmpty) return null;
+  return parts.join(' · ');
 }
 
 class _PacketTile extends StatelessWidget {

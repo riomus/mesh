@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import '../../generated/meshtastic/meshtastic/mesh.pb.dart' as mesh;
 import '../../generated/meshtastic/meshtastic/portnums.pbenum.dart' as port;
 import '../../generated/meshtastic/meshtastic/module_config.pb.dart' as module;
+import '../../generated/meshtastic/meshtastic/device_ui.pb.dart' as dui;
 import '../../generated/meshtastic/meshtastic/config.pb.dart' as cfgpb;
 import '../../generated/meshtastic/meshtastic/admin.pb.dart' as admin;
 import '../../generated/meshtastic/meshtastic/telemetry.pb.dart' as telem;
@@ -71,16 +72,32 @@ class MeshtasticMappers {
               fr.queueStatus.hasMeshPacketId() ? fr.queueStatus.meshPacketId : null,
         ));
       case mesh.FromRadio_PayloadVariant.metadata:
-        // Preserve full bytes; specific fields can be added later.
+        final m = fr.metadata;
         return DeviceMetadataEvent(DeviceMetadataDto(
-          rawBytes: Uint8List.fromList(fr.metadata.writeToBuffer()),
-          rawProto: fr.metadata.toProto3Json() as Map<String, dynamic>,
+          firmwareVersion: m.hasFirmwareVersion() ? m.firmwareVersion : null,
+          deviceStateVersion:
+              m.hasDeviceStateVersion() ? m.deviceStateVersion : null,
+          canShutdown: m.hasCanShutdown() ? m.canShutdown : null,
+          hasWifi: m.hasHasWifi() ? m.hasWifi : null,
+          hasBluetooth: m.hasHasBluetooth() ? m.hasBluetooth : null,
+          hasEthernet: m.hasHasEthernet() ? m.hasEthernet : null,
+          role: m.hasRole() ? m.role.name : null,
+          positionFlags: m.hasPositionFlags() ? m.positionFlags : null,
+          hwModel: m.hasHwModel() ? m.hwModel.name : null,
+          hasRemoteHardware:
+              m.hasHasRemoteHardware() ? m.hasRemoteHardware : null,
+          hasPKC: m.hasHasPKC() ? m.hasPKC : null,
+          excludedModules: m.hasExcludedModules() ? m.excludedModules : null,
+          hasFwPlus: m.hasHasFwPlus() ? m.hasFwPlus : null,
+          hasNodemod: m.hasHasNodemod() ? m.hasNodemod : null,
         ));
       case mesh.FromRadio_PayloadVariant.mqttClientProxyMessage:
+        final mq = fr.mqttClientProxyMessage;
         return MqttClientProxyEvent(MqttClientProxyMessageDto(
-          rawBytes: Uint8List.fromList(fr.mqttClientProxyMessage.writeToBuffer()),
-          rawProto:
-              fr.mqttClientProxyMessage.toProto3Json() as Map<String, dynamic>,
+          topic: mq.hasTopic() ? mq.topic : null,
+          data: mq.hasData() ? Uint8List.fromList(mq.data) : null,
+          text: mq.hasText() ? mq.text : null,
+          retained: mq.hasRetained() ? mq.retained : null,
         ));
       case mesh.FromRadio_PayloadVariant.fileInfo:
         return FileInfoEvent(FileInfoDto(
@@ -93,10 +110,7 @@ class MeshtasticMappers {
                 ? fr.clientNotification.message
                 : null));
       case mesh.FromRadio_PayloadVariant.deviceuiConfig:
-        return DeviceUiConfigEvent(DeviceUiConfigDto(
-          rawBytes: Uint8List.fromList(fr.deviceuiConfig.writeToBuffer()),
-          rawProto: fr.deviceuiConfig.toProto3Json() as Map<String, dynamic>,
-        ));
+        return DeviceUiConfigEvent(_toDeviceUiConfigDto(fr.deviceuiConfig));
       case mesh.FromRadio_PayloadVariant.xmodemPacket:
         // Not exposed directly; surface as log record with a descriptive message.
         return const LogRecordEvent(
@@ -490,8 +504,6 @@ class MeshtasticMappers {
       transportMechanism:
           packet.hasTransportMechanism() ? packet.transportMechanism.name : null,
       decoded: decoded,
-      rawProto: packet.toProto3Json() as Map<String, dynamic>,
-      rawBytes: Uint8List.fromList(packet.writeToBuffer()),
     );
   }
 
@@ -551,6 +563,69 @@ class MeshtasticMappers {
   }
 
   // Removed JSON map conversion: we now return typed DTOs only.
+}
+
+DeviceUiConfigDto _toDeviceUiConfigDto(dui.DeviceUIConfig c) {
+  return DeviceUiConfigDto(
+    version: c.hasVersion() ? c.version : null,
+    screenBrightness: c.hasScreenBrightness() ? c.screenBrightness : null,
+    screenTimeout: c.hasScreenTimeout() ? c.screenTimeout : null,
+    screenLock: c.hasScreenLock() ? c.screenLock : null,
+    settingsLock: c.hasSettingsLock() ? c.settingsLock : null,
+    pinCode: c.hasPinCode() ? c.pinCode : null,
+    theme: c.hasTheme() ? c.theme.name : null,
+    alertEnabled: c.hasAlertEnabled() ? c.alertEnabled : null,
+    bannerEnabled: c.hasBannerEnabled() ? c.bannerEnabled : null,
+    ringToneId: c.hasRingToneId() ? c.ringToneId : null,
+    language: c.hasLanguage() ? c.language.name : null,
+    nodeFilter: c.hasNodeFilter()
+        ? DeviceUiNodeFilterDto(
+            filterEnabled:
+                c.nodeFilter.hasUnknownSwitch() ? c.nodeFilter.unknownSwitch : null,
+            // Map min SNR using hopsAway as not available; leave null if not provided
+            minSnr: c.nodeFilter.hasHopsAway() ? c.nodeFilter.hopsAway : null,
+            hideIgnoredNodes: c.nodeFilter.hasOfflineSwitch()
+                ? c.nodeFilter.offlineSwitch
+                : null,
+          )
+        : null,
+    nodeHighlight: c.hasNodeHighlight()
+        ? DeviceUiNodeHighlightDto(
+            highlightEnabled: c.nodeHighlight.hasChatSwitch()
+                ? c.nodeHighlight.chatSwitch
+                : (c.nodeHighlight.hasPositionSwitch()
+                    ? c.nodeHighlight.positionSwitch
+                    : (c.nodeHighlight.hasTelemetrySwitch()
+                        ? c.nodeHighlight.telemetrySwitch
+                        : (c.nodeHighlight.hasIaqSwitch()
+                            ? c.nodeHighlight.iaqSwitch
+                            : null))),
+            minSnr: null,
+          )
+        : null,
+    calibrationData:
+        c.hasCalibrationData() ? Uint8List.fromList(c.calibrationData) : null,
+    mapData: c.hasMapData()
+        ? DeviceUiMapDto(
+            zoom: c.mapData.hasHome() && c.mapData.home.hasZoom()
+                ? c.mapData.home.zoom
+                : null,
+            centerLatI: c.mapData.hasHome() && c.mapData.home.hasLatitude()
+                ? c.mapData.home.latitude
+                : null,
+            centerLonI: c.mapData.hasHome() && c.mapData.home.hasLongitude()
+                ? c.mapData.home.longitude
+                : null,
+            followMe:
+                c.mapData.hasFollowGps() ? c.mapData.followGps : null,
+          )
+        : null,
+    compassMode: c.hasCompassMode() ? c.compassMode.name : null,
+    screenRgbColor: c.hasScreenRgbColor() ? c.screenRgbColor : null,
+    isClockfaceAnalog:
+        c.hasIsClockfaceAnalog() ? c.isClockfaceAnalog : null,
+    gpsFormat: c.hasGpsFormat() ? c.gpsFormat.name : null,
+  );
 }
 
 UserDto _toUserDto(mesh.User user) {

@@ -35,10 +35,6 @@ class MeshPacketDto {
   final int? txAfter;
   final String? transportMechanism; // enum name
   final DecodedPayloadDto? decoded;
-  // Full raw protobuf as JSON (proto3) for lossless transport/debugging
-  final Map<String, dynamic>? rawProto;
-  // Raw serialized protobuf bytes for complete lossless preservation
-  final Uint8List? rawBytes;
 
   const MeshPacketDto({
     this.from,
@@ -61,8 +57,6 @@ class MeshPacketDto {
     this.txAfter,
     this.transportMechanism,
     this.decoded,
-    this.rawProto,
-    this.rawBytes,
   });
 }
 
@@ -709,20 +703,53 @@ class QueueStatusDto {
 }
 
 class DeviceMetadataDto {
-  final NodeNum? myNodeNum;
-  // Raw JSON (proto3) of meshtastic.DeviceMetadata
-  final Map<String, dynamic>? rawProto;
-  // Raw serialized bytes
-  final Uint8List? rawBytes;
-  const DeviceMetadataDto({this.myNodeNum, this.rawProto, this.rawBytes});
+  // From meshtastic.DeviceMetadata
+  final String? firmwareVersion;
+  final int? deviceStateVersion;
+  final bool? canShutdown;
+  final bool? hasWifi;
+  final bool? hasBluetooth;
+  final bool? hasEthernet;
+  final String? role; // enum name of Config_DeviceConfig_Role
+  final int? positionFlags;
+  final String? hwModel; // enum name of HardwareModel
+  final bool? hasRemoteHardware;
+  final bool? hasPKC;
+  final int? excludedModules;
+  final bool? hasFwPlus;
+  final bool? hasNodemod;
+
+  const DeviceMetadataDto({
+    this.firmwareVersion,
+    this.deviceStateVersion,
+    this.canShutdown,
+    this.hasWifi,
+    this.hasBluetooth,
+    this.hasEthernet,
+    this.role,
+    this.positionFlags,
+    this.hwModel,
+    this.hasRemoteHardware,
+    this.hasPKC,
+    this.excludedModules,
+    this.hasFwPlus,
+    this.hasNodemod,
+  });
 }
 
 class MqttClientProxyMessageDto {
-  // Raw JSON (proto3) of meshtastic.MqttClientProxyMessage
-  final Map<String, dynamic>? rawProto;
-  // Raw serialized bytes
-  final Uint8List? rawBytes;
-  const MqttClientProxyMessageDto({this.rawProto, this.rawBytes});
+  // From meshtastic.MqttClientProxyMessage
+  final String? topic;
+  final Uint8List? data;
+  final String? text;
+  final bool? retained;
+
+  const MqttClientProxyMessageDto({
+    this.topic,
+    this.data,
+    this.text,
+    this.retained,
+  });
 }
 
 class FileInfoDto {
@@ -737,11 +764,84 @@ class ClientNotificationDto {
 }
 
 class DeviceUiConfigDto {
-  // Raw JSON (proto3) of meshtastic.DeviceUIConfig
-  final Map<String, dynamic>? rawProto;
-  // Raw serialized bytes
-  final Uint8List? rawBytes;
-  const DeviceUiConfigDto({this.rawProto, this.rawBytes});
+  // From meshtastic.DeviceUIConfig
+  final int? version;
+  final int? screenBrightness;
+  final int? screenTimeout;
+  final bool? screenLock;
+  final bool? settingsLock;
+  final int? pinCode;
+  final String? theme; // enum name
+  final bool? alertEnabled;
+  final bool? bannerEnabled;
+  final int? ringToneId;
+  final String? language; // enum name
+  final DeviceUiNodeFilterDto? nodeFilter;
+  final DeviceUiNodeHighlightDto? nodeHighlight;
+  final Uint8List? calibrationData;
+  final DeviceUiMapDto? mapData;
+  final String? compassMode; // enum name
+  final int? screenRgbColor;
+  final bool? isClockfaceAnalog;
+  final String? gpsFormat; // enum name
+
+  const DeviceUiConfigDto({
+    this.version,
+    this.screenBrightness,
+    this.screenTimeout,
+    this.screenLock,
+    this.settingsLock,
+    this.pinCode,
+    this.theme,
+    this.alertEnabled,
+    this.bannerEnabled,
+    this.ringToneId,
+    this.language,
+    this.nodeFilter,
+    this.nodeHighlight,
+    this.calibrationData,
+    this.mapData,
+    this.compassMode,
+    this.screenRgbColor,
+    this.isClockfaceAnalog,
+    this.gpsFormat,
+  });
+}
+
+class DeviceUiNodeFilterDto {
+  final bool? filterEnabled;
+  final int? minSnr;
+  final bool? hideIgnoredNodes;
+
+  const DeviceUiNodeFilterDto({
+    this.filterEnabled,
+    this.minSnr,
+    this.hideIgnoredNodes,
+  });
+}
+
+class DeviceUiNodeHighlightDto {
+  final bool? highlightEnabled;
+  final int? minSnr;
+
+  const DeviceUiNodeHighlightDto({
+    this.highlightEnabled,
+    this.minSnr,
+  });
+}
+
+class DeviceUiMapDto {
+  final int? zoom;
+  final int? centerLatI;
+  final int? centerLonI;
+  final bool? followMe;
+
+  const DeviceUiMapDto({
+    this.zoom,
+    this.centerLatI,
+    this.centerLonI,
+    this.followMe,
+  });
 }
 
 class LogRecordDto {
