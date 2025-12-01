@@ -256,7 +256,15 @@ class ModuleConfigDto {
   final MqttConfigDto? mqtt;
   final TelemetryConfigDto? telemetry;
   final SerialConfigDto? serial;
-  const ModuleConfigDto({this.mqtt, this.telemetry, this.serial});
+  final StoreForwardConfigDto? storeForward;
+  final RangeTestConfigDto? rangeTest;
+  const ModuleConfigDto({
+    this.mqtt,
+    this.telemetry,
+    this.serial,
+    this.storeForward,
+    this.rangeTest,
+  });
 }
 
 class MqttConfigDto {
@@ -352,6 +360,40 @@ class SerialConfigDto {
     this.timeout,
     this.mode,
     this.overrideConsoleSerialPort,
+  });
+}
+
+class StoreForwardConfigDto {
+  final bool? enabled;
+  final bool? heartbeat;
+  final int? records;
+  final int? historyReturnMax;
+  final int? historyReturnWindow;
+  final bool? isServer;
+  final bool? emitControlSignals;
+
+  const StoreForwardConfigDto({
+    this.enabled,
+    this.heartbeat,
+    this.records,
+    this.historyReturnMax,
+    this.historyReturnWindow,
+    this.isServer,
+    this.emitControlSignals,
+  });
+}
+
+class RangeTestConfigDto {
+  final bool? enabled;
+  final int? sender;
+  final bool? save;
+  final bool? clearOnReboot;
+
+  const RangeTestConfigDto({
+    this.enabled,
+    this.sender,
+    this.save,
+    this.clearOnReboot,
   });
 }
 

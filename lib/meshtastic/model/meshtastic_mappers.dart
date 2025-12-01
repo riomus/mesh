@@ -198,7 +198,39 @@ class MeshtasticMappers {
             : null,
       );
     }
-    return ModuleConfigDto(mqtt: mqtt, telemetry: telemetry, serial: serial);
+    StoreForwardConfigDto? storeForward;
+    if (mc.hasStoreForward()) {
+      final sf = mc.storeForward;
+      storeForward = StoreForwardConfigDto(
+        enabled: sf.hasEnabled() ? sf.enabled : null,
+        heartbeat: sf.hasHeartbeat() ? sf.heartbeat : null,
+        records: sf.hasRecords() ? sf.records : null,
+        historyReturnMax:
+            sf.hasHistoryReturnMax() ? sf.historyReturnMax : null,
+        historyReturnWindow:
+            sf.hasHistoryReturnWindow() ? sf.historyReturnWindow : null,
+        isServer: sf.hasIsServer() ? sf.isServer : null,
+        emitControlSignals:
+            sf.hasEmitControlSignals() ? sf.emitControlSignals : null,
+      );
+    }
+    RangeTestConfigDto? rangeTest;
+    if (mc.hasRangeTest()) {
+      final rt = mc.rangeTest;
+      rangeTest = RangeTestConfigDto(
+        enabled: rt.hasEnabled() ? rt.enabled : null,
+        sender: rt.hasSender() ? rt.sender : null,
+        save: rt.hasSave() ? rt.save : null,
+        clearOnReboot: rt.hasClearOnReboot() ? rt.clearOnReboot : null,
+      );
+    }
+    return ModuleConfigDto(
+      mqtt: mqtt,
+      telemetry: telemetry,
+      serial: serial,
+      storeForward: storeForward,
+      rangeTest: rangeTest,
+    );
   }
 
   static MeshPacketDto _toMeshPacketDto(mesh.MeshPacket packet) {
