@@ -16,7 +16,7 @@
 - [x] Create widget for events list display - similar to logging widget - show events with ability to search and filter using chips
 - [x] support rest of meshtastic apps by mapping messages in meshtastic mapper (cases for port.PortNum) - create missing dtos
 - [x] Make sure that all data from RouteDiscovery is exposed in TraceroutePayloadDto
-- [ ] Use event list display widget for events on device details page 
+- [x] Use event list display widget for events on device details page 
 - [ ] Create new page for device events that will show all events from all devices
 - [ ] Update logging widget to have "full screen" button that will enlarge the log view to full screen
 - [ ] Update event list widget to have "full screen" button that will enlarge the event list view to full screen

@@ -11,7 +11,7 @@ import '../widgets/logs_viewer.dart';
 import '../widgets/mesh_app_bar.dart';
 import '../meshtastic/model/meshtastic_event.dart';
 // Removed unused import: meshtastic_models.dart
-import '../widgets/meshtastic_event_tiles.dart';
+import '../widgets/events_list_widget.dart';
 
 class DeviceDetailsPage extends StatefulWidget {
   final ScanResult result;
@@ -197,7 +197,7 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                   ],
                 ),
               ),
-              // Live Meshtastic events viewer
+              // Live Meshtastic events viewer (reusable EventsListWidget)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                 child: Column(
@@ -207,18 +207,8 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                       children: [
                         const Text('📡', style: TextStyle(fontSize: 18)),
                         const SizedBox(width: 8),
-                        Text('Live events (${_events.length})',
+                        Text('Live events',
                             style: Theme.of(context).textTheme.titleSmall),
-                        const Spacer(),
-                        IconButton(
-                          tooltip: 'Clear',
-                          onPressed: _events.isEmpty
-                              ? null
-                              : () {
-                                      setState(() => _events.clear());
-                                    },
-                          icon: const Icon(Icons.clear_all),
-                        ),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -228,26 +218,11 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: Theme.of(context).dividerColor),
                       ),
-                      height: 220, // Give inner ListView a bounded height to avoid layout exceptions
-                      child: _events.isEmpty
-                          ? const Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(12.0),
-                                child: Text('No events received yet'),
-                              ),
-                            )
-                          : ListView.builder(
-                              // Nested scrollable inside parent ListView
-                              // must be non-primary and have its own physics
-                              primary: false,
-                              physics: const ClampingScrollPhysics(),
-                              shrinkWrap: true,
-                              itemCount: _events.length,
-                              itemBuilder: (context, index) {
-                                final ev = _events[index];
-                                return MeshtasticEventTile(event: ev);
-                              },
-                            ),
+                      height: 260,
+                      child: EventsListWidget(
+                        deviceId: result.device.remoteId.str,
+                        network: 'meshtastic',
+                      ),
                     ),
                   ],
                 ),
