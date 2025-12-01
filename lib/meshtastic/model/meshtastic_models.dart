@@ -262,6 +262,7 @@ class ModuleConfigDto {
   final AudioConfigDto? audio;
   final NeighborInfoConfigDto? neighborInfo;
   final RemoteHardwareConfigDto? remoteHardware;
+  final PaxcounterConfigDto? paxcounter;
   const ModuleConfigDto({
     this.mqtt,
     this.telemetry,
@@ -272,6 +273,7 @@ class ModuleConfigDto {
     this.audio,
     this.neighborInfo,
     this.remoteHardware,
+    this.paxcounter,
   });
 }
 
@@ -491,6 +493,20 @@ class RemoteHardwarePinDto {
   final String? type; // enum name
 
   const RemoteHardwarePinDto({this.gpioPin, this.name, this.type});
+}
+
+class PaxcounterConfigDto {
+  final bool? enabled;
+  final int? paxcounterUpdateInterval;
+  final int? wifiThreshold;
+  final int? bleThreshold;
+
+  const PaxcounterConfigDto({
+    this.enabled,
+    this.paxcounterUpdateInterval,
+    this.wifiThreshold,
+    this.bleThreshold,
+  });
 }
 
 class ChannelDto {

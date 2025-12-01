@@ -292,6 +292,18 @@ class MeshtasticMappers {
         availablePins: pins,
       );
     }
+    PaxcounterConfigDto? paxcounter;
+    if (mc.hasPaxcounter()) {
+      final px = mc.paxcounter;
+      paxcounter = PaxcounterConfigDto(
+        enabled: px.hasEnabled() ? px.enabled : null,
+        paxcounterUpdateInterval: px.hasPaxcounterUpdateInterval()
+            ? px.paxcounterUpdateInterval
+            : null,
+        wifiThreshold: px.hasWifiThreshold() ? px.wifiThreshold : null,
+        bleThreshold: px.hasBleThreshold() ? px.bleThreshold : null,
+      );
+    }
     return ModuleConfigDto(
       mqtt: mqtt,
       telemetry: telemetry,
@@ -302,6 +314,7 @@ class MeshtasticMappers {
       audio: audio,
       neighborInfo: neighborInfo,
       remoteHardware: remoteHardware,
+      paxcounter: paxcounter,
     );
   }
 
