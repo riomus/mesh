@@ -21,6 +21,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          fetch-tags: true
           submodules: recursive
 
       - name: Compute version from git describe (and ensure base tag 0.0.1)
@@ -252,6 +253,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          fetch-tags: true
+          submodules: recursive
 
       - name: Generate changelog from commits since last tag
         run: |

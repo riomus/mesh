@@ -20,6 +20,32 @@ fi
 NEW_TAG=${NEW_TAG:-}
 DESCRIBE=${DESCRIBE:-}
 
+# Helper to print a changelog section for a given git range.
+# Prefers non-merge commits, but falls back to including merges if that would be empty.
+print_changelog_for_range() {
+  local range="$1"
+  local fmt='* %s (%h) — %an'
+
+  # Try without merges first (cleaner list)
+  local log_output
+  if ! log_output=$(git log "$range" --pretty="$fmt" --no-merges 2>/dev/null); then
+    log_output=""
+  fi
+
+  # If empty, include merges as well (common when all changes are PR merge commits)
+  if [[ -z "${log_output//[[:space:]]/}" ]]; then
+    if ! log_output=$(git log "$range" --pretty="$fmt" 2>/dev/null); then
+      log_output=""
+    fi
+  fi
+
+  if [[ -n "${log_output//[[:space:]]/}" ]]; then
+    echo "$log_output"
+  else
+    echo "* No commits found in range $range"
+  fi
+}
+
 {
   echo "# Release ${NEW_TAG:-unversioned}"
   if [[ -n "$DESCRIBE" ]]; then
@@ -31,11 +57,11 @@ DESCRIBE=${DESCRIBE:-}
   if [[ -n "$LAST_TAG" ]]; then
     echo "Changes since $LAST_TAG:"
     echo
-    git log "${LAST_TAG}..HEAD" --pretty='* %s (%h) — %an' --no-merges || true
+    print_changelog_for_range "${LAST_TAG}..HEAD"
   else
     echo "Changes in initial release:"
     echo
-    git log --pretty='* %s (%h) — %an' --no-merges || true
+    print_changelog_for_range "HEAD"
   fi
 
   echo
