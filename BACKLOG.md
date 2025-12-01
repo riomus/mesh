@@ -17,11 +17,11 @@
 - [x] support rest of meshtastic apps by mapping messages in meshtastic mapper (cases for port.PortNum) - create missing dtos
 - [x] Make sure that all data from RouteDiscovery is exposed in TraceroutePayloadDto
 - [x] Use event list display widget for events on device details page 
-- [ ] Create new page for device events that will show all events from all devices
+- [x] Create new page for device events that will show all events from all devices
+- [x] In event list widget - add ability to click on each events and show specific event details page - show all data from the event - including nested ones use nice nested widgets with colors and emojis
+- [ ] For events with location - use flutter_map plugin to show map with pin on the location
 - [ ] Update logging widget to have "full screen" button that will enlarge the log view to full screen
 - [ ] Update event list widget to have "full screen" button that will enlarge the event list view to full screen
-- [ ] In event list widget - add ability to click on each events and show specific event details page
-- [ ] For events with location - use flutter_map plugin to show map with pin on the location
 - [ ] Add ability to share logs - dump them to json file and share it
 - [ ] Add ability to share events - dump them to json file and share it
 - [ ] Create chatting widget that will allow to send messages to devices and display them in the list

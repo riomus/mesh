@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../services/device_communication_event_service.dart';
 import 'meshtastic_event_tiles.dart';
+import '../pages/event_details_page.dart';
 
 /// EventsListWidget
 ///
@@ -211,7 +212,12 @@ class _EventTile extends StatelessWidget {
     final p = e.payload;
     if (p is MeshtasticDeviceEventPayload) {
       // Render using existing Meshtastic tiles for nicer UX
-      return MeshtasticEventTile(event: p.event);
+      return InkWell(
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => EventDetailsPage(event: e)),
+        ),
+        child: MeshtasticEventTile(event: p.event),
+      );
     }
     // Fallback generic tile
     return ListTile(
@@ -219,6 +225,9 @@ class _EventTile extends StatelessWidget {
       title: Text(e.summary ?? 'Event'),
       subtitle: Text(_tagsSummary(e.tags)),
       dense: true,
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => EventDetailsPage(event: e)),
+      ),
     );
   }
 
