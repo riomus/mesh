@@ -35,6 +35,8 @@
     - name
   - Display last seen time in human readable format
   - Add sub-tab with a map view of all nodes that have location
+  - Update nodes to also contain source node name
+  - Update nodes filtering to be also possible by node name 
 - [ ] Create chatting widget that will allow to send messages to devices and display them in the list
   - Chat view should be scrollable and has a input component at the bottom
   - Input should accept rich text - with emojis

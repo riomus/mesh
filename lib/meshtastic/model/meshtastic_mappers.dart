@@ -1,4 +1,8 @@
-
+// ignore_for_file: deprecated_member_use_from_same_package, deprecated_member_use
+// We intentionally access some deprecated members from generated protobufs to
+// preserve compatibility with older device firmware. Upstream protos may keep
+// deprecated fields during transitions; our mapper reads them for best‑effort
+// decoding and to support a wider range of devices.
 import 'dart:convert';
 import 'dart:typed_data';
 
