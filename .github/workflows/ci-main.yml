@@ -59,7 +59,6 @@ jobs:
       - name: Run web smoke (widget) tests
         run: |
           mkdir -p test-results
-          set -o pipefail
           flutter test --platform chrome test/widget_test.dart 2>&1 | tee test-results/web-smoke.txt
       - name: Upload web smoke logs
         uses: actions/upload-artifact@v4
@@ -104,7 +103,6 @@ jobs:
       - name: Run integration (web / chrome)
         run: |
           mkdir -p test-results
-          set -o pipefail
           ./scripts/run_integration.sh web 2>&1 | tee test-results/web-integration.txt
       - name: Upload web integration logs
         uses: actions/upload-artifact@v4
@@ -163,7 +161,6 @@ jobs:
           profile: pixel_5
           script: |
             mkdir -p test-results
-            set -o pipefail
             ./scripts/run_integration.sh android 2>&1 | tee test-results/android-integration.txt
       - name: Upload Android integration logs
         if: always()
