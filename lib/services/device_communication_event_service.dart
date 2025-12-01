@@ -1,14 +1,26 @@
 import 'dart:async';
+import '../meshtastic/model/meshtastic_event.dart';
 
 /// Domain-agnostic device communication event (for now primarily Meshtastic).
+sealed class DeviceEventPayload {
+  const DeviceEventPayload();
+}
+
+/// Typed payload wrapper for Meshtastic events (structured hierarchy).
+class MeshtasticDeviceEventPayload extends DeviceEventPayload {
+  final MeshtasticEvent event;
+  const MeshtasticDeviceEventPayload(this.event);
+}
+
 class DeviceEvent {
   final DateTime timestamp;
   /// Structured tags (e.g., {'network': ['meshtastic'], 'deviceId': ['ABC']}).
   final Map<String, List<String>> tags;
   /// Optional human-friendly summary.
   final String? summary;
-  /// Arbitrary structured payload for the event (e.g., decoded DTOs, maps).
-  final Object? payload;
+  /// Structured payload for the event. Prefer using a subclass of
+  /// [DeviceEventPayload] for type safety.
+  final DeviceEventPayload? payload;
 
   const DeviceEvent({
     required this.timestamp,
@@ -53,7 +65,7 @@ class DeviceCommunicationEventService {
   void push({
     Map<String, Object?>? tags,
     String? summary,
-    Object? payload,
+    DeviceEventPayload? payload,
     DateTime? timestamp,
   }) {
     final normalizedTags = _normalizeTags(tags);
@@ -69,6 +81,28 @@ class DeviceCommunicationEventService {
     if (overflow > 0) {
       _buffer.removeRange(0, overflow);
     }
+  }
+
+  /// Convenience helper for Meshtastic events to ensure consistent tagging and
+  /// typed payload.
+  void pushMeshtastic({
+    required MeshtasticEvent event,
+    String? deviceId,
+    String? summary,
+    DateTime? timestamp,
+    Map<String, Object?> additionalTags = const {},
+  }) {
+    final tags = <String, Object?>{
+      'network': 'meshtastic',
+      if (deviceId != null) 'deviceId': deviceId,
+      ...additionalTags,
+    };
+    push(
+      tags: tags,
+      summary: summary,
+      payload: MeshtasticDeviceEventPayload(event),
+      timestamp: timestamp,
+    );
   }
 
   /// Stream all events.
