@@ -24,6 +24,8 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
   void initState() {
     super.initState();
     _sub = _svc.listenAll().listen((value) {
+      // Guard against setState after dispose if an event lands late
+      if (!mounted) return;
       setState(() {
         _nodes = value;
       });
@@ -61,6 +63,7 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
 
   void _onLongPress(TapPosition tapPosition, latlng.LatLng point) {
     _svc.setCustomDistanceReference(lat: point.latitude, lon: point.longitude);
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Custom distance reference set to ${point.latitude.toStringAsFixed(5)}, ${point.longitude.toStringAsFixed(5)}')),
     );
@@ -98,7 +101,7 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
                   Text('Ref: ${eff.$1.toStringAsFixed(5)}, ${eff.$2.toStringAsFixed(5)}'),
                   const SizedBox(width: 8),
                   TextButton.icon(
-                    onPressed: () => setState(() => _svc.setCustomDistanceReference(lat: null, lon: null)),
+                    onPressed: () => _svc.setCustomDistanceReference(lat: null, lon: null),
                     icon: const Icon(Icons.clear),
                     label: const Text('Clear ref'),
                   ),
