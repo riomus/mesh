@@ -141,13 +141,49 @@ class _Toolbar extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TextField(
-          decoration: const InputDecoration(
-            prefixIcon: Icon(Icons.search),
-            hintText: 'Search events…',
-            isDense: true,
-          ),
-          onChanged: onSearchChanged,
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.search),
+                  hintText: 'Search events…',
+                  isDense: true,
+                ),
+                onChanged: onSearchChanged,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Tooltip(
+              message: 'Fullscreen',
+              child: IconButton(
+                key: const Key('events_fullscreen_button'),
+                icon: const Icon(Icons.fullscreen),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (ctx) => Scaffold(
+                        appBar: AppBar(
+                          title: const Text('Events'),
+                          actions: [
+                            IconButton(
+                              tooltip: 'Close',
+                              icon: const Icon(Icons.close_fullscreen),
+                              onPressed: () => Navigator.of(ctx).maybePop(),
+                            ),
+                          ],
+                        ),
+                        body: EventsListWidget(
+                          network: selectedNetwork,
+                          deviceId: selectedDeviceId,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 8),
         Wrap(

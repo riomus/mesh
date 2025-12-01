@@ -248,6 +248,37 @@ class _LogsViewerState extends State<LogsViewer> {
             ),
           ),
           const SizedBox(width: 8),
+          // Fullscreen toggle
+          Tooltip(
+            message: 'Fullscreen',
+            child: IconButton(
+              key: const Key('logs_fullscreen_button'),
+              icon: const Icon(Icons.fullscreen),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (ctx) => Scaffold(
+                      appBar: AppBar(
+                        title: const Text('Logs'),
+                        actions: [
+                          IconButton(
+                            tooltip: 'Close',
+                            icon: const Icon(Icons.close_fullscreen),
+                            onPressed: () => Navigator.of(ctx).maybePop(),
+                          ),
+                        ],
+                      ),
+                      body: LogsViewer(
+                        // Reuse the same stream if provided, otherwise default
+                        stream: widget.stream,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(width: 8),
           Tooltip(
             message: 'Add filters',
             child: IconButton(
