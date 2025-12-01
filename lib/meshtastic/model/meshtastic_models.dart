@@ -245,7 +245,8 @@ class NodeInfoDto {
 
 class ConfigDto {
   final DeviceConfigDto? device;
-  const ConfigDto({this.device});
+  final PositionConfigDto? position;
+  const ConfigDto({this.device, this.position});
 }
 
 class DeviceConfigDto {
@@ -275,6 +276,38 @@ class DeviceConfigDto {
     this.tzdef,
     this.ledHeartbeatDisabled,
     this.buzzerMode,
+  });
+}
+
+class PositionConfigDto {
+  final int? positionBroadcastSecs;
+  final bool? positionBroadcastSmartEnabled;
+  final bool? fixedPosition;
+  final bool? gpsEnabled; // deprecated upstream
+  final int? gpsUpdateInterval;
+  final int? gpsAttemptTime; // deprecated upstream
+  final int? positionFlags;
+  final int? rxGpio;
+  final int? txGpio;
+  final int? broadcastSmartMinimumDistance;
+  final int? broadcastSmartMinimumIntervalSecs;
+  final int? gpsEnGpio;
+  final String? gpsMode; // enum name
+
+  const PositionConfigDto({
+    this.positionBroadcastSecs,
+    this.positionBroadcastSmartEnabled,
+    this.fixedPosition,
+    this.gpsEnabled,
+    this.gpsUpdateInterval,
+    this.gpsAttemptTime,
+    this.positionFlags,
+    this.rxGpio,
+    this.txGpio,
+    this.broadcastSmartMinimumDistance,
+    this.broadcastSmartMinimumIntervalSecs,
+    this.gpsEnGpio,
+    this.gpsMode,
   });
 }
 

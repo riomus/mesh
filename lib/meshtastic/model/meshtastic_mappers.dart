@@ -131,7 +131,35 @@ class MeshtasticMappers {
         buzzerMode: d.hasBuzzerMode() ? d.buzzerMode.name : null,
       );
     }
-    return ConfigDto(device: device);
+    PositionConfigDto? position;
+    if (cfg.hasPosition()) {
+      final p = cfg.position;
+      position = PositionConfigDto(
+        positionBroadcastSecs:
+            p.hasPositionBroadcastSecs() ? p.positionBroadcastSecs : null,
+        positionBroadcastSmartEnabled: p.hasPositionBroadcastSmartEnabled()
+            ? p.positionBroadcastSmartEnabled
+            : null,
+        fixedPosition: p.hasFixedPosition() ? p.fixedPosition : null,
+        gpsEnabled: p.hasGpsEnabled() ? p.gpsEnabled : null,
+        gpsUpdateInterval:
+            p.hasGpsUpdateInterval() ? p.gpsUpdateInterval : null,
+        gpsAttemptTime: p.hasGpsAttemptTime() ? p.gpsAttemptTime : null,
+        positionFlags: p.hasPositionFlags() ? p.positionFlags : null,
+        rxGpio: p.hasRxGpio() ? p.rxGpio : null,
+        txGpio: p.hasTxGpio() ? p.txGpio : null,
+        broadcastSmartMinimumDistance: p.hasBroadcastSmartMinimumDistance()
+            ? p.broadcastSmartMinimumDistance
+            : null,
+        broadcastSmartMinimumIntervalSecs:
+            p.hasBroadcastSmartMinimumIntervalSecs()
+                ? p.broadcastSmartMinimumIntervalSecs
+                : null,
+        gpsEnGpio: p.hasGpsEnGpio() ? p.gpsEnGpio : null,
+        gpsMode: p.hasGpsMode() ? p.gpsMode.name : null,
+      );
+    }
+    return ConfigDto(device: device, position: position);
   }
 
   static ModuleConfigDto _toModuleConfigDto(module.ModuleConfig mc) {
