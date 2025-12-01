@@ -25,6 +25,16 @@
 - [x] Add ability to share logs - dump them to json file and share it
 - [x] Add ability to share events - dump them to json file and share it
 - [x] Create nodes view - a page to show all nodes in the mesh - with ability to filter and sort the nodes, - should be done in same arch as evnets/logs - nodes in the list should be taged
+- [ ] Modify node page:
+  - Add ability to sort nodes by multiple predicates:
+    - distance
+    - rssi
+    - last seen
+    - channel
+    - role
+    - name
+  - Display last seen time in human readable format
+  - Add sub-tab with a map view of all nodes that have location
 - [ ] Create chatting widget that will allow to send messages to devices and display them in the list
   - Chat view should be scrollable and has a input component at the bottom
   - Input should accept rich text - with emojis

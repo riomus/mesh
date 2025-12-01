@@ -58,18 +58,22 @@ class NodesService {
         final info = evt.nodeInfo;
         final num = info.num;
         if (num != null) {
+          // Represent node id as lowercase hex without 0x prefix for consistency
+          final nodeHexId = num.toRadixString(16).toLowerCase();
           final tags = <String, List<String>>{
             'network': const ['meshtastic'],
+            // deviceId on Nodes should represent the NODE id
+            'deviceId': [nodeHexId],
             if (info.user?.role != null) 'role': [info.user!.role!],
             if (info.hopsAway != null) 'hops': ['${info.hopsAway}'],
             if (info.isFavorite == true) 'favorite': const ['true'] else 'favorite': const ['false'],
             if (info.isIgnored == true) 'ignored': const ['true'] else 'ignored': const ['false'],
             if (info.viaMqtt == true) 'viaMqtt': const ['true'] else 'viaMqtt': const ['false'],
           };
-          // Inherit deviceId tag from envelope if available
-          final deviceIds = e.tags['deviceId'];
-          if (deviceIds != null && deviceIds.isNotEmpty) {
-            tags['deviceId'] = List<String>.from(deviceIds);
+          // Preserve reporter device as sourceDeviceId when available
+          final reporterIds = e.tags['deviceId'];
+          if (reporterIds != null && reporterIds.isNotEmpty) {
+            tags['sourceDeviceId'] = List<String>.from(reporterIds);
           }
 
           _nodes[num] = MeshNodeView(

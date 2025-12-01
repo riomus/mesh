@@ -4,6 +4,18 @@ import 'package:flutter/material.dart';
 
 import '../services/nodes_service.dart';
 
+// Logs-like chip filtering primitives for Nodes
+enum _NodeChipOp { exact, regex }
+
+class _NodeChipFilter {
+  final String key;
+  final String value; // empty + exact => presence-only
+  final _NodeChipOp op;
+  RegExp? _compiledRegex;
+  _NodeChipFilter({required this.key, required this.value, required this.op});
+  String get label => op == _NodeChipOp.exact ? (value.isEmpty ? key : '$key=$value') : '$key~/$value/i';
+}
+
 class NodesListWidget extends StatefulWidget {
   const NodesListWidget({super.key});
 
@@ -16,16 +28,17 @@ class _NodesListWidgetState extends State<NodesListWidget> {
   StreamSubscription<List<MeshNodeView>>? _sub;
   final List<MeshNodeView> _nodes = <MeshNodeView>[];
 
-  // Filters
+  // Logs-like filtering schema using chips added from a modal
   String _search = '';
-  String? _role;
-  String? _deviceId;
-  String? _favorite; // 'true'/'false'
-  String? _viaMqtt; // 'true'/'false'
+  final TextEditingController _searchCtrl = TextEditingController();
+  final FocusNode _searchFocus = FocusNode();
+  final Set<String> _seenKeys = <String>{};
+  final Map<String, Set<String>> _seenValuesByKey = <String, Set<String>>{};
+  final List<_NodeChipFilter> _chips = <_NodeChipFilter>[];
 
-  // Discovered chip values
-  final Set<String> _roles = <String>{};
-  final Set<String> _deviceIds = <String>{};
+  // Local chip types
+  static const _presenceHint = 'Value (empty = presence)';
+  static const _regexHint = 'Regex (case-insensitive)';
 
   @override
   void initState() {
@@ -35,12 +48,13 @@ class _NodesListWidgetState extends State<NodesListWidget> {
         _nodes
           ..clear()
           ..addAll(list);
-        // populate chips
+        // collect keys/values for modal suggestions
         for (final n in list) {
-          final r = n.tags['role'];
-          if (r != null) _roles.addAll(r);
-          final d = n.tags['deviceId'];
-          if (d != null) _deviceIds.addAll(d);
+          for (final entry in n.tags.entries) {
+            _seenKeys.add(entry.key);
+            final set = _seenValuesByKey.putIfAbsent(entry.key, () => <String>{});
+            set.addAll(entry.value);
+          }
         }
       });
     });
@@ -49,15 +63,49 @@ class _NodesListWidgetState extends State<NodesListWidget> {
   @override
   void dispose() {
     _sub?.cancel();
+    _searchCtrl.dispose();
+    _searchFocus.dispose();
     super.dispose();
   }
 
   bool _matches(MeshNodeView n) {
-    if (_role != null && !(n.tags['role'] ?? const <String>[]).contains(_role)) return false;
-    if (_deviceId != null && !(n.tags['deviceId'] ?? const <String>[]).contains(_deviceId)) return false;
-    if (_favorite != null && !(n.tags['favorite'] ?? const <String>[]).contains(_favorite)) return false;
-    if (_viaMqtt != null && !(n.tags['viaMqtt'] ?? const <String>[]).contains(_viaMqtt)) return false;
-
+    // Chips: AND across keys, OR within the same key
+    if (_chips.isNotEmpty) {
+      final chipsByKey = <String, List<_NodeChipFilter>>{};
+      for (final c in _chips) {
+        chipsByKey.putIfAbsent(c.key, () => <_NodeChipFilter>[]).add(c);
+      }
+      for (final entry in chipsByKey.entries) {
+        final key = entry.key;
+        final chips = entry.value;
+        final values = n.tags[key] ?? const <String>[];
+        bool groupMatch = false;
+        for (final chip in chips) {
+          if (chip.op == _NodeChipOp.exact) {
+            if (chip.value.isEmpty) {
+              if (values.isNotEmpty) {
+                groupMatch = true;
+                break;
+              }
+            } else {
+              final target = chip.value.toLowerCase();
+              if (values.any((v) => v.toLowerCase() == target)) {
+                groupMatch = true;
+                break;
+              }
+            }
+          } else {
+            final re = chip._compiledRegex ?? RegExp(chip.value, caseSensitive: false);
+            chip._compiledRegex = re;
+            if (values.any((v) => re.hasMatch(v))) {
+              groupMatch = true;
+              break;
+            }
+          }
+        }
+        if (!groupMatch) return false; // AND across keys
+      }
+    }
     if (_search.isNotEmpty) {
       final s = _search.toLowerCase();
       final name = n.displayName.toLowerCase();
@@ -85,30 +133,7 @@ class _NodesListWidgetState extends State<NodesListWidget> {
 
     return Column(
       children: [
-        _SearchAndActions(
-          onChanged: (v) => setState(() => _search = v),
-          onClear: () => setState(() => _search = ''),
-          value: _search,
-        ),
-        const SizedBox(height: 8),
-        _Chips(
-          roles: _roles,
-          deviceIds: _deviceIds,
-          role: _role,
-          onRole: (v) => setState(() => _role = v),
-          deviceId: _deviceId,
-          onDeviceId: (v) => setState(() => _deviceId = v),
-          favorite: _favorite,
-          onFavorite: (v) => setState(() => _favorite = v),
-          viaMqtt: _viaMqtt,
-          onViaMqtt: (v) => setState(() => _viaMqtt = v),
-          onClearAll: () => setState(() {
-            _role = null;
-            _deviceId = null;
-            _favorite = null;
-            _viaMqtt = null;
-          }),
-        ),
+        _buildTopBar(context),
         const SizedBox(height: 8),
         Expanded(
           child: ListView.separated(
@@ -148,102 +173,243 @@ class _NodesListWidgetState extends State<NodesListWidget> {
     if (n.lastHeard != null) parts.add('⏱️ ${n.lastHeard}s');
     return Text(parts.join(' • '));
   }
-}
+  Widget _buildTopBar(BuildContext context) {
+    final chips = _chips
+        .asMap()
+        .entries
+        .map((entry) => InputChip(
+              label: Text(entry.value.label),
+              onDeleted: () => setState(() => _chips.removeAt(entry.key)),
+            ))
+        .toList(growable: false);
 
-class _SearchAndActions extends StatelessWidget {
-  final String value;
-  final ValueChanged<String> onChanged;
-  final VoidCallback onClear;
-  const _SearchAndActions({required this.value, required this.onChanged, required this.onClear});
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: TextField(
-            decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.search),
-              hintText: 'Search by name or id ...',
+    // sync controller text with state
+    if (_searchCtrl.text != _search) {
+      _searchCtrl.text = _search;
+      _searchCtrl.selection = TextSelection.fromPosition(TextPosition(offset: _searchCtrl.text.length));
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => _searchFocus.requestFocus(),
+              child: InputDecorator(
+                isFocused: _searchFocus.hasFocus,
+                isEmpty: false,
+                decoration: const InputDecoration(
+                  labelText: 'Search nodes',
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                  prefixIcon: Icon(Icons.search, size: 18),
+                ),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    ...chips,
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(minWidth: 120),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              focusNode: _searchFocus,
+                              controller: _searchCtrl,
+                              decoration: const InputDecoration(
+                                hintText: 'Find by name or id ...',
+                                isDense: true,
+                                border: InputBorder.none,
+                              ),
+                              onChanged: (v) => setState(() => _search = v),
+                            ),
+                          ),
+                          if (_searchCtrl.text.isNotEmpty)
+                            IconButton(
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              tooltip: 'Clear',
+                              icon: const Icon(Icons.clear, size: 18),
+                              onPressed: () {
+                                _searchCtrl.clear();
+                                setState(() => _search = '');
+                              },
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            onChanged: onChanged,
-            controller: TextEditingController(text: value),
           ),
-        ),
-        IconButton(
-          tooltip: 'Clear',
-          onPressed: onClear,
-          icon: const Icon(Icons.clear),
-        ),
-      ],
+          const SizedBox(width: 8),
+          Tooltip(
+            message: 'Add filter',
+            child: FilledButton.icon(
+              icon: const Icon(Icons.filter_alt),
+              label: const Text('Add filter'),
+              onPressed: _openAddChipDialog,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Tooltip(
+            message: 'Clear filters',
+            child: IconButton(
+              icon: const Icon(Icons.filter_alt_off),
+              onPressed: () => setState(() => _chips.clear()),
+            ),
+          ),
+        ],
+      ),
     );
   }
-}
 
-class _Chips extends StatelessWidget {
-  final Set<String> roles;
-  final Set<String> deviceIds;
-  final String? role;
-  final String? deviceId;
-  final String? favorite;
-  final String? viaMqtt;
-  final ValueChanged<String?> onRole;
-  final ValueChanged<String?> onDeviceId;
-  final ValueChanged<String?> onFavorite;
-  final ValueChanged<String?> onViaMqtt;
-  final VoidCallback onClearAll;
+  Future<void> _openAddChipDialog() async {
+    if (_seenKeys.isEmpty) return;
+    String? draftKey = _seenKeys.contains('role') ? 'role' : (_seenKeys.toList()..sort()).first;
+    _NodeChipOp draftOp = _NodeChipOp.exact;
+    final Set<String> selectedValues = <String>{};
+    final TextEditingController customCtrl = TextEditingController();
+    bool presence = false;
 
-  const _Chips({
-    required this.roles,
-    required this.deviceIds,
-    required this.role,
-    required this.deviceId,
-    required this.favorite,
-    required this.viaMqtt,
-    required this.onRole,
-    required this.onDeviceId,
-    required this.onFavorite,
-    required this.onViaMqtt,
-    required this.onClearAll,
-  });
+    await showDialog<void>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDlg) {
+          void addSelected() {
+            final key = draftKey;
+            if (key == null) return;
+            if (draftOp == _NodeChipOp.regex) {
+              final pattern = customCtrl.text.trim();
+              if (pattern.isEmpty) return;
+              try {
+                RegExp(pattern, caseSensitive: false);
+              } catch (_) {
+                return;
+              }
+              final c = _NodeChipFilter(key: key, value: pattern, op: _NodeChipOp.regex);
+              setState(() => _addChipUnique(c));
+              Navigator.of(context).pop();
+              return;
+            }
+            bool any = false;
+            if (presence) {
+              any |= _addChipUnique(_NodeChipFilter(key: key, value: '', op: _NodeChipOp.exact));
+            }
+            for (final v in selectedValues) {
+              any |= _addChipUnique(_NodeChipFilter(key: key, value: v, op: _NodeChipOp.exact));
+            }
+            final custom = customCtrl.text.trim();
+            if (custom.isNotEmpty) {
+              any |= _addChipUnique(_NodeChipFilter(key: key, value: custom, op: _NodeChipOp.exact));
+            }
+            if (any) setState(() {});
+            Navigator.of(context).pop();
+          }
 
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 4,
-      children: [
-        FilterChip(
-          label: const Text('Fav: yes'),
-          selected: favorite == 'true',
-          onSelected: (s) => onFavorite(s ? 'true' : null),
-        ),
-        FilterChip(
-          label: const Text('Fav: no'),
-          selected: favorite == 'false',
-          onSelected: (s) => onFavorite(s ? 'false' : null),
-        ),
-        FilterChip(
-          label: const Text('via MQTT'),
-          selected: viaMqtt == 'true',
-          onSelected: (s) => onViaMqtt(s ? 'true' : null),
-        ),
-        for (final r in roles)
-          FilterChip(
-            label: Text('role:$r'),
-            selected: role == r,
-            onSelected: (s) => onRole(s ? r : null),
-          ),
-        for (final d in deviceIds)
-          FilterChip(
-            label: Text('device:$d'),
-            selected: deviceId == d,
-            onSelected: (s) => onDeviceId(s ? d : null),
-          ),
-        ActionChip(
-          label: const Text('Clear filters'),
-          onPressed: onClearAll,
-        ),
-      ],
+          final values = draftKey == null ? const <String>{} : (_seenValuesByKey[draftKey!] ?? const <String>{});
+          final valuesSorted = values.toList()..sort();
+          final keyItems = (_seenKeys.toList()..sort())
+              .map((k) => DropdownMenuItem<String>(value: k, child: Text(k)))
+              .toList();
+
+          return AlertDialog(
+            title: const Text('Add filter'),
+            content: SizedBox(
+              width: 480,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  DropdownButtonFormField<String>(
+                    decoration: const InputDecoration(labelText: 'Key'),
+                    value: draftKey,
+                    items: keyItems,
+                    onChanged: (v) => setDlg(() {
+                      draftKey = v;
+                      selectedValues.clear();
+                      presence = false;
+                      customCtrl.clear();
+                    }),
+                  ),
+                  const SizedBox(height: 8),
+                  SegmentedButton<_NodeChipOp>(
+                    segments: const [
+                      ButtonSegment(value: _NodeChipOp.exact, label: Text('Exact')),
+                      ButtonSegment(value: _NodeChipOp.regex, label: Text('Regex')),
+                    ],
+                    selected: {draftOp},
+                    onSelectionChanged: (s) => setDlg(() => draftOp = s.first),
+                  ),
+                  const SizedBox(height: 12),
+                  if (draftOp == _NodeChipOp.exact) ...[
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        FilterChip(
+                          label: Text('has ${draftKey ?? 'value'}'),
+                          selected: presence,
+                          onSelected: (v) => setDlg(() => presence = v),
+                        ),
+                        ...valuesSorted.map((v) => FilterChip(
+                              label: Text(v),
+                              selected: selectedValues.contains(v),
+                              onSelected: (sel) => setDlg(() {
+                                if (sel) {
+                                  selectedValues.add(v);
+                                } else {
+                                  selectedValues.remove(v);
+                                }
+                              }),
+                            )),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: customCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Custom value (optional)',
+                        isDense: true,
+                        border: OutlineInputBorder(),
+                      ),
+                      onSubmitted: (_) => addSelected(),
+                    ),
+                  ] else ...[
+                    TextField(
+                      controller: customCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Regex (case-insensitive)',
+                        isDense: true,
+                        border: OutlineInputBorder(),
+                      ),
+                      autofocus: true,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.of(context).maybePop(), child: const Text('Cancel')),
+              FilledButton(onPressed: addSelected, child: const Text('Add')),
+            ],
+          );
+        },
+      ),
     );
+  }
+  bool _addChipUnique(_NodeChipFilter c) {
+    final exists = _chips.any((x) => x.key == c.key && x.value == c.value && x.op == c.op);
+    if (!exists) {
+      _chips.add(c);
+      return true;
+    }
+    return false;
   }
 }

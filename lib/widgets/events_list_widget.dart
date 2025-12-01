@@ -9,6 +9,20 @@ import '../services/device_communication_event_service.dart';
 import 'meshtastic_event_tiles.dart';
 import '../pages/event_details_page.dart';
 
+// Logs-like filter primitives (private to this file)
+enum _EventChipOp { exact, regex }
+
+class _EventChipFilter {
+  final String key;
+  final String value; // empty + exact => presence-only
+  final _EventChipOp op;
+  RegExp? _compiledRegex; // cache for regex matching
+  _EventChipFilter({required this.key, required this.value, required this.op});
+  String get label => op == _EventChipOp.exact
+      ? (value.isEmpty ? key : '$key=$value')
+      : '$key~/$value/i';
+}
+
 /// EventsListWidget
 ///
 /// Displays a live-updating list of device communication events with:
@@ -47,12 +61,17 @@ class _EventsListWidgetState extends State<EventsListWidget> {
 
   // dynamic filters
   String _search = '';
-  String? _selectedNetwork;
-  String? _selectedDeviceId;
+  final TextEditingController _searchCtrl = TextEditingController();
+  final FocusNode _searchFocus = FocusNode();
+  String? _selectedNetwork; // kept for initial seeding only
+  String? _selectedDeviceId; // kept for initial seeding only
 
-  // values discovered from incoming events (for chips)
-  final Set<String> _networkValues = <String>{};
-  final Set<String> _deviceIds = <String>{};
+  // Logs-like chip filtering model
+  // Seen keys and their values discovered from events
+  final Set<String> _seenKeys = <String>{};
+  final Map<String, Set<String>> _seenValuesByKey = <String, Set<String>>{};
+  // User-defined filter chips (tag-based)
+  final List<_EventChipFilter> _chips = <_EventChipFilter>[];
 
   @override
   void initState() {
@@ -62,11 +81,12 @@ class _EventsListWidgetState extends State<EventsListWidget> {
     // Seed from provided initial state (e.g., when opening fullscreen so content matches).
     if (widget.initialEvents != null && widget.initialEvents!.isNotEmpty) {
       for (final e in widget.initialEvents!) {
-        // collect chip values
-        final networks = e.tags['network'] ?? const <String>[];
-        _networkValues.addAll(networks);
-        final devices = e.tags['deviceId'] ?? const <String>[];
-        _deviceIds.addAll(devices);
+        // collect keys/values
+        for (final entry in e.tags.entries) {
+          _seenKeys.add(entry.key);
+          final set = _seenValuesByKey.putIfAbsent(entry.key, () => <String>{});
+          set.addAll(entry.value);
+        }
       }
       _events.addAll(widget.initialEvents!);
       final overflow = _events.length - widget.maxVisible;
@@ -81,15 +101,18 @@ class _EventsListWidgetState extends State<EventsListWidget> {
   @override
   void dispose() {
     _sub.cancel();
+    _searchCtrl.dispose();
+    _searchFocus.dispose();
     super.dispose();
   }
 
   void _onEvent(DeviceEvent e) {
-    // collect chip values
-    final networks = e.tags['network'] ?? const <String>[];
-    _networkValues.addAll(networks);
-    final devices = e.tags['deviceId'] ?? const <String>[];
-    _deviceIds.addAll(devices);
+    // collect keys and values
+    for (final entry in e.tags.entries) {
+      _seenKeys.add(entry.key);
+      final set = _seenValuesByKey.putIfAbsent(entry.key, () => <String>{});
+      set.addAll(entry.value);
+    }
 
     setState(() {
       _events.add(e);
@@ -99,11 +122,47 @@ class _EventsListWidgetState extends State<EventsListWidget> {
   }
 
   bool _matchFilters(DeviceEvent e) {
-    if (_selectedNetwork != null && !(e.tags['network'] ?? const <String>[]).contains(_selectedNetwork)) {
-      return false;
-    }
-    if (_selectedDeviceId != null && !(e.tags['deviceId'] ?? const <String>[]).contains(_selectedDeviceId)) {
-      return false;
+    // Apply chip filters: AND across keys, OR within same key
+    if (_chips.isNotEmpty) {
+      final chipsByKey = <String, List<_EventChipFilter>>{};
+      for (final c in _chips) {
+        chipsByKey.putIfAbsent(c.key, () => <_EventChipFilter>[]).add(c);
+      }
+      for (final entry in chipsByKey.entries) {
+        final key = entry.key;
+        final chips = entry.value;
+        final values = e.tags[key] ?? const <String>[];
+        bool groupMatch = false;
+        for (final chip in chips) {
+          if (chip.op == _EventChipOp.exact) {
+            if (chip.value.isEmpty) {
+              // presence-only
+              if (values.isNotEmpty) {
+                groupMatch = true;
+                break;
+              }
+            } else {
+              final target = chip.value.toLowerCase();
+              if (values.any((v) => v.toLowerCase() == target)) {
+                groupMatch = true;
+                break;
+              }
+            }
+          } else {
+            // regex (case-insensitive)
+            if (chip._compiledRegex?.hasMatch('') == false) {
+              // ensure compiled
+            }
+            final re = chip._compiledRegex ?? RegExp(chip.value, caseSensitive: false);
+            chip._compiledRegex = re;
+            if (values.any((v) => re.hasMatch(v))) {
+              groupMatch = true;
+              break;
+            }
+          }
+        }
+        if (!groupMatch) return false; // AND across keys
+      }
     }
     if (_search.isNotEmpty) {
       final s = _search.toLowerCase();
@@ -166,41 +225,7 @@ class _EventsListWidgetState extends State<EventsListWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _Toolbar(
-          search: _search,
-          onSearchChanged: (v) => setState(() => _search = v),
-          networks: _networkValues.toList()..sort(),
-          selectedNetwork: _selectedNetwork,
-          onNetworkSelected: (v) => setState(() => _selectedNetwork = v),
-          deviceIds: _deviceIds.toList()..sort(),
-          selectedDeviceId: _selectedDeviceId,
-          onDeviceIdSelected: (v) => setState(() => _selectedDeviceId = v),
-          onShare: _shareFilteredEvents,
-          onFullscreen: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (ctx) => Scaffold(
-                  appBar: AppBar(
-                    title: const Text('Events'),
-                    actions: [
-                      IconButton(
-                        tooltip: 'Close',
-                        icon: const Icon(Icons.close_fullscreen),
-                        onPressed: () => Navigator.of(ctx).maybePop(),
-                      ),
-                    ],
-                  ),
-                  body: EventsListWidget(
-                    network: _selectedNetwork,
-                    deviceId: _selectedDeviceId,
-                    initialEvents: _events.toList(growable: false),
-                    initialSearch: _search,
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
+        _buildTopBar(context),
         const SizedBox(height: 8),
         Expanded(
           child: filtered.isEmpty
@@ -213,114 +238,286 @@ class _EventsListWidgetState extends State<EventsListWidget> {
       ],
     );
   }
-}
 
-class _Toolbar extends StatelessWidget {
-  final String search;
-  final ValueChanged<String> onSearchChanged;
-  final List<String> networks;
-  final String? selectedNetwork;
-  final ValueChanged<String?> onNetworkSelected;
-  final List<String> deviceIds;
-  final String? selectedDeviceId;
-  final ValueChanged<String?> onDeviceIdSelected;
-  final VoidCallback? onShare;
-  final VoidCallback? onFullscreen;
+  // UI similar to Logs: chips + text search and actions
+  Widget _buildTopBar(BuildContext context) {
+    final chips = _chips
+        .asMap()
+        .entries
+        .map((entry) => InputChip(
+              label: Text(entry.value.label),
+              onDeleted: () => setState(() => _chips.removeAt(entry.key)),
+            ))
+        .toList(growable: false);
 
-  const _Toolbar({
-    required this.search,
-    required this.onSearchChanged,
-    required this.networks,
-    required this.selectedNetwork,
-    required this.onNetworkSelected,
-    required this.deviceIds,
-    required this.selectedDeviceId,
-    required this.onDeviceIdSelected,
-    this.onShare,
-    this.onFullscreen,
-  });
+    // keep controller text in sync with state (once per build if needed)
+    if (_searchCtrl.text != _search) {
+      _searchCtrl.text = _search;
+      _searchCtrl.selection = TextSelection.fromPosition(TextPosition(offset: _searchCtrl.text.length));
+    }
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => _searchFocus.requestFocus(),
+              child: InputDecorator(
+                isFocused: _searchFocus.hasFocus,
+                isEmpty: false,
                 decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.search),
-                  hintText: 'Search events…',
+                  labelText: 'Search events',
+                  border: OutlineInputBorder(),
                   isDense: true,
+                  prefixIcon: Icon(Icons.search, size: 18),
                 ),
-                onChanged: onSearchChanged,
-              ),
-            ),
-            const SizedBox(width: 8),
-            if (onShare != null)
-              Tooltip(
-                message: 'Share events (JSON)',
-                child: IconButton(
-                  key: const Key('events_share_button'),
-                  icon: const Icon(Icons.ios_share),
-                  onPressed: onShare,
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    ...chips,
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(minWidth: 120),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              focusNode: _searchFocus,
+                              controller: _searchCtrl,
+                              decoration: const InputDecoration(
+                                hintText: 'Search in summary or tags',
+                                isDense: true,
+                                border: InputBorder.none,
+                              ),
+                              onChanged: (v) => setState(() => _search = v),
+                            ),
+                          ),
+                          if (_searchCtrl.text.isNotEmpty)
+                            IconButton(
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              tooltip: 'Clear',
+                              icon: const Icon(Icons.clear, size: 18),
+                              onPressed: () {
+                                _searchCtrl.clear();
+                                setState(() => _search = '');
+                              },
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            if (onShare != null) const SizedBox(width: 8),
-            Tooltip(
-              message: 'Fullscreen',
-              child: IconButton(
-                key: const Key('events_fullscreen_button'),
-                icon: const Icon(Icons.fullscreen),
-                onPressed: onFullscreen,
-              ),
             ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            FilterChip(
-              label: Text(selectedNetwork == null ? 'Any network' : 'Network: $selectedNetwork'),
-              selected: selectedNetwork != null,
-              onSelected: (sel) => onNetworkSelected(sel ? (networks.isNotEmpty ? networks.first : null) : null),
+          ),
+          const SizedBox(width: 8),
+          Tooltip(
+            message: 'Add filter',
+            child: FilledButton.icon(
+              icon: const Icon(Icons.filter_alt),
+              label: const Text('Add filter'),
+              onPressed: _openAddChipDialog,
             ),
-            if (selectedNetwork != null)
-              Wrap(
-                spacing: 6,
-                children: networks
-                    .map((n) => ChoiceChip(
-                          label: Text(n),
-                          selected: selectedNetwork == n,
-                          onSelected: (_) => onNetworkSelected(n),
-                        ))
-                    .toList(),
-              ),
-            FilterChip(
-              label: Text(selectedDeviceId == null ? 'Any device' : 'Device: $selectedDeviceId'),
-              selected: selectedDeviceId != null,
-              onSelected: (sel) => onDeviceIdSelected(sel ? (deviceIds.isNotEmpty ? deviceIds.first : null) : null),
+          ),
+          const SizedBox(width: 8),
+          Tooltip(
+            message: 'Share events (JSON)',
+            child: IconButton(
+              icon: const Icon(Icons.ios_share),
+              onPressed: _shareFilteredEvents,
             ),
-            if (selectedDeviceId != null)
-              Wrap(
-                spacing: 6,
-                children: deviceIds
-                    .map((d) => ChoiceChip(
-                          label: Text(d),
-                          selected: selectedDeviceId == d,
-                          onSelected: (_) => onDeviceIdSelected(d),
-                        ))
-                    .toList(),
-              ),
-          ],
-        ),
-      ],
+          ),
+          const SizedBox(width: 8),
+          Tooltip(
+            message: 'Fullscreen',
+            child: IconButton(
+              icon: const Icon(Icons.fullscreen),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (ctx) => Scaffold(
+                      appBar: AppBar(
+                        title: const Text('Events'),
+                        actions: [
+                          IconButton(
+                            tooltip: 'Close',
+                            icon: const Icon(Icons.close_fullscreen),
+                            onPressed: () => Navigator.of(ctx).maybePop(),
+                          ),
+                        ],
+                      ),
+                      body: EventsListWidget(
+                        network: _selectedNetwork,
+                        deviceId: _selectedDeviceId,
+                        initialEvents: _events.toList(growable: false),
+                        initialSearch: _search,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
+
+  Future<void> _openAddChipDialog() async {
+    if (_seenKeys.isEmpty) return;
+    String? draftKey = _selectedNetwork != null
+        ? 'network'
+        : (_selectedDeviceId != null
+            ? 'deviceId'
+            : (_seenKeys.isNotEmpty ? (_seenKeys.toList()..sort()).first : null));
+    _EventChipOp draftOp = _EventChipOp.exact;
+    final Set<String> selectedValues = <String>{};
+    final TextEditingController customCtrl = TextEditingController();
+    bool presence = false;
+
+    await showDialog<void>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDlg) {
+          void addSelected() {
+            final key = draftKey;
+            if (key == null) return;
+            if (draftOp == _EventChipOp.regex) {
+              final pattern = customCtrl.text.trim();
+              if (pattern.isEmpty) return;
+              try {
+                RegExp(pattern, caseSensitive: false);
+              } catch (_) {
+                return;
+              }
+              final c = _EventChipFilter(key: key, value: pattern, op: _EventChipOp.regex);
+              setState(() => _addChipUnique(c));
+              Navigator.of(context).pop();
+              return;
+            }
+            bool any = false;
+            if (presence) {
+              any |= _addChipUnique(_EventChipFilter(key: key, value: '', op: _EventChipOp.exact));
+            }
+            for (final v in selectedValues) {
+              any |= _addChipUnique(_EventChipFilter(key: key, value: v, op: _EventChipOp.exact));
+            }
+            final custom = customCtrl.text.trim();
+            if (custom.isNotEmpty) {
+              any |= _addChipUnique(_EventChipFilter(key: key, value: custom, op: _EventChipOp.exact));
+            }
+            if (any) setState(() {});
+            Navigator.of(context).pop();
+          }
+
+          final values = draftKey == null ? const <String>{} : (_seenValuesByKey[draftKey!] ?? const <String>{});
+          final valuesSorted = values.toList()..sort();
+          return AlertDialog(
+            title: const Text('Add filter'),
+            content: SizedBox(
+              width: 480,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  DropdownButtonFormField<String>(
+                    decoration: const InputDecoration(labelText: 'Key'),
+                    value: draftKey,
+                    items: (() {
+                      final list = _seenKeys.toList()..sort();
+                      return list.map((k) => DropdownMenuItem<String>(value: k, child: Text(k))).toList();
+                    })(),
+                    onChanged: (v) {
+                      setDlg(() {
+                        draftKey = v;
+                        selectedValues.clear();
+                        presence = false;
+                        customCtrl.clear();
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  SegmentedButton<_EventChipOp>(
+                    segments: const [
+                      ButtonSegment(value: _EventChipOp.exact, label: Text('Exact')),
+                      ButtonSegment(value: _EventChipOp.regex, label: Text('Regex')),
+                    ],
+                    selected: {draftOp},
+                    onSelectionChanged: (s) => setDlg(() => draftOp = s.first),
+                  ),
+                  const SizedBox(height: 12),
+                  if (draftOp == _EventChipOp.exact) ...[
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        FilterChip(
+                          label: Text('has ${draftKey ?? 'value'}'),
+                          selected: presence,
+                          onSelected: (v) => setDlg(() => presence = v),
+                        ),
+                        ...valuesSorted.map((v) => FilterChip(
+                              label: Text(v),
+                              selected: selectedValues.contains(v),
+                              onSelected: (sel) => setDlg(() {
+                                if (sel) {
+                                  selectedValues.add(v);
+                                } else {
+                                  selectedValues.remove(v);
+                                }
+                              }),
+                            )),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: customCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Custom value (optional)',
+                        isDense: true,
+                        border: OutlineInputBorder(),
+                      ),
+                      onSubmitted: (_) => addSelected(),
+                    ),
+                  ] else ...[
+                    TextField(
+                      controller: customCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Regex (case-insensitive)',
+                        isDense: true,
+                        border: OutlineInputBorder(),
+                      ),
+                      autofocus: true,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.of(context).maybePop(), child: const Text('Cancel')),
+              FilledButton(onPressed: addSelected, child: const Text('Add')),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  bool _addChipUnique(_EventChipFilter c) {
+    final exists = _chips.any((x) => x.key == c.key && x.value == c.value && x.op == c.op);
+    if (!exists) {
+      _chips.add(c);
+      return true;
+    }
+    return false;
+  }
 }
+
 
 class _Empty extends StatelessWidget {
   const _Empty();
