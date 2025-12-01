@@ -171,12 +171,12 @@ jobs:
       - name: Build IPA (no codesign)
         run: flutter build ipa --no-codesign --build-name "${{ needs.version.outputs.name }}" --build-number "${{ needs.version.outputs.number }}"
 
-      - name: Upload Artifact (ios)
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ios-${{ needs.version.outputs.tag_name }}
           path: |
-            build/ios/ipa/*.ipa
+            build/ios/archive/*.xcarchive
 
   macos:
     name: Build macOS (unsigned .app zip)

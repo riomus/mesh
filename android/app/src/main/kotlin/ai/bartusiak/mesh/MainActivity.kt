@@ -1,4 +1,4 @@
-package com.example.mesh
+package ai.bartusiak.mesh
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -15,7 +15,6 @@ fi
 # Make sure tags are available (useful in CI)
 git fetch --tags --force >/dev/null 2>&1 || true
 
-# Resolve the last semantic version tag only (avoid describe-like tags such as v1.2.3-45-gabcd123)
 LAST_TAG=""
 if git describe --tags --abbrev=0 >/dev/null 2>&1; then
   LAST_TAG=$(git describe --tags --abbrev=0)

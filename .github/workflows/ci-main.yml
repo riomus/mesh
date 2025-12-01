@@ -168,3 +168,49 @@ jobs:
         with:
           name: android-integration-logs
           path: test-results/android-integration.txt
+
+  macos_integration:
+    runs-on: macos-latest
+    needs: version
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Generate version asset
+        run: |
+          VERSION_NAME="${{ needs.version.outputs.name }}" \
+          VERSION_NUMBER="${{ needs.version.outputs.number }}" \
+          VERSION_DESCRIBE="${{ needs.version.outputs.describe }}" \
+          bash scripts/gen_version_yaml.sh
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - uses: bufbuild/buf-action@v1
+        with:
+          token: ${{ secrets.BUF_TOKEN }}
+          setup_only: true
+
+      - name: Generate Protobufs (Dart)
+        run: bash scripts/gen_protos.sh
+      - name: Pub get
+        run: flutter pub get
+      - name: Make scripts executable
+        run: chmod +x scripts/*.sh || true
+      - name: Run integration (macOS)
+        run: |
+          mkdir -p test-results
+          ./scripts/run_integration.sh macos 2>&1 | tee test-results/macos-integration.txt
+      - name: Upload macOS integration logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-integration-logs
+          path: test-results/macos-integration.txt
