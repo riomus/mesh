@@ -35,6 +35,10 @@ class MeshPacketDto {
   final int? txAfter;
   final String? transportMechanism; // enum name
   final DecodedPayloadDto? decoded;
+  // Full raw protobuf as JSON (proto3) for lossless transport/debugging
+  final Map<String, dynamic>? rawProto;
+  // Raw serialized protobuf bytes for complete lossless preservation
+  final Uint8List? rawBytes;
 
   const MeshPacketDto({
     this.from,
@@ -57,6 +61,8 @@ class MeshPacketDto {
     this.txAfter,
     this.transportMechanism,
     this.decoded,
+    this.rawProto,
+    this.rawBytes,
   });
 }
 
@@ -115,11 +121,19 @@ class NodeInfoDto {
 }
 
 class ConfigDto {
-  const ConfigDto();
+  // Raw JSON (proto3) of meshtastic.Config
+  final Map<String, dynamic>? rawProto;
+  // Raw serialized bytes
+  final Uint8List? rawBytes;
+  const ConfigDto({this.rawProto, this.rawBytes});
 }
 
 class ModuleConfigDto {
-  const ModuleConfigDto();
+  // Raw JSON (proto3) of meshtastic.ModuleConfig, containing all module settings.
+  final Map<String, dynamic>? rawProto;
+  // Raw serialized bytes
+  final Uint8List? rawBytes;
+  const ModuleConfigDto({this.rawProto, this.rawBytes});
 }
 
 class ChannelDto {
@@ -136,11 +150,19 @@ class QueueStatusDto {
 
 class DeviceMetadataDto {
   final NodeNum? myNodeNum;
-  const DeviceMetadataDto({this.myNodeNum});
+  // Raw JSON (proto3) of meshtastic.DeviceMetadata
+  final Map<String, dynamic>? rawProto;
+  // Raw serialized bytes
+  final Uint8List? rawBytes;
+  const DeviceMetadataDto({this.myNodeNum, this.rawProto, this.rawBytes});
 }
 
 class MqttClientProxyMessageDto {
-  const MqttClientProxyMessageDto();
+  // Raw JSON (proto3) of meshtastic.MqttClientProxyMessage
+  final Map<String, dynamic>? rawProto;
+  // Raw serialized bytes
+  final Uint8List? rawBytes;
+  const MqttClientProxyMessageDto({this.rawProto, this.rawBytes});
 }
 
 class FileInfoDto {
@@ -155,7 +177,11 @@ class ClientNotificationDto {
 }
 
 class DeviceUiConfigDto {
-  const DeviceUiConfigDto();
+  // Raw JSON (proto3) of meshtastic.DeviceUIConfig
+  final Map<String, dynamic>? rawProto;
+  // Raw serialized bytes
+  final Uint8List? rawBytes;
+  const DeviceUiConfigDto({this.rawProto, this.rawBytes});
 }
 
 class LogRecordDto {

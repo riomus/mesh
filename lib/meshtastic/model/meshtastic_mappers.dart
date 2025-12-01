@@ -33,7 +33,9 @@ class MeshtasticMappers {
               : null,
         ));
       case mesh.FromRadio_PayloadVariant.config:
-        return const ConfigEvent(ConfigDto());
+        return ConfigEvent(ConfigDto(
+          rawBytes: Uint8List.fromList(fr.config.writeToBuffer()),
+        ));
       case mesh.FromRadio_PayloadVariant.logRecord:
         return LogRecordEvent(LogRecordDto(
           level: fr.logRecord.hasLevel() ? fr.logRecord.level.name : null,
@@ -45,7 +47,9 @@ class MeshtasticMappers {
       case mesh.FromRadio_PayloadVariant.rebooted:
         return RebootedEvent(fr.rebooted);
       case mesh.FromRadio_PayloadVariant.moduleConfig:
-        return const ModuleConfigEvent(ModuleConfigDto());
+        return ModuleConfigEvent(ModuleConfigDto(
+          rawBytes: Uint8List.fromList(fr.moduleConfig.writeToBuffer()),
+        ));
       case mesh.FromRadio_PayloadVariant.channel:
         return ChannelEvent(ChannelDto(index: fr.channel.hasIndex() ? fr.channel.index : null));
       case mesh.FromRadio_PayloadVariant.queueStatus:
@@ -57,10 +61,14 @@ class MeshtasticMappers {
               fr.queueStatus.hasMeshPacketId() ? fr.queueStatus.meshPacketId : null,
         ));
       case mesh.FromRadio_PayloadVariant.metadata:
-        // Current DeviceMetadata proto does not expose myNodeNum; emit minimal DTO
-        return const DeviceMetadataEvent(DeviceMetadataDto());
+        // Preserve full bytes; specific fields can be added later.
+        return DeviceMetadataEvent(DeviceMetadataDto(
+          rawBytes: Uint8List.fromList(fr.metadata.writeToBuffer()),
+        ));
       case mesh.FromRadio_PayloadVariant.mqttClientProxyMessage:
-        return const MqttClientProxyEvent(MqttClientProxyMessageDto());
+        return MqttClientProxyEvent(MqttClientProxyMessageDto(
+          rawBytes: Uint8List.fromList(fr.mqttClientProxyMessage.writeToBuffer()),
+        ));
       case mesh.FromRadio_PayloadVariant.fileInfo:
         return FileInfoEvent(FileInfoDto(
           fileName: fr.fileInfo.hasFileName() ? fr.fileInfo.fileName : null,
@@ -72,7 +80,9 @@ class MeshtasticMappers {
                 ? fr.clientNotification.message
                 : null));
       case mesh.FromRadio_PayloadVariant.deviceuiConfig:
-        return const DeviceUiConfigEvent(DeviceUiConfigDto());
+        return DeviceUiConfigEvent(DeviceUiConfigDto(
+          rawBytes: Uint8List.fromList(fr.deviceuiConfig.writeToBuffer()),
+        ));
       case mesh.FromRadio_PayloadVariant.xmodemPacket:
         // Not exposed directly; surface as log record with a descriptive message.
         return const LogRecordEvent(
