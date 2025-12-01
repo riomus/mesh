@@ -415,10 +415,16 @@ class _LogsViewerState extends State<LogsViewer> {
               title: const Text('Add filter'),
               content: SizedBox(
                 width: 420,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    // Cap the dialog content height and allow scrolling when overflowing
+                    maxHeight: MediaQuery.of(context).size.height * 0.6,
+                  ),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                     // Toggle between tag or level filters
                     SegmentedButton<_ChipKind>(
                       segments: const [
@@ -514,7 +520,9 @@ class _LogsViewerState extends State<LogsViewer> {
                         ],
                       ),
                     ],
-                  ],
+                      ],
+                    ),
+                  ),
                 ),
               ),
               actions: [

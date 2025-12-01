@@ -421,81 +421,88 @@ class _EventsListWidgetState extends State<EventsListWidget> {
             title: const Text('Add filter'),
             content: SizedBox(
               width: 480,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  DropdownButtonFormField<String>(
-                    decoration: const InputDecoration(labelText: 'Key'),
-                    value: draftKey,
-                    items: (() {
-                      final list = _seenKeys.toList()..sort();
-                      return list.map((k) => DropdownMenuItem<String>(value: k, child: Text(k))).toList();
-                    })(),
-                    onChanged: (v) {
-                      setDlg(() {
-                        draftKey = v;
-                        selectedValues.clear();
-                        presence = false;
-                        customCtrl.clear();
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                  SegmentedButton<_EventChipOp>(
-                    segments: const [
-                      ButtonSegment(value: _EventChipOp.exact, label: Text('Exact')),
-                      ButtonSegment(value: _EventChipOp.regex, label: Text('Regex')),
-                    ],
-                    selected: {draftOp},
-                    onSelectionChanged: (s) => setDlg(() => draftOp = s.first),
-                  ),
-                  const SizedBox(height: 12),
-                  if (draftOp == _EventChipOp.exact) ...[
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        FilterChip(
-                          label: Text('has ${draftKey ?? 'value'}'),
-                          selected: presence,
-                          onSelected: (v) => setDlg(() => presence = v),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.6,
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      DropdownButtonFormField<String>(
+                        decoration: const InputDecoration(labelText: 'Key'),
+                        value: draftKey,
+                        items: (() {
+                          final list = _seenKeys.toList()..sort();
+                          return list.map((k) => DropdownMenuItem<String>(value: k, child: Text(k))).toList();
+                        })(),
+                        onChanged: (v) {
+                          setDlg(() {
+                            draftKey = v;
+                            selectedValues.clear();
+                            presence = false;
+                            customCtrl.clear();
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      SegmentedButton<_EventChipOp>(
+                        segments: const [
+                          ButtonSegment(value: _EventChipOp.exact, label: Text('Exact')),
+                          ButtonSegment(value: _EventChipOp.regex, label: Text('Regex')),
+                        ],
+                        selected: {draftOp},
+                        onSelectionChanged: (s) => setDlg(() => draftOp = s.first),
+                      ),
+                      const SizedBox(height: 12),
+                      if (draftOp == _EventChipOp.exact) ...[
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            FilterChip(
+                              label: Text('has ${draftKey ?? 'value'}'),
+                              selected: presence,
+                              onSelected: (v) => setDlg(() => presence = v),
+                            ),
+                            ...valuesSorted.map((v) => FilterChip(
+                                  label: Text(v),
+                                  selected: selectedValues.contains(v),
+                                  onSelected: (sel) => setDlg(() {
+                                    if (sel) {
+                                      selectedValues.add(v);
+                                    } else {
+                                      selectedValues.remove(v);
+                                    }
+                                  }),
+                                )),
+                          ],
                         ),
-                        ...valuesSorted.map((v) => FilterChip(
-                              label: Text(v),
-                              selected: selectedValues.contains(v),
-                              onSelected: (sel) => setDlg(() {
-                                if (sel) {
-                                  selectedValues.add(v);
-                                } else {
-                                  selectedValues.remove(v);
-                                }
-                              }),
-                            )),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: customCtrl,
+                          decoration: const InputDecoration(
+                            labelText: 'Custom value (optional)',
+                            isDense: true,
+                            border: OutlineInputBorder(),
+                          ),
+                          onSubmitted: (_) => addSelected(),
+                        ),
+                      ] else ...[
+                        TextField(
+                          controller: customCtrl,
+                          decoration: const InputDecoration(
+                            labelText: 'Regex (case-insensitive)',
+                            isDense: true,
+                            border: OutlineInputBorder(),
+                          ),
+                          autofocus: true,
+                        ),
                       ],
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: customCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Custom value (optional)',
-                        isDense: true,
-                        border: OutlineInputBorder(),
-                      ),
-                      onSubmitted: (_) => addSelected(),
-                    ),
-                  ] else ...[
-                    TextField(
-                      controller: customCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Regex (case-insensitive)',
-                        isDense: true,
-                        border: OutlineInputBorder(),
-                      ),
-                      autofocus: true,
-                    ),
-                  ],
-                ],
+                    ],
+                  ),
+                ),
               ),
             ),
             actions: [
