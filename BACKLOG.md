@@ -3,7 +3,7 @@
 
 - [x] Create app icon using assets/icon.png
 - [x] Define smoke test that will run the app using web and android simulator and check if it works
-- [ ] Create integration test that will run the app using web and android simulator and check functionalities
+- [x] Create integration test that will run the app using web and android simulator and check functionalities
 - [ ] Create a CI pipeline that will run the smoke and integration tests on every PR
 - [ ] Create a CI pipeline that will run the smoke and integration tests on every push to main branch
 - [ ] Update CI pipelines to publish reports on tests results
