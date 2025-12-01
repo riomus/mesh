@@ -248,21 +248,28 @@ jobs:
         with:
           path: dist
 
+      - name: Checkout (for changelog)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate changelog from commits since last tag
+        run: |
+          NEW_TAG="${{ needs.version.outputs.tag_name }}" \
+          DESCRIBE="${{ needs.version.outputs.describe }}" \
+          bash scripts/changelog.sh
+      - name: Upload Changelog artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog-${{ needs.version.outputs.tag_name }}
+          path: CHANGELOG_RELEASE.md
+
       - name: Create/Update Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.version.outputs.tag_name }}
           name: ${{ needs.version.outputs.tag_name }}
-          body: |
-            Automated release built from commit ${{ github.sha }}
-
-            Version (git describe): `${{ needs.version.outputs.describe }}`
-
-            Artifacts:
-            - Web ZIP
-            - Android APK & AAB
-            - iOS IPA (unsigned)
-            - macOS app (.app zipped, unsigned)
+          body_path: CHANGELOG_RELEASE.md
           files: |
             dist/**
         env:

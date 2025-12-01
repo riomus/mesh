@@ -1,5 +1,8 @@
 # mesh
 
+![CI PR](https://github.com/riomus/mesh/actions/workflows/ci-pr.yml/badge.svg)
+![CI Main](https://github.com/riomus/mesh/actions/workflows/ci-main.yml/badge.svg)
+
 🚧 UNDER CONSTRUCTION 🚧
 
 This repository is an active work‑in‑progress. Interfaces, features, and docs may change rapidly. Expect breaking changes until the first public release.

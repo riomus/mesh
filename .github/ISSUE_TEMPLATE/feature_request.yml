@@ -1,0 +1,35 @@
+name: Feature request
+description: Suggest an idea for this project
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to suggest a feature!
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: A clear and concise description of the feature request.
+      placeholder: e.g., Add event list widget with filters and search chips
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: What problem are you trying to solve?
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How should we implement it? Include UX/technical details if possible.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Add any other context, screenshots, or examples here.
