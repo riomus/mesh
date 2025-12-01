@@ -7,11 +7,19 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mesh/app.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   testWidgets('App smoke test: renders main tabs', (tester) async {
+    // Provide empty initial values for SharedPreferences used by SettingsService
+    SharedPreferences.setMockInitialValues({});
+
     await tester.pumpWidget(const MyApp());
-    await tester.pumpAndSettle();
+    // Allow async work to complete
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pumpAndSettle(const Duration(seconds: 5));
 
     // Expect to find our bottom navigation destinations
     expect(find.text('Devices'), findsOneWidget);
