@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Generate CHANGELOG_RELEASE.md from git commits since the last tag.
-# If no tags exist, include the full history.
+# Generate CHANGELOG_RELEASE.md from git commits since the last semantic version tag.
+# If no semver tags exist, include the full history.
 
 OUT_FILE="CHANGELOG_RELEASE.md"
 
@@ -12,6 +12,10 @@ if [[ ! -d .git ]]; then
   exit 1
 fi
 
+# Make sure tags are available (useful in CI)
+git fetch --tags --force >/dev/null 2>&1 || true
+
+# Resolve the last semantic version tag only (avoid describe-like tags such as v1.2.3-45-gabcd123)
 LAST_TAG=""
 if git describe --tags --abbrev=0 >/dev/null 2>&1; then
   LAST_TAG=$(git describe --tags --abbrev=0)
