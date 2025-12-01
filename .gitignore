@@ -47,5 +47,4 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-assets/data/version.yaml
 CHANGELOG_RELEASE.md

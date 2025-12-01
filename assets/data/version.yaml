@@ -1,0 +1,5 @@
+version:
+  name: "local"
+  number: 0
+  describe: "local dev"
+  build_time_utc: "now"
