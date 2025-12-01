@@ -263,6 +263,7 @@ class ModuleConfigDto {
   final NeighborInfoConfigDto? neighborInfo;
   final RemoteHardwareConfigDto? remoteHardware;
   final PaxcounterConfigDto? paxcounter;
+  final CannedMessageConfigDto? cannedMessage;
   const ModuleConfigDto({
     this.mqtt,
     this.telemetry,
@@ -274,6 +275,7 @@ class ModuleConfigDto {
     this.neighborInfo,
     this.remoteHardware,
     this.paxcounter,
+    this.cannedMessage,
   });
 }
 
@@ -506,6 +508,35 @@ class PaxcounterConfigDto {
     this.paxcounterUpdateInterval,
     this.wifiThreshold,
     this.bleThreshold,
+  });
+}
+
+class CannedMessageConfigDto {
+  final bool? rotary1Enabled;
+  final int? inputbrokerPinA;
+  final int? inputbrokerPinB;
+  final int? inputbrokerPinPress;
+  final String? inputbrokerEventCw; // enum name
+  final String? inputbrokerEventCcw; // enum name
+  final String? inputbrokerEventPress; // enum name
+  final bool? updown1Enabled;
+  // Deprecated in proto but included for completeness
+  final bool? enabled;
+  final String? allowInputSource;
+  final bool? sendBell;
+
+  const CannedMessageConfigDto({
+    this.rotary1Enabled,
+    this.inputbrokerPinA,
+    this.inputbrokerPinB,
+    this.inputbrokerPinPress,
+    this.inputbrokerEventCw,
+    this.inputbrokerEventCcw,
+    this.inputbrokerEventPress,
+    this.updown1Enabled,
+    this.enabled,
+    this.allowInputSource,
+    this.sendBell,
   });
 }
 

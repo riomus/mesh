@@ -304,6 +304,29 @@ class MeshtasticMappers {
         bleThreshold: px.hasBleThreshold() ? px.bleThreshold : null,
       );
     }
+    CannedMessageConfigDto? cannedMessage;
+    if (mc.hasCannedMessage()) {
+      final cm = mc.cannedMessage;
+      cannedMessage = CannedMessageConfigDto(
+        rotary1Enabled: cm.hasRotary1Enabled() ? cm.rotary1Enabled : null,
+        inputbrokerPinA: cm.hasInputbrokerPinA() ? cm.inputbrokerPinA : null,
+        inputbrokerPinB: cm.hasInputbrokerPinB() ? cm.inputbrokerPinB : null,
+        inputbrokerPinPress:
+            cm.hasInputbrokerPinPress() ? cm.inputbrokerPinPress : null,
+        inputbrokerEventCw:
+            cm.hasInputbrokerEventCw() ? cm.inputbrokerEventCw.name : null,
+        inputbrokerEventCcw:
+            cm.hasInputbrokerEventCcw() ? cm.inputbrokerEventCcw.name : null,
+        inputbrokerEventPress: cm.hasInputbrokerEventPress()
+            ? cm.inputbrokerEventPress.name
+            : null,
+        updown1Enabled: cm.hasUpdown1Enabled() ? cm.updown1Enabled : null,
+        enabled: cm.hasEnabled() ? cm.enabled : null,
+        allowInputSource:
+            cm.hasAllowInputSource() ? cm.allowInputSource : null,
+        sendBell: cm.hasSendBell() ? cm.sendBell : null,
+      );
+    }
     return ModuleConfigDto(
       mqtt: mqtt,
       telemetry: telemetry,
@@ -315,6 +338,7 @@ class MeshtasticMappers {
       neighborInfo: neighborInfo,
       remoteHardware: remoteHardware,
       paxcounter: paxcounter,
+      cannedMessage: cannedMessage,
     );
   }
 
