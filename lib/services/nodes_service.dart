@@ -41,13 +41,21 @@ class MeshNodeView {
 /// Aggregates nodes from Meshtastic events and exposes a stream for UI.
 class NodesService {
   NodesService._() {
+    _controller = StreamController<List<MeshNodeView>>.broadcast(
+      onListen: () {
+        // Seed new listeners with the current snapshot so UI doesn't flash empty
+        if (_nodes.isNotEmpty) {
+          _controller.add(_nodes.values.toList(growable: false));
+        }
+      },
+    );
     _sub = DeviceCommunicationEventService.instance.listenAll().listen(_onDeviceEvent);
   }
 
   static final NodesService instance = NodesService._();
 
   final Map<NodeNum, MeshNodeView> _nodes = <NodeNum, MeshNodeView>{};
-  final StreamController<List<MeshNodeView>> _controller = StreamController<List<MeshNodeView>>.broadcast();
+  late final StreamController<List<MeshNodeView>> _controller;
   StreamSubscription<DeviceEvent>? _sub;
   NodeNum? _lastReporterNodeNum;
   // Optional custom reference for distance calculations (lat/lon degrees)

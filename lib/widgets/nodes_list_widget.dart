@@ -24,7 +24,8 @@ class NodesListWidget extends StatefulWidget {
   State<NodesListWidget> createState() => _NodesListWidgetState();
 }
 
-class _NodesListWidgetState extends State<NodesListWidget> {
+class _NodesListWidgetState extends State<NodesListWidget>
+    with AutomaticKeepAliveClientMixin {
   final _svc = NodesService.instance;
   StreamSubscription<List<MeshNodeView>>? _sub;
   final List<MeshNodeView> _nodes = <MeshNodeView>[];
@@ -124,7 +125,11 @@ class _NodesListWidgetState extends State<NodesListWidget> {
   }
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     final filtered = _nodes.where(_matches).toList()
       ..sort((a, b) => _compareNodes(a, b));
 

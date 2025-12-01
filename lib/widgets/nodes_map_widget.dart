@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as latlng;
@@ -11,20 +12,28 @@ class NodesMapWidget extends StatefulWidget {
   State<NodesMapWidget> createState() => _NodesMapWidgetState();
 }
 
-class _NodesMapWidgetState extends State<NodesMapWidget> {
+class _NodesMapWidgetState extends State<NodesMapWidget>
+    with AutomaticKeepAliveClientMixin {
   final _svc = NodesService.instance;
   late final MapController _controller = MapController();
 
   List<MeshNodeView> _nodes = const <MeshNodeView>[];
+  StreamSubscription<List<MeshNodeView>>? _sub;
 
   @override
   void initState() {
     super.initState();
-    _svc.listenAll().listen((value) {
+    _sub = _svc.listenAll().listen((value) {
       setState(() {
         _nodes = value;
       });
     });
+  }
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    super.dispose();
   }
 
   Iterable<(double lat, double lon, String label)> get _nodePoints sync* {
@@ -59,6 +68,7 @@ class _NodesMapWidgetState extends State<NodesMapWidget> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final theme = Theme.of(context);
     final points = _nodePoints.toList(growable: false);
     final markers = points
@@ -124,4 +134,7 @@ class _NodesMapWidgetState extends State<NodesMapWidget> {
       ],
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }
