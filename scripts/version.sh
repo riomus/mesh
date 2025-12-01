@@ -58,3 +58,32 @@ fi
 
 # Print a concise log for local visibility
 echo "Computed version: name=${BASE_TAG}, number=${BUILD_NUMBER}, describe=${DESC}"
+
+# If the repository is dirty, print a concise summary of changes to help diagnostics
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  # Use porcelain format for stable parsing; include untracked files
+  if STATUS_OUT=$(git status --porcelain=v1 --untracked-files=normal 2>/dev/null); then
+    if [[ -n "${STATUS_OUT//[[:space:]]/}" ]]; then
+      echo
+      echo "Repository is dirty. Working tree changes:" 
+      echo "(Legend: M=modified, A=added, D=deleted, R=renamed, C=copied, U=unmerged, ??=untracked)"
+      echo "$STATUS_OUT"
+      # Additionally, show a brief name-status of unstaged changes (if any)
+      if DIFF_NS=$(git diff --name-status 2>/dev/null); then
+        if [[ -n "${DIFF_NS//[[:space:]]/}" ]]; then
+          echo
+          echo "Unstaged diff (name-status):"
+          echo "$DIFF_NS"
+        fi
+      fi
+      # And staged changes summary (if any)
+      if DIFF_STAGED_NS=$(git diff --cached --name-status 2>/dev/null); then
+        if [[ -n "${DIFF_STAGED_NS//[[:space:]]/}" ]]; then
+          echo
+          echo "Staged diff (name-status):"
+          echo "$DIFF_STAGED_NS"
+        fi
+      fi
+    fi
+  fi
+fi
