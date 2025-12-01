@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'logging_service.dart';
+import 'device_communication_event_service.dart';
 
 // Protobufs
 import '../generated/meshtastic/meshtastic/mesh.pb.dart' as mesh;
@@ -153,6 +154,18 @@ class MeshtasticBleClient {
         try {
           final event = MeshtasticMappers.fromFromRadio(msg);
           _eventsController.add(event);
+          // Also publish into the global DeviceCommunicationEventService so
+          // app-wide widgets (like EventsListWidget) can display events.
+          try {
+            DeviceCommunicationEventService.instance.pushMeshtastic(
+              event: event,
+              deviceId: device.remoteId.str,
+              // Keep summary minimal; detailed rendering is handled by tiles.
+              summary: event.runtimeType.toString(),
+            );
+          } catch (_) {
+            // Do not fail the BLE read loop if the event service throws.
+          }
         } catch (mapErr) {
           _log('Failed to map FromRadio to event: $mapErr', level: 'warn');
         }
