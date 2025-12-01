@@ -8,11 +8,32 @@ jobs:
   web_smoke:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Generate version asset
+        run: |
+          VERSION_NAME="${{ needs.version.outputs.name }}" \
+          VERSION_NUMBER="${{ needs.version.outputs.number }}" \
+          VERSION_DESCRIBE="${{ needs.version.outputs.describe }}" \
+          bash scripts/gen_version_yaml.sh
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
+
+      - uses: bufbuild/buf-action@v1
+        with:
+          token: ${{ secrets.BUF_TOKEN }}
+          setup_only: true
+
+      - name: Generate Protobufs (Dart)
+        run: bash scripts/gen_protos.sh
       - name: Pub get
         run: flutter pub get
       - name: Run web smoke (widget) tests
@@ -29,11 +50,32 @@ jobs:
   web_integration:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Generate version asset
+        run: |
+          VERSION_NAME="${{ needs.version.outputs.name }}" \
+          VERSION_NUMBER="${{ needs.version.outputs.number }}" \
+          VERSION_DESCRIBE="${{ needs.version.outputs.describe }}" \
+          bash scripts/gen_version_yaml.sh
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
+
+      - uses: bufbuild/buf-action@v1
+        with:
+          token: ${{ secrets.BUF_TOKEN }}
+          setup_only: true
+
+      - name: Generate Protobufs (Dart)
+        run: bash scripts/gen_protos.sh
       - name: Pub get
         run: flutter pub get
       - name: Make scripts executable
@@ -53,16 +95,37 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Generate version asset
+        run: |
+          VERSION_NAME="${{ needs.version.outputs.name }}" \
+          VERSION_NUMBER="${{ needs.version.outputs.number }}" \
+          VERSION_DESCRIBE="${{ needs.version.outputs.describe }}" \
+          bash scripts/gen_version_yaml.sh
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - uses: bufbuild/buf-action@v1
+        with:
+          token: ${{ secrets.BUF_TOKEN }}
+          setup_only: true
+
+      - name: Generate Protobufs (Dart)
+        run: bash scripts/gen_protos.sh
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
       - name: Install Android SDK tools
         run: sudo apt-get update -y && sudo apt-get install -y libglu1-mesa
       - name: Pub get
