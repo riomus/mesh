@@ -144,7 +144,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
         return _Section(
           emoji: '⚙️',
           title: 'Config',
-          child: Text(e.config.toString()),
+          child: _configDetails(e.config),
         );
       case ConfigCompleteEvent e:
         return _Section(
@@ -162,7 +162,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
         return _Section(
           emoji: '🧩',
           title: 'Module config',
-          child: Text(e.moduleConfig.toString()),
+          child: _moduleConfigDetails(e.moduleConfig),
         );
       case ChannelEvent e:
         return _Section(
@@ -199,7 +199,12 @@ class _MeshtasticEventDetails extends StatelessWidget {
         return _Section(
           emoji: '☁️',
           title: 'MQTT proxy',
-          child: Text(e.message.toString()),
+          child: _kvTable({
+            'topic': e.message.topic,
+            'retained': e.message.retained,
+            'text': e.message.text,
+            'dataLen': e.message.data?.length,
+          }),
         );
       case FileInfoEvent e:
         return _Section(
@@ -220,7 +225,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
         return _Section(
           emoji: '🖥️',
           title: 'Device UI config',
-          child: Text(e.uiConfig.toString()),
+          child: _deviceUiConfigDetails(e.uiConfig),
         );
       case LogRecordEvent e:
         return _Section(
@@ -308,12 +313,43 @@ class _MeshtasticEventDetails extends StatelessWidget {
       RemoteHardwarePayloadDto rh => _Section(
           emoji: '🔧',
           title: 'Remote hardware',
-          child: Text(rh.toString()),
+          child: _kvTable({
+            'type': rh.type,
+            'gpioMask': rh.gpioMask,
+            'gpioValue': rh.gpioValue,
+          }),
         ),
       NeighborInfoPayloadDto ni => _Section(
           emoji: '🕸️',
           title: 'Neighbor info',
-          child: Text(ni.toString()),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _kvTable({
+                'nodeId': ni.nodeId,
+                'lastSentById': ni.lastSentById,
+                'nodeBroadcastIntervalSecs': ni.nodeBroadcastIntervalSecs,
+              }),
+              if (ni.neighbors != null && ni.neighbors!.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text('Neighbors', style: const TextStyle(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 4),
+                Column(
+                  children: ni.neighbors!
+                      .map((n) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 2),
+                            child: _kvTable({
+                              'nodeId': n.nodeId,
+                              'snr': n.snr,
+                              'lastRxTime': n.lastRxTime,
+                              'broadcastIntSecs': n.nodeBroadcastIntervalSecs,
+                            }),
+                          ))
+                      .toList(),
+                ),
+              ],
+            ],
+          ),
         ),
       StoreForwardPayloadDto sf => _Section(
           emoji: '🗄️',
@@ -323,7 +359,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
       TelemetryPayloadDto t => _Section(
           emoji: '📊',
           title: 'Telemetry',
-          child: Text(t.toString()),
+          child: _kvTable({'variant': t.variant}),
         ),
       PaxcounterPayloadDto p => _Section(
           emoji: '👥',
@@ -382,4 +418,362 @@ class _MeshtasticEventDetails extends StatelessWidget {
           .toList(),
     );
   }
+
+  // --- Structured renderers for nested DTOs ---
+
+  Widget _configDetails(ConfigDto cfg) {
+    final children = <Widget>[];
+    if (cfg.device != null) {
+      final d = cfg.device!;
+      children.add(_Subheader('Device'));
+      children.add(_kvTable({
+        'role': d.role,
+        'serialEnabled': d.serialEnabled,
+        'buttonGpio': d.buttonGpio,
+        'buzzerGpio': d.buzzerGpio,
+        'rebroadcastMode': d.rebroadcastMode,
+        'nodeInfoBroadcastSecs': d.nodeInfoBroadcastSecs,
+        'doubleTapAsButtonPress': d.doubleTapAsButtonPress,
+        'isManaged': d.isManaged,
+        'disableTripleClick': d.disableTripleClick,
+        'tzdef': d.tzdef,
+        'ledHeartbeatDisabled': d.ledHeartbeatDisabled,
+        'buzzerMode': d.buzzerMode,
+      }));
+    }
+    if (cfg.position != null) {
+      final p = cfg.position!;
+      children.add(const SizedBox(height: 8));
+      children.add(_Subheader('Position'));
+      children.add(_kvTable({
+        'positionBroadcastSecs': p.positionBroadcastSecs,
+        'positionBroadcastSmartEnabled': p.positionBroadcastSmartEnabled,
+        'fixedPosition': p.fixedPosition,
+        'gpsEnabled': p.gpsEnabled,
+        'gpsUpdateInterval': p.gpsUpdateInterval,
+        'gpsAttemptTime': p.gpsAttemptTime,
+        'positionFlags': p.positionFlags,
+        'rxGpio': p.rxGpio,
+        'txGpio': p.txGpio,
+        'broadcastSmartMinimumDistance': p.broadcastSmartMinimumDistance,
+        'broadcastSmartMinimumIntervalSecs': p.broadcastSmartMinimumIntervalSecs,
+        'gpsEnGpio': p.gpsEnGpio,
+        'gpsMode': p.gpsMode,
+      }));
+    }
+    if (children.isEmpty) return const Text('—');
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
+  }
+
+  Widget _moduleConfigDetails(ModuleConfigDto m) {
+    final children = <Widget>[];
+    if (m.mqtt != null) {
+      final x = m.mqtt!;
+      children.add(_Subheader('MQTT'));
+      children.add(_kvTable({
+        'enabled': x.enabled,
+        'address': x.address,
+        'username': x.username,
+        'password': x.password != null ? '••••' : null,
+        'encryptionEnabled': x.encryptionEnabled,
+        'jsonEnabled': x.jsonEnabled,
+        'tlsEnabled': x.tlsEnabled,
+        'root': x.root,
+        'proxyToClientEnabled': x.proxyToClientEnabled,
+        'mapReportingEnabled': x.mapReportingEnabled,
+      }));
+      if (x.mapReportSettings != null) {
+        final s = x.mapReportSettings!;
+        children.add(_Indent(child: _kvTable({
+          'publishIntervalSecs': s.publishIntervalSecs,
+          'positionPrecision': s.positionPrecision,
+          'shouldReportLocation': s.shouldReportLocation,
+        })));
+      }
+    }
+    if (m.telemetry != null) {
+      final x = m.telemetry!;
+      children.add(_Subheader('Telemetry'));
+      children.add(_kvTable({
+        'deviceUpdateInterval': x.deviceUpdateInterval,
+        'environmentUpdateInterval': x.environmentUpdateInterval,
+        'environmentMeasurementEnabled': x.environmentMeasurementEnabled,
+        'environmentScreenEnabled': x.environmentScreenEnabled,
+        'environmentDisplayFahrenheit': x.environmentDisplayFahrenheit,
+        'airQualityEnabled': x.airQualityEnabled,
+        'airQualityInterval': x.airQualityInterval,
+        'powerMeasurementEnabled': x.powerMeasurementEnabled,
+        'powerUpdateInterval': x.powerUpdateInterval,
+        'powerScreenEnabled': x.powerScreenEnabled,
+        'healthMeasurementEnabled': x.healthMeasurementEnabled,
+        'healthUpdateInterval': x.healthUpdateInterval,
+        'healthScreenEnabled': x.healthScreenEnabled,
+        'deviceTelemetryEnabled': x.deviceTelemetryEnabled,
+      }));
+    }
+    if (m.serial != null) {
+      final x = m.serial!;
+      children.add(_Subheader('Serial'));
+      children.add(_kvTable({
+        'enabled': x.enabled,
+        'echo': x.echo,
+        'rxd': x.rxd,
+        'txd': x.txd,
+        'baud': x.baud,
+        'timeout': x.timeout,
+        'mode': x.mode,
+        'overrideConsoleSerialPort': x.overrideConsoleSerialPort,
+      }));
+    }
+    if (m.storeForward != null) {
+      final x = m.storeForward!;
+      children.add(_Subheader('Store & Forward'));
+      children.add(_kvTable({
+        'enabled': x.enabled,
+        'heartbeat': x.heartbeat,
+        'records': x.records,
+        'historyReturnMax': x.historyReturnMax,
+        'historyReturnWindow': x.historyReturnWindow,
+        'isServer': x.isServer,
+        'emitControlSignals': x.emitControlSignals,
+      }));
+    }
+    if (m.rangeTest != null) {
+      final x = m.rangeTest!;
+      children.add(_Subheader('Range test'));
+      children.add(_kvTable({
+        'enabled': x.enabled,
+        'sender': x.sender,
+        'save': x.save,
+        'clearOnReboot': x.clearOnReboot,
+      }));
+    }
+    if (m.externalNotification != null) {
+      final x = m.externalNotification!;
+      children.add(_Subheader('External notification'));
+      children.add(_kvTable({
+        'enabled': x.enabled,
+        'outputMs': x.outputMs,
+        'output': x.output,
+        'active': x.active,
+        'alertMessage': x.alertMessage,
+        'alertBell': x.alertBell,
+        'usePwm': x.usePwm,
+        'outputVibra': x.outputVibra,
+        'outputBuzzer': x.outputBuzzer,
+        'alertMessageVibra': x.alertMessageVibra,
+        'alertMessageBuzzer': x.alertMessageBuzzer,
+        'alertBellVibra': x.alertBellVibra,
+        'alertBellBuzzer': x.alertBellBuzzer,
+        'nagTimeout': x.nagTimeout,
+        'useI2sAsBuzzer': x.useI2sAsBuzzer,
+      }));
+    }
+    if (m.audio != null) {
+      final x = m.audio!;
+      children.add(_Subheader('Audio'));
+      children.add(_kvTable({
+        'codec2Enabled': x.codec2Enabled,
+        'pttPin': x.pttPin,
+        'bitrate': x.bitrate,
+        'i2sWs': x.i2sWs,
+        'i2sSd': x.i2sSd,
+        'i2sDin': x.i2sDin,
+        'i2sSck': x.i2sSck,
+      }));
+    }
+    if (m.neighborInfo != null) {
+      final x = m.neighborInfo!;
+      children.add(_Subheader('Neighbor info'));
+      children.add(_kvTable({
+        'enabled': x.enabled,
+        'updateInterval': x.updateInterval,
+        'transmitOverLora': x.transmitOverLora,
+      }));
+    }
+    if (m.remoteHardware != null) {
+      final x = m.remoteHardware!;
+      children.add(_Subheader('Remote hardware'));
+      children.add(_kvTable({
+        'enabled': x.enabled,
+        'allowUndefinedPinAccess': x.allowUndefinedPinAccess,
+        'availablePinsCount': x.availablePins?.length,
+      }));
+      if (x.availablePins != null && x.availablePins!.isNotEmpty) {
+        children.add(_Indent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: x.availablePins!
+                .map((p) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      child: _kvTable({
+                        'gpioPin': p.gpioPin,
+                        'name': p.name,
+                        'type': p.type,
+                      }),
+                    ))
+                .toList(),
+          ),
+        ));
+      }
+    }
+    if (m.paxcounter != null) {
+      final x = m.paxcounter!;
+      children.add(_Subheader('Paxcounter'));
+      children.add(_kvTable({
+        'enabled': x.enabled,
+        'paxcounterUpdateInterval': x.paxcounterUpdateInterval,
+        'wifiThreshold': x.wifiThreshold,
+        'bleThreshold': x.bleThreshold,
+      }));
+    }
+    if (m.cannedMessage != null) {
+      final x = m.cannedMessage!;
+      children.add(_Subheader('Canned message'));
+      children.add(_kvTable({
+        'rotary1Enabled': x.rotary1Enabled,
+        'inputbrokerPinA': x.inputbrokerPinA,
+        'inputbrokerPinB': x.inputbrokerPinB,
+        'inputbrokerPinPress': x.inputbrokerPinPress,
+        'inputbrokerEventCw': x.inputbrokerEventCw,
+        'inputbrokerEventCcw': x.inputbrokerEventCcw,
+        'inputbrokerEventPress': x.inputbrokerEventPress,
+        'updown1Enabled': x.updown1Enabled,
+        'enabled(deprecated)': x.enabled,
+        'allowInputSource': x.allowInputSource,
+        'sendBell': x.sendBell,
+      }));
+    }
+    if (m.ambientLighting != null) {
+      final x = m.ambientLighting!;
+      children.add(_Subheader('Ambient lighting'));
+      children.add(_kvTable({
+        'ledState': x.ledState,
+        'current': x.current,
+        'red': x.red,
+        'green': x.green,
+        'blue': x.blue,
+      }));
+    }
+    if (m.detectionSensor != null) {
+      final x = m.detectionSensor!;
+      children.add(_Subheader('Detection sensor'));
+      children.add(_kvTable({
+        'enabled': x.enabled,
+        'minimumBroadcastSecs': x.minimumBroadcastSecs,
+        'stateBroadcastSecs': x.stateBroadcastSecs,
+        'sendBell': x.sendBell,
+        'name': x.name,
+        'monitorPin': x.monitorPin,
+        'detectionTriggerType': x.detectionTriggerType,
+        'usePullup': x.usePullup,
+      }));
+    }
+    if (m.dtnOverlay != null) {
+      final x = m.dtnOverlay!;
+      children.add(_Subheader('DTN overlay'));
+      children.add(_kvTable({
+        'enabled': x.enabled,
+        'ttlMinutes': x.ttlMinutes,
+        'initialDelayBaseMs': x.initialDelayBaseMs,
+        'retryBackoffMs': x.retryBackoffMs,
+        'maxTries': x.maxTries,
+        'lateFallbackEnabled': x.lateFallbackEnabled,
+        'fallbackTailPercent': x.fallbackTailPercent,
+        'milestonesEnabled': x.milestonesEnabled,
+        'perDestMinSpacingMs': x.perDestMinSpacingMs,
+        'maxActiveDm': x.maxActiveDm,
+        'probeFwplusNearDeadline': x.probeFwplusNearDeadline,
+      }));
+    }
+    if (m.broadcastAssist != null) {
+      final x = m.broadcastAssist!;
+      children.add(_Subheader('Broadcast assist'));
+      children.add(_kvTable({
+        'enabled': x.enabled,
+        'degreeThreshold': x.degreeThreshold,
+        'dupThreshold': x.dupThreshold,
+        'windowMs': x.windowMs,
+        'maxExtraHops': x.maxExtraHops,
+        'jitterMs': x.jitterMs,
+        'airtimeGuard': x.airtimeGuard,
+        'allowedPorts': x.allowedPorts?.join(', '),
+      }));
+    }
+    if (children.isEmpty) return const Text('—');
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
+  }
+
+  Widget _deviceUiConfigDetails(DeviceUiConfigDto u) {
+    final children = <Widget>[];
+    children.add(_kvTable({
+      'version': u.version,
+      'screenBrightness': u.screenBrightness,
+      'screenTimeout': u.screenTimeout,
+      'screenLock': u.screenLock,
+      'settingsLock': u.settingsLock,
+      'pinCode': u.pinCode,
+      'theme': u.theme,
+      'alertEnabled': u.alertEnabled,
+      'bannerEnabled': u.bannerEnabled,
+      'ringToneId': u.ringToneId,
+      'language': u.language,
+      'compassMode': u.compassMode,
+      'screenRgbColor': u.screenRgbColor,
+      'isClockfaceAnalog': u.isClockfaceAnalog,
+      'gpsFormat': u.gpsFormat,
+      'calibrationDataLen': u.calibrationData?.length,
+    }));
+    if (u.nodeFilter != null) {
+      final f = u.nodeFilter!;
+      children.add(const SizedBox(height: 8));
+      children.add(_Subheader('Node filter'));
+      children.add(_kvTable({
+        'filterEnabled': f.filterEnabled,
+        'minSnr': f.minSnr,
+        'hideIgnoredNodes': f.hideIgnoredNodes,
+      }));
+    }
+    if (u.nodeHighlight != null) {
+      final h = u.nodeHighlight!;
+      children.add(const SizedBox(height: 8));
+      children.add(_Subheader('Node highlight'));
+      children.add(_kvTable({
+        'highlightEnabled': h.highlightEnabled,
+        'minSnr': h.minSnr,
+      }));
+    }
+    if (u.mapData != null) {
+      final m = u.mapData!;
+      children.add(const SizedBox(height: 8));
+      children.add(_Subheader('Map'));
+      children.add(_kvTable({
+        'zoom': m.zoom,
+        'centerLatI': m.centerLatI,
+        'centerLonI': m.centerLonI,
+        'followMe': m.followMe,
+      }));
+    }
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
+  }
+}
+
+class _Subheader extends StatelessWidget {
+  final String text;
+  const _Subheader(this.text);
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(bottom: 4),
+        child: Text(text, style: const TextStyle(fontWeight: FontWeight.w600)),
+      );
+}
+
+class _Indent extends StatelessWidget {
+  final Widget child;
+  const _Indent({required this.child});
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(left: 12.0),
+        child: child,
+      );
 }
