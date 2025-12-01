@@ -40,9 +40,6 @@ jobs:
       - name: Flutter pub get
         run: flutter pub get
 
-      - name: Generate native splash
-        run: dart run flutter_native_splash:create
-
       - name: Derive repository name for base href
         shell: bash
         run: |
