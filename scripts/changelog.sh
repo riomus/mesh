@@ -40,7 +40,21 @@ print_changelog_for_range() {
   fi
 
   if [[ -n "${log_output//[[:space:]]/}" ]]; then
-    echo "$log_output"
+    # Convert literal \n sequences inside commit subjects into real newlines
+    # and indent continuation lines so Markdown renders them under the same list item.
+    # Example:
+    #   * feat: something with details\n\n- point 1\n- point 2 (abcd123) — User
+    # becomes:
+    #   * feat: something with details
+    #     
+    #     - point 1
+    #     - point 2 (abcd123) — User
+    formatted=$(printf '%b' "$log_output" | awk '
+      /^\* / { print; next }
+      /^$/ { print; next }
+      { print "  " $0 }
+    ')
+    echo "$formatted"
   else
     echo "* No commits found in range $range"
   fi
