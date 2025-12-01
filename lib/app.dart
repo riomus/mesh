@@ -4,6 +4,7 @@ import 'pages/settings_page.dart';
 import 'services/settings_service.dart';
 import 'pages/logs_page.dart';
 import 'pages/events_page.dart';
+import 'pages/nodes_page.dart';
 
 import 'l10n/app_localizations.dart';
 class MyApp extends StatefulWidget {
@@ -18,7 +19,7 @@ class _MyAppState extends State<MyApp> {
   Locale? _locale;
   final SettingsService _settings = SettingsService();
   bool _loaded = false;
-  int _selectedIndex = 0; // 0 = Scanner, 1 = Logs, 2 = Events
+  int _selectedIndex = 0; // 0 = Scanner, 1 = Logs, 2 = Events, 3 = Nodes
 
   @override
   void initState() {
@@ -127,6 +128,22 @@ class _MyAppState extends State<MyApp> {
                       );
                     },
                   ),
+                  NodesPage(
+                    onToggleTheme: _toggleTheme,
+                    themeMode: _themeMode,
+                    onOpenSettings: (ctx) {
+                      Navigator.of(ctx).push(
+                        MaterialPageRoute(
+                          builder: (_) => SettingsPage(
+                            initialLocale: _locale,
+                            onChangedLocale: _setLocale,
+                            onToggleTheme: _toggleTheme,
+                            themeMode: _themeMode,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ],
               ),
               bottomNavigationBar: NavigationBar(
@@ -135,6 +152,7 @@ class _MyAppState extends State<MyApp> {
                   NavigationDestination(icon: Icon(Icons.devices), label: 'Devices'),
                   NavigationDestination(icon: Icon(Icons.list_alt), label: 'Logs'),
                   NavigationDestination(icon: Icon(Icons.event_note), label: 'Events'),
+                  NavigationDestination(icon: Icon(Icons.hub), label: 'Nodes'),
                 ],
                 onDestinationSelected: (i) => setState(() => _selectedIndex = i),
               ),

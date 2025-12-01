@@ -20,10 +20,10 @@
 - [x] Create new page for device events that will show all events from all devices
 - [x] In event list widget - add ability to click on each events and show specific event details page - show all data from the event - including nested ones use nice nested widgets with colors and emojis
 - [x] For device events with location - use flutter_map plugin to show map with pin on the location
-- [ ] Update logging widget to have "full screen" button that will enlarge the log view to full screen
-- [ ] Update event list widget to have "full screen" button that will enlarge the event list view to full screen
-- [ ] Add ability to share logs - dump them to json file and share it
-- [ ] Add ability to share events - dump them to json file and share it
+- [x] Update logging widget to have "full screen" button that will enlarge the log view to full screen
+- [x] Update event list widget to have "full screen" button that will enlarge the event list view to full screen
+- [x] Add ability to share logs - dump them to json file and share it
+- [x] Add ability to share events - dump them to json file and share it
 - [ ] Create nodes view - a page to show all nodes in the mesh - with ability to filter and sort the nodes, - should be done in same arch as evnets/logs - nodes in the list should be taged
 - [ ] Create chatting widget that will allow to send messages to devices and display them in the list
   - Chat view should be scrollable and has a input component at the bottom
