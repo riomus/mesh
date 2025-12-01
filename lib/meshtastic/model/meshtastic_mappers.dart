@@ -260,6 +260,38 @@ class MeshtasticMappers {
         i2sSck: a.hasI2sSck() ? a.i2sSck : null,
       );
     }
+    NeighborInfoConfigDto? neighborInfo;
+    if (mc.hasNeighborInfo()) {
+      final ni = mc.neighborInfo;
+      neighborInfo = NeighborInfoConfigDto(
+        enabled: ni.hasEnabled() ? ni.enabled : null,
+        updateInterval:
+            ni.hasUpdateInterval() ? ni.updateInterval : null,
+        transmitOverLora:
+            ni.hasTransmitOverLora() ? ni.transmitOverLora : null,
+      );
+    }
+    RemoteHardwareConfigDto? remoteHardware;
+    if (mc.hasRemoteHardware()) {
+      final rh = mc.remoteHardware;
+      List<RemoteHardwarePinDto>? pins;
+      if (rh.availablePins.isNotEmpty) {
+        pins = rh.availablePins
+            .map((p) => RemoteHardwarePinDto(
+                  gpioPin: p.hasGpioPin() ? p.gpioPin : null,
+                  name: p.hasName() ? p.name : null,
+                  type: p.hasType() ? p.type.name : null,
+                ))
+            .toList(growable: false);
+      }
+      remoteHardware = RemoteHardwareConfigDto(
+        enabled: rh.hasEnabled() ? rh.enabled : null,
+        allowUndefinedPinAccess: rh.hasAllowUndefinedPinAccess()
+            ? rh.allowUndefinedPinAccess
+            : null,
+        availablePins: pins,
+      );
+    }
     return ModuleConfigDto(
       mqtt: mqtt,
       telemetry: telemetry,
@@ -268,6 +300,8 @@ class MeshtasticMappers {
       rangeTest: rangeTest,
       externalNotification: externalNotification,
       audio: audio,
+      neighborInfo: neighborInfo,
+      remoteHardware: remoteHardware,
     );
   }
 

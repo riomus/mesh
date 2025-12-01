@@ -260,6 +260,8 @@ class ModuleConfigDto {
   final RangeTestConfigDto? rangeTest;
   final ExternalNotificationConfigDto? externalNotification;
   final AudioConfigDto? audio;
+  final NeighborInfoConfigDto? neighborInfo;
+  final RemoteHardwareConfigDto? remoteHardware;
   const ModuleConfigDto({
     this.mqtt,
     this.telemetry,
@@ -268,6 +270,8 @@ class ModuleConfigDto {
     this.rangeTest,
     this.externalNotification,
     this.audio,
+    this.neighborInfo,
+    this.remoteHardware,
   });
 }
 
@@ -455,6 +459,38 @@ class AudioConfigDto {
     this.i2sDin,
     this.i2sSck,
   });
+}
+
+class NeighborInfoConfigDto {
+  final bool? enabled;
+  final int? updateInterval;
+  final bool? transmitOverLora;
+
+  const NeighborInfoConfigDto({
+    this.enabled,
+    this.updateInterval,
+    this.transmitOverLora,
+  });
+}
+
+class RemoteHardwareConfigDto {
+  final bool? enabled;
+  final bool? allowUndefinedPinAccess;
+  final List<RemoteHardwarePinDto>? availablePins;
+
+  const RemoteHardwareConfigDto({
+    this.enabled,
+    this.allowUndefinedPinAccess,
+    this.availablePins,
+  });
+}
+
+class RemoteHardwarePinDto {
+  final int? gpioPin;
+  final String? name;
+  final String? type; // enum name
+
+  const RemoteHardwarePinDto({this.gpioPin, this.name, this.type});
 }
 
 class ChannelDto {
