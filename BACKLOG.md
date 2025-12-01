@@ -10,7 +10,7 @@
 - [x] Add a badges to README
 - [x] Create issue/PR templates
 - [x] Update release creation to include changelog based on all git commits since last release
-- [ ] Update mapped meshtastic events to include all data avialble after protobuf parsing - create DTOs with parsed fields etc in structured format using classes, for example MyInfoDto should contain all fields of MyNodeInfo from PB etc find and update all cases for that, never use buffers in DTOs
+- [ ] Update mapped meshtastic events to include all data avialble after protobuf parsing - create DTOs with parsed fields etc in structured format using classes, for example ModuleConfigDto should contain all fields of ModuleConfig from PB etc find and update all cases for that, never use buffers in DTOs
 - [x] Create DeviceCommunicationEventService that should work like logging service - it should gather tagged events (for now just meshtastic), and allow for subscription
 - [ ] Create widget for events list display - similar to logging widget - show events with ability to search and filter using chips
 - [ ] Use widget for events on device details page 

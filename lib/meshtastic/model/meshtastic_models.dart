@@ -251,12 +251,50 @@ class ConfigDto {
   const ConfigDto({this.rawProto, this.rawBytes});
 }
 
+// Structured ModuleConfig DTO (incremental: starts with MQTT fields)
 class ModuleConfigDto {
-  // Raw JSON (proto3) of meshtastic.ModuleConfig, containing all module settings.
-  final Map<String, dynamic>? rawProto;
-  // Raw serialized bytes
-  final Uint8List? rawBytes;
-  const ModuleConfigDto({this.rawProto, this.rawBytes});
+  final MqttConfigDto? mqtt;
+  const ModuleConfigDto({this.mqtt});
+}
+
+class MqttConfigDto {
+  final bool? enabled;
+  final String? address;
+  final String? username;
+  final String? password;
+  final bool? encryptionEnabled;
+  final bool? jsonEnabled;
+  final bool? tlsEnabled;
+  final String? root;
+  final bool? proxyToClientEnabled;
+  final bool? mapReportingEnabled;
+  final MapReportSettingsDto? mapReportSettings;
+
+  const MqttConfigDto({
+    this.enabled,
+    this.address,
+    this.username,
+    this.password,
+    this.encryptionEnabled,
+    this.jsonEnabled,
+    this.tlsEnabled,
+    this.root,
+    this.proxyToClientEnabled,
+    this.mapReportingEnabled,
+    this.mapReportSettings,
+  });
+}
+
+class MapReportSettingsDto {
+  final int? publishIntervalSecs;
+  final int? positionPrecision;
+  final bool? shouldReportLocation;
+
+  const MapReportSettingsDto({
+    this.publishIntervalSecs,
+    this.positionPrecision,
+    this.shouldReportLocation,
+  });
 }
 
 class ChannelDto {

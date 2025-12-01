@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import '../../generated/meshtastic/meshtastic/mesh.pb.dart' as mesh;
 import '../../generated/meshtastic/meshtastic/portnums.pbenum.dart' as port;
+import '../../generated/meshtastic/meshtastic/module_config.pb.dart' as module;
 import '../../generated/meshtastic/meshtastic/admin.pb.dart' as admin;
 import '../../generated/meshtastic/meshtastic/telemetry.pb.dart' as telem;
 import 'meshtastic_event.dart';
@@ -60,10 +61,7 @@ class MeshtasticMappers {
       case mesh.FromRadio_PayloadVariant.rebooted:
         return RebootedEvent(fr.rebooted);
       case mesh.FromRadio_PayloadVariant.moduleConfig:
-        return ModuleConfigEvent(ModuleConfigDto(
-          rawBytes: Uint8List.fromList(fr.moduleConfig.writeToBuffer()),
-          rawProto: fr.moduleConfig.toProto3Json() as Map<String, dynamic>,
-        ));
+        return ModuleConfigEvent(_toModuleConfigDto(fr.moduleConfig));
       case mesh.FromRadio_PayloadVariant.channel:
         return ChannelEvent(ChannelDto(index: fr.channel.hasIndex() ? fr.channel.index : null));
       case mesh.FromRadio_PayloadVariant.queueStatus:
@@ -109,6 +107,41 @@ class MeshtasticMappers {
         return const LogRecordEvent(
             LogRecordDto(level: 'WARN', message: 'FromRadio payload not set'));
     }
+  }
+
+  static ModuleConfigDto _toModuleConfigDto(module.ModuleConfig mc) {
+    MqttConfigDto? mqtt;
+    if (mc.hasMqtt()) {
+      final m = mc.mqtt;
+      MapReportSettingsDto? mapReport;
+      if (m.hasMapReportSettings()) {
+        final s = m.mapReportSettings;
+        mapReport = MapReportSettingsDto(
+          publishIntervalSecs:
+              s.hasPublishIntervalSecs() ? s.publishIntervalSecs : null,
+          positionPrecision:
+              s.hasPositionPrecision() ? s.positionPrecision : null,
+          shouldReportLocation:
+              s.hasShouldReportLocation() ? s.shouldReportLocation : null,
+        );
+      }
+      mqtt = MqttConfigDto(
+        enabled: m.hasEnabled() ? m.enabled : null,
+        address: m.hasAddress() ? m.address : null,
+        username: m.hasUsername() ? m.username : null,
+        password: m.hasPassword() ? m.password : null,
+        encryptionEnabled: m.hasEncryptionEnabled() ? m.encryptionEnabled : null,
+        jsonEnabled: m.hasJsonEnabled() ? m.jsonEnabled : null,
+        tlsEnabled: m.hasTlsEnabled() ? m.tlsEnabled : null,
+        root: m.hasRoot() ? m.root : null,
+        proxyToClientEnabled:
+            m.hasProxyToClientEnabled() ? m.proxyToClientEnabled : null,
+        mapReportingEnabled:
+            m.hasMapReportingEnabled() ? m.mapReportingEnabled : null,
+        mapReportSettings: mapReport,
+      );
+    }
+    return ModuleConfigDto(mqtt: mqtt);
   }
 
   static MeshPacketDto _toMeshPacketDto(mesh.MeshPacket packet) {
