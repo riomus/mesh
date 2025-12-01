@@ -77,16 +77,87 @@ class TextPayloadDto extends DecodedPayloadDto {
   const TextPayloadDto(this.text, {this.emoji});
 }
 
-class PositionPayloadDto extends DecodedPayloadDto {
+class PositionDto {
   final int? latitudeI; // 1e-7 degrees
   final int? longitudeI; // 1e-7 degrees
-  const PositionPayloadDto({this.latitudeI, this.longitudeI});
+  final int? altitude;
+  final int? time;
+  final String? locationSource; // enum name
+  final String? altitudeSource; // enum name
+  final int? timestamp;
+  final int? timestampMillisAdjust;
+  final int? altitudeHae;
+  final int? altitudeGeoidalSeparation;
+  final int? pDOP;
+  final int? hDOP;
+  final int? vDOP;
+  final int? gpsAccuracy;
+  final int? groundSpeed;
+  final int? groundTrack;
+  final int? fixQuality;
+  final int? fixType;
+  final int? satsInView;
+  final int? sensorId;
+  final int? nextUpdate;
+  final int? seqNumber;
+  final int? precisionBits;
+  const PositionDto({
+    this.latitudeI,
+    this.longitudeI,
+    this.altitude,
+    this.time,
+    this.locationSource,
+    this.altitudeSource,
+    this.timestamp,
+    this.timestampMillisAdjust,
+    this.altitudeHae,
+    this.altitudeGeoidalSeparation,
+    this.pDOP,
+    this.hDOP,
+    this.vDOP,
+    this.gpsAccuracy,
+    this.groundSpeed,
+    this.groundTrack,
+    this.fixQuality,
+    this.fixType,
+    this.satsInView,
+    this.sensorId,
+    this.nextUpdate,
+    this.seqNumber,
+    this.precisionBits,
+  });
+}
+
+class PositionPayloadDto extends DecodedPayloadDto {
+  final PositionDto position;
+  const PositionPayloadDto(this.position);
+
+  // Backward-compatible helpers for existing UI code
+  int? get latitudeI => position.latitudeI;
+  int? get longitudeI => position.longitudeI;
 }
 
 class UserDto {
+  final String? id;
   final String? longName;
   final String? shortName;
-  const UserDto({this.longName, this.shortName});
+  final Uint8List? macaddr;
+  final String? hwModel; // enum name
+  final bool? isLicensed;
+  final String? role; // enum name
+  final Uint8List? publicKey;
+  final bool? isUnmessagable;
+  const UserDto({
+    this.id,
+    this.longName,
+    this.shortName,
+    this.macaddr,
+    this.hwModel,
+    this.isLicensed,
+    this.role,
+    this.publicKey,
+    this.isUnmessagable,
+  });
 }
 
 class UserPayloadDto extends DecodedPayloadDto {
@@ -111,13 +182,65 @@ class RawPayloadDto extends DecodedPayloadDto {
 // FromRadio variant DTOs (typed, minimal fields used by UI)
 class MyInfoDto {
   final NodeNum? myNodeNum;
-  const MyInfoDto({this.myNodeNum});
+  final int? rebootCount;
+  final int? minAppVersion;
+  final Uint8List? deviceId;
+  final String? pioEnv;
+  final String? firmwareEdition; // enum name
+  final int? nodedbCount;
+  const MyInfoDto({
+    this.myNodeNum,
+    this.rebootCount,
+    this.minAppVersion,
+    this.deviceId,
+    this.pioEnv,
+    this.firmwareEdition,
+    this.nodedbCount,
+  });
+}
+
+class DeviceMetricsDto {
+  final int? batteryLevel;
+  final double? voltage;
+  final double? channelUtilization;
+  final double? airUtilTx;
+  final int? uptimeSeconds;
+  const DeviceMetricsDto({
+    this.batteryLevel,
+    this.voltage,
+    this.channelUtilization,
+    this.airUtilTx,
+    this.uptimeSeconds,
+  });
 }
 
 class NodeInfoDto {
   final NodeNum? num;
   final UserDto? user;
-  const NodeInfoDto({this.num, this.user});
+  final PositionDto? position;
+  final double? snr;
+  final int? lastHeard;
+  final DeviceMetricsDto? deviceMetrics;
+  final int? channel;
+  final bool? viaMqtt;
+  final int? hopsAway;
+  final bool? isFavorite;
+  final bool? isIgnored;
+  final bool? isKeyManuallyVerified;
+  const NodeInfoDto({
+    this.num,
+    this.user,
+    this.position,
+    this.snr,
+    this.lastHeard,
+    this.deviceMetrics,
+    this.channel,
+    this.viaMqtt,
+    this.hopsAway,
+    this.isFavorite,
+    this.isIgnored,
+    this.isKeyManuallyVerified,
+  });
 }
 
 class ConfigDto {

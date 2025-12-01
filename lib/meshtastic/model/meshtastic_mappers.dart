@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import '../../generated/meshtastic/meshtastic/mesh.pb.dart' as mesh;
 import '../../generated/meshtastic/meshtastic/portnums.pbenum.dart' as port;
 import '../../generated/meshtastic/meshtastic/admin.pb.dart' as admin;
+import '../../generated/meshtastic/meshtastic/telemetry.pb.dart' as telem;
 import 'meshtastic_event.dart';
 import 'meshtastic_models.dart';
 
@@ -17,20 +18,31 @@ class MeshtasticMappers {
         final pkt = _toMeshPacketDto(fr.packet);
         return MeshPacketEvent(packet: pkt, decoded: pkt.decoded);
       case mesh.FromRadio_PayloadVariant.myInfo:
+        final mi = fr.myInfo;
         return MyInfoEvent(MyInfoDto(
-          myNodeNum: fr.myInfo.hasMyNodeNum() ? fr.myInfo.myNodeNum : null,
+          myNodeNum: mi.hasMyNodeNum() ? mi.myNodeNum : null,
+          rebootCount: mi.hasRebootCount() ? mi.rebootCount : null,
+          minAppVersion: mi.hasMinAppVersion() ? mi.minAppVersion : null,
+          deviceId: mi.hasDeviceId() ? Uint8List.fromList(mi.deviceId) : null,
+          pioEnv: mi.hasPioEnv() ? mi.pioEnv : null,
+          firmwareEdition: mi.hasFirmwareEdition() ? mi.firmwareEdition.name : null,
+          nodedbCount: mi.hasNodedbCount() ? mi.nodedbCount : null,
         ));
       case mesh.FromRadio_PayloadVariant.nodeInfo:
+        final n = fr.nodeInfo;
         return NodeInfoEvent(NodeInfoDto(
-          num: fr.nodeInfo.hasNum() ? fr.nodeInfo.num : null,
-          user: fr.nodeInfo.hasUser()
-              ? UserDto(
-                  longName:
-                      fr.nodeInfo.user.hasLongName() ? fr.nodeInfo.user.longName : null,
-                  shortName:
-                      fr.nodeInfo.user.hasShortName() ? fr.nodeInfo.user.shortName : null,
-                )
-              : null,
+          num: n.hasNum() ? n.num : null,
+          user: n.hasUser() ? _toUserDto(n.user) : null,
+          position: n.hasPosition() ? _toPositionDto(n.position) : null,
+          snr: n.hasSnr() ? n.snr : null,
+          lastHeard: n.hasLastHeard() ? n.lastHeard : null,
+          deviceMetrics: n.hasDeviceMetrics() ? _toDeviceMetricsDto(n.deviceMetrics) : null,
+          channel: n.hasChannel() ? n.channel : null,
+          viaMqtt: n.hasViaMqtt() ? n.viaMqtt : null,
+          hopsAway: n.hasHopsAway() ? n.hopsAway : null,
+          isFavorite: n.hasIsFavorite() ? n.isFavorite : null,
+          isIgnored: n.hasIsIgnored() ? n.isIgnored : null,
+          isKeyManuallyVerified: n.hasIsKeyManuallyVerified() ? n.isKeyManuallyVerified : null,
         ));
       case mesh.FromRadio_PayloadVariant.config:
         return ConfigEvent(ConfigDto(
@@ -143,20 +155,14 @@ class MeshtasticMappers {
       case port.PortNum.POSITION_APP:
         try {
           final pos = mesh.Position.fromBuffer(bytes);
-          return PositionPayloadDto(
-            latitudeI: pos.hasLatitudeI() ? pos.latitudeI : null,
-            longitudeI: pos.hasLongitudeI() ? pos.longitudeI : null,
-          );
+          return PositionPayloadDto(_toPositionDto(pos));
         } catch (_) {
           return RawPayloadDto(portInternal, bytes);
         }
       case port.PortNum.NODEINFO_APP:
         try {
           final user = mesh.User.fromBuffer(bytes);
-          return UserPayloadDto(UserDto(
-            longName: user.hasLongName() ? user.longName : null,
-            shortName: user.hasShortName() ? user.shortName : null,
-          ));
+          return UserPayloadDto(_toUserDto(user));
         } catch (_) {
           return RawPayloadDto(portInternal, bytes);
         }
@@ -190,4 +196,60 @@ class MeshtasticMappers {
   }
 
   // Removed JSON map conversion: we now return typed DTOs only.
+}
+
+UserDto _toUserDto(mesh.User user) {
+  return UserDto(
+    id: user.hasId() ? user.id : null,
+    longName: user.hasLongName() ? user.longName : null,
+    shortName: user.hasShortName() ? user.shortName : null,
+    macaddr: user.hasMacaddr() ? Uint8List.fromList(user.macaddr) : null,
+    hwModel: user.hasHwModel() ? user.hwModel.name : null,
+    isLicensed: user.hasIsLicensed() ? user.isLicensed : null,
+    role: user.hasRole() ? user.role.name : null,
+    publicKey: user.hasPublicKey() ? Uint8List.fromList(user.publicKey) : null,
+    isUnmessagable: user.hasIsUnmessagable() ? user.isUnmessagable : null,
+  );
+}
+
+PositionDto _toPositionDto(mesh.Position pos) {
+  return PositionDto(
+    latitudeI: pos.hasLatitudeI() ? pos.latitudeI : null,
+    longitudeI: pos.hasLongitudeI() ? pos.longitudeI : null,
+    altitude: pos.hasAltitude() ? pos.altitude : null,
+    time: pos.hasTime() ? pos.time : null,
+    locationSource: pos.hasLocationSource() ? pos.locationSource.name : null,
+    altitudeSource: pos.hasAltitudeSource() ? pos.altitudeSource.name : null,
+    timestamp: pos.hasTimestamp() ? pos.timestamp : null,
+    timestampMillisAdjust:
+        pos.hasTimestampMillisAdjust() ? pos.timestampMillisAdjust : null,
+    altitudeHae: pos.hasAltitudeHae() ? pos.altitudeHae : null,
+    altitudeGeoidalSeparation: pos.hasAltitudeGeoidalSeparation()
+        ? pos.altitudeGeoidalSeparation
+        : null,
+    pDOP: pos.hasPDOP() ? pos.pDOP : null,
+    hDOP: pos.hasHDOP() ? pos.hDOP : null,
+    vDOP: pos.hasVDOP() ? pos.vDOP : null,
+    gpsAccuracy: pos.hasGpsAccuracy() ? pos.gpsAccuracy : null,
+    groundSpeed: pos.hasGroundSpeed() ? pos.groundSpeed : null,
+    groundTrack: pos.hasGroundTrack() ? pos.groundTrack : null,
+    fixQuality: pos.hasFixQuality() ? pos.fixQuality : null,
+    fixType: pos.hasFixType() ? pos.fixType : null,
+    satsInView: pos.hasSatsInView() ? pos.satsInView : null,
+    sensorId: pos.hasSensorId() ? pos.sensorId : null,
+    nextUpdate: pos.hasNextUpdate() ? pos.nextUpdate : null,
+    seqNumber: pos.hasSeqNumber() ? pos.seqNumber : null,
+    precisionBits: pos.hasPrecisionBits() ? pos.precisionBits : null,
+  );
+}
+
+DeviceMetricsDto _toDeviceMetricsDto(telem.DeviceMetrics dm) {
+  return DeviceMetricsDto(
+    batteryLevel: dm.hasBatteryLevel() ? dm.batteryLevel : null,
+    voltage: dm.hasVoltage() ? dm.voltage : null,
+    channelUtilization:
+        dm.hasChannelUtilization() ? dm.channelUtilization : null,
+    airUtilTx: dm.hasAirUtilTx() ? dm.airUtilTx : null,
+    uptimeSeconds: dm.hasUptimeSeconds() ? dm.uptimeSeconds : null,
+  );
 }
