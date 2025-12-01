@@ -24,6 +24,7 @@
 - [ ] Update event list widget to have "full screen" button that will enlarge the event list view to full screen
 - [ ] Add ability to share logs - dump them to json file and share it
 - [ ] Add ability to share events - dump them to json file and share it
+- [ ] Create nodes view - 
 - [ ] Create chatting widget that will allow to send messages to devices and display them in the list
   - Chat view should be scrollable and has a input component at the bottom
   - Input should accept rich text - with emojis
