@@ -640,10 +640,17 @@ class MeshtasticMappers {
         final text = _safeUtf8(bytes);
         return TextPayloadDto(text, emoji: data.hasEmoji() ? data.emoji : null);
       case port.PortNum.TRACEROUTE_APP:
-        // RouteDiscovery type exists, but payloads may vary, keep minimal
+        // Parse RouteDiscovery and expose all available fields
         try {
-          mesh.RouteDiscovery.fromBuffer(bytes);
-          return const TraceroutePayloadDto();
+          final rd = mesh.RouteDiscovery.fromBuffer(bytes);
+          return TraceroutePayloadDto(
+            route: rd.route.isNotEmpty ? List<int>.from(rd.route) : null,
+            snrTowards:
+                rd.snrTowards.isNotEmpty ? List<int>.from(rd.snrTowards) : null,
+            routeBack:
+                rd.routeBack.isNotEmpty ? List<int>.from(rd.routeBack) : null,
+            snrBack: rd.snrBack.isNotEmpty ? List<int>.from(rd.snrBack) : null,
+          );
         } catch (_) {
           return RawPayloadDto(portInternal, bytes);
         }

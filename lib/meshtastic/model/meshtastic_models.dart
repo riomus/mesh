@@ -252,7 +252,24 @@ class PaxcounterPayloadDto extends DecodedPayloadDto {
 }
 
 class TraceroutePayloadDto extends DecodedPayloadDto {
-  const TraceroutePayloadDto();
+  /// The list of nodenums this packet has visited so far to the destination.
+  final List<int>? route;
+
+  /// The list of SNRs (in dB, scaled by 4) in the route towards the destination.
+  final List<int>? snrTowards;
+
+  /// The list of nodenums the packet has visited on the way back from the destination.
+  final List<int>? routeBack;
+
+  /// The list of SNRs (in dB, scaled by 4) in the route back from the destination.
+  final List<int>? snrBack;
+
+  const TraceroutePayloadDto({
+    this.route,
+    this.snrTowards,
+    this.routeBack,
+    this.snrBack,
+  });
 }
 
 class KeyVerificationPayloadDto extends DecodedPayloadDto {
