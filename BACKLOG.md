@@ -1,7 +1,7 @@
 # Backlog
 
 
-- [ ] Create app icon using assets/icon.png
+- [x] Create app icon using assets/icon.png
 - [ ] Define smoke test that will run the app using web and android simulator and check if it works
 - [ ] Create integration test that will run the app using web and android simulator and check functionalities
 - [ ] Create a CI pipeline that will run the smoke and integration tests on every PR
@@ -23,5 +23,8 @@
 - [ ] Add ability to share events - dump them to json file and share it
 - [ ] Create chatting widget that will allow to send messages to devices and display them in the list
   - Chat view should be scrollable and has a input component at the bottom
+  - Input should accept rich text - with emojis
   - Messages should be displayed in chronological order
-  - 
+  - Input should have a send button
+  - Input should allow a size limit - by computing message size in bytes and comparing it to the limit
+  - Current size should be shown and color of it should be updated based on the limit (green, yellow, red)
