@@ -4,6 +4,7 @@ import '../services/device_communication_event_service.dart';
 import '../widgets/meshtastic_event_tiles.dart';
 import '../meshtastic/model/meshtastic_event.dart';
 import '../meshtastic/model/meshtastic_models.dart';
+import '../widgets/map_section.dart';
 
 class EventDetailsPage extends StatelessWidget {
   final DeviceEvent event;
@@ -129,16 +130,27 @@ class _MeshtasticEventDetails extends StatelessWidget {
           }),
         );
       case NodeInfoEvent e:
-        return _Section(
-          emoji: '🪪',
-          title: 'NodeInfo',
-          child: _kvTable({
-            'num': e.nodeInfo.num,
-            'user.longName': e.nodeInfo.user?.longName,
-            'user.shortName': e.nodeInfo.user?.shortName,
-            'position.lat': e.nodeInfo.position?.latitudeI,
-            'position.lon': e.nodeInfo.position?.longitudeI,
-          }),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (_hasValidCoords(e.nodeInfo.position?.latitudeI, e.nodeInfo.position?.longitudeI))
+              MapSection(
+                latitude: latFromI(e.nodeInfo.position?.latitudeI)!,
+                longitude: lonFromI(e.nodeInfo.position?.longitudeI)!,
+                label: e.nodeInfo.user?.shortName ?? e.nodeInfo.user?.longName,
+              ),
+            _Section(
+              emoji: '🪪',
+              title: 'NodeInfo',
+              child: _kvTable({
+                'num': e.nodeInfo.num,
+                'user.longName': e.nodeInfo.user?.longName,
+                'user.shortName': e.nodeInfo.user?.shortName,
+                'position.lat': e.nodeInfo.position?.latitudeI,
+                'position.lon': e.nodeInfo.position?.longitudeI,
+              }),
+            ),
+          ],
         );
       case ConfigEvent e:
         return _Section(
@@ -270,27 +282,49 @@ class _MeshtasticEventDetails extends StatelessWidget {
           title: 'Text payload',
           child: _kvTable({'text': t.text, 'emoji': t.emoji}),
         ),
-      PositionPayloadDto pos => _Section(
-          emoji: '📍',
-          title: 'Position',
-          child: _kvTable({
-            'latI': pos.latitudeI,
-            'lonI': pos.longitudeI,
-            'alt': pos.position.altitude,
-            'time': pos.position.time,
-            'gpsAcc': pos.position.gpsAccuracy,
-            'sats': pos.position.satsInView,
-          }),
+      PositionPayloadDto pos => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (_hasValidCoords(pos.latitudeI, pos.longitudeI))
+              MapSection(
+                latitude: latFromI(pos.latitudeI)!,
+                longitude: lonFromI(pos.longitudeI)!,
+                label: 'Position',
+              ),
+            _Section(
+              emoji: '📍',
+              title: 'Position',
+              child: _kvTable({
+                'latI': pos.latitudeI,
+                'lonI': pos.longitudeI,
+                'alt': pos.position.altitude,
+                'time': pos.position.time,
+                'gpsAcc': pos.position.gpsAccuracy,
+                'sats': pos.position.satsInView,
+              }),
+            ),
+          ],
         ),
-      WaypointPayloadDto w => _Section(
-          emoji: '📍',
-          title: 'Waypoint',
-          child: _kvTable({
-            'name': w.waypoint.name,
-            'latI': w.waypoint.latitudeI,
-            'lonI': w.waypoint.longitudeI,
-            'expire': w.waypoint.expire,
-          }),
+      WaypointPayloadDto w => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (_hasValidCoords(w.waypoint.latitudeI, w.waypoint.longitudeI))
+              MapSection(
+                latitude: latFromI(w.waypoint.latitudeI)!,
+                longitude: lonFromI(w.waypoint.longitudeI)!,
+                label: w.waypoint.name,
+              ),
+            _Section(
+              emoji: '📍',
+              title: 'Waypoint',
+              child: _kvTable({
+                'name': w.waypoint.name,
+                'latI': w.waypoint.latitudeI,
+                'lonI': w.waypoint.longitudeI,
+                'expire': w.waypoint.expire,
+              }),
+            ),
+          ],
         ),
       UserPayloadDto u => _Section(
           emoji: '🪪',
@@ -756,6 +790,13 @@ class _MeshtasticEventDetails extends StatelessWidget {
     }
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
   }
+}
+
+bool _hasValidCoords(int? latI, int? lonI) {
+  final lat = latFromI(latI);
+  final lon = lonFromI(lonI);
+  if (lat == null || lon == null) return false;
+  return lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
 }
 
 class _Subheader extends StatelessWidget {
