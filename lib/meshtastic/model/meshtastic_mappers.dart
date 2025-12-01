@@ -224,12 +224,50 @@ class MeshtasticMappers {
         clearOnReboot: rt.hasClearOnReboot() ? rt.clearOnReboot : null,
       );
     }
+    ExternalNotificationConfigDto? externalNotification;
+    if (mc.hasExternalNotification()) {
+      final en = mc.externalNotification;
+      externalNotification = ExternalNotificationConfigDto(
+        enabled: en.hasEnabled() ? en.enabled : null,
+        outputMs: en.hasOutputMs() ? en.outputMs : null,
+        output: en.hasOutput() ? en.output : null,
+        active: en.hasActive() ? en.active : null,
+        alertMessage: en.hasAlertMessage() ? en.alertMessage : null,
+        alertBell: en.hasAlertBell() ? en.alertBell : null,
+        usePwm: en.hasUsePwm() ? en.usePwm : null,
+        outputVibra: en.hasOutputVibra() ? en.outputVibra : null,
+        outputBuzzer: en.hasOutputBuzzer() ? en.outputBuzzer : null,
+        alertMessageVibra:
+            en.hasAlertMessageVibra() ? en.alertMessageVibra : null,
+        alertMessageBuzzer:
+            en.hasAlertMessageBuzzer() ? en.alertMessageBuzzer : null,
+        alertBellVibra: en.hasAlertBellVibra() ? en.alertBellVibra : null,
+        alertBellBuzzer: en.hasAlertBellBuzzer() ? en.alertBellBuzzer : null,
+        nagTimeout: en.hasNagTimeout() ? en.nagTimeout : null,
+        useI2sAsBuzzer: en.hasUseI2sAsBuzzer() ? en.useI2sAsBuzzer : null,
+      );
+    }
+    AudioConfigDto? audio;
+    if (mc.hasAudio()) {
+      final a = mc.audio;
+      audio = AudioConfigDto(
+        codec2Enabled: a.hasCodec2Enabled() ? a.codec2Enabled : null,
+        pttPin: a.hasPttPin() ? a.pttPin : null,
+        bitrate: a.hasBitrate() ? a.bitrate.name : null,
+        i2sWs: a.hasI2sWs() ? a.i2sWs : null,
+        i2sSd: a.hasI2sSd() ? a.i2sSd : null,
+        i2sDin: a.hasI2sDin() ? a.i2sDin : null,
+        i2sSck: a.hasI2sSck() ? a.i2sSck : null,
+      );
+    }
     return ModuleConfigDto(
       mqtt: mqtt,
       telemetry: telemetry,
       serial: serial,
       storeForward: storeForward,
       rangeTest: rangeTest,
+      externalNotification: externalNotification,
+      audio: audio,
     );
   }
 

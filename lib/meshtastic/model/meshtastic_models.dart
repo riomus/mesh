@@ -258,12 +258,16 @@ class ModuleConfigDto {
   final SerialConfigDto? serial;
   final StoreForwardConfigDto? storeForward;
   final RangeTestConfigDto? rangeTest;
+  final ExternalNotificationConfigDto? externalNotification;
+  final AudioConfigDto? audio;
   const ModuleConfigDto({
     this.mqtt,
     this.telemetry,
     this.serial,
     this.storeForward,
     this.rangeTest,
+    this.externalNotification,
+    this.audio,
   });
 }
 
@@ -394,6 +398,62 @@ class RangeTestConfigDto {
     this.sender,
     this.save,
     this.clearOnReboot,
+  });
+}
+
+class ExternalNotificationConfigDto {
+  final bool? enabled;
+  final int? outputMs;
+  final int? output;
+  final bool? active;
+  final bool? alertMessage;
+  final bool? alertBell;
+  final bool? usePwm;
+  final int? outputVibra;
+  final int? outputBuzzer;
+  final bool? alertMessageVibra;
+  final bool? alertMessageBuzzer;
+  final bool? alertBellVibra;
+  final bool? alertBellBuzzer;
+  final int? nagTimeout;
+  final bool? useI2sAsBuzzer;
+
+  const ExternalNotificationConfigDto({
+    this.enabled,
+    this.outputMs,
+    this.output,
+    this.active,
+    this.alertMessage,
+    this.alertBell,
+    this.usePwm,
+    this.outputVibra,
+    this.outputBuzzer,
+    this.alertMessageVibra,
+    this.alertMessageBuzzer,
+    this.alertBellVibra,
+    this.alertBellBuzzer,
+    this.nagTimeout,
+    this.useI2sAsBuzzer,
+  });
+}
+
+class AudioConfigDto {
+  final bool? codec2Enabled;
+  final int? pttPin;
+  final String? bitrate; // enum name
+  final int? i2sWs;
+  final int? i2sSd;
+  final int? i2sDin;
+  final int? i2sSck;
+
+  const AudioConfigDto({
+    this.codec2Enabled,
+    this.pttPin,
+    this.bitrate,
+    this.i2sWs,
+    this.i2sSd,
+    this.i2sDin,
+    this.i2sSck,
   });
 }
 
