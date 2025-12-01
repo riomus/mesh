@@ -20,6 +20,7 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
 
   List<MeshNodeView> _nodes = const <MeshNodeView>[];
   StreamSubscription<List<MeshNodeView>>? _sub;
+  bool _didAutoFit = false;
 
   @override
   void initState() {
@@ -30,6 +31,18 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
       setState(() {
         _nodes = value;
       });
+      // One-time auto-fit when first non-empty set of nodes with location arrives
+      if (!_didAutoFit) {
+        final hasAny = _nodePoints.isNotEmpty;
+        if (hasAny) {
+          _didAutoFit = true;
+          // Schedule after this frame so controller is ready
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            _fitBounds();
+          });
+        }
+      }
     });
   }
 
@@ -214,7 +227,9 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
           ],
         ),
         Expanded(
-          child: FlutterMap(
+          child: points.isEmpty
+              ? _EmptyMapState(onLongPress: _onLongPress)
+              : FlutterMap(
             mapController: _controller,
             options: MapOptions(
               initialCenter: points.isNotEmpty
@@ -238,6 +253,49 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
 
   @override
   bool get wantKeepAlive => true;
+}
+
+class _EmptyMapState extends StatelessWidget {
+  final void Function(TapPosition, latlng.LatLng) onLongPress;
+  const _EmptyMapState({required this.onLongPress});
+
+  @override
+  Widget build(BuildContext context) {
+    return FlutterMap(
+      options: MapOptions(
+        initialCenter: const latlng.LatLng(0, 0),
+        initialZoom: 2,
+        onLongPress: onLongPress,
+      ),
+      children: [
+        TileLayer(
+          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+          userAgentPackageName: 'ai.bartusiak.mesh.app',
+        ),
+        // Friendly empty state overlay
+        Align(
+          alignment: Alignment.topCenter,
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Text(
+                  'No nodes with location yet.\nLong‑press on the map to set a custom distance reference.',
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 // Human friendly formatting for "ago" like in list widget

@@ -328,6 +328,7 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
       // subscribe to incoming packets
       _eventsSub?.cancel();
       _eventsSub = client.events.listen((e) {
+        if (!mounted) return;
         setState(() {
           _events.add(e);
           if (_events.length > 200) {
@@ -336,10 +337,12 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
         });
       });
       await client.connect();
-      setState(() {
-        _client = client;
-        _connected = true;
-      });
+      if (mounted) {
+        setState(() {
+          _client = client;
+          _connected = true;
+        });
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -349,10 +352,12 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
       await _client?.dispose();
       await _logSub?.cancel();
       await _eventsSub?.cancel();
-      setState(() {
-        _client = null;
-        _connected = false;
-      });
+      if (mounted) {
+        setState(() {
+          _client = null;
+          _connected = false;
+        });
+      }
     } finally {
       if (mounted) {
         setState(() {
