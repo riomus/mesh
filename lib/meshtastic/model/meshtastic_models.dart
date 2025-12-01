@@ -111,21 +111,13 @@ class RawPayloadDto extends DecodedPayloadDto {
 // FromRadio variant DTOs (typed, minimal fields used by UI)
 class MyInfoDto {
   final NodeNum? myNodeNum;
-  // Full raw protobuf as JSON (proto3)
-  final Map<String, dynamic>? rawProto;
-  // Raw serialized bytes
-  final Uint8List? rawBytes;
-  const MyInfoDto({this.myNodeNum, this.rawProto, this.rawBytes});
+  const MyInfoDto({this.myNodeNum});
 }
 
 class NodeInfoDto {
   final NodeNum? num;
   final UserDto? user;
-  // Full raw protobuf as JSON (proto3)
-  final Map<String, dynamic>? rawProto;
-  // Raw serialized bytes
-  final Uint8List? rawBytes;
-  const NodeInfoDto({this.num, this.user, this.rawProto, this.rawBytes});
+  const NodeInfoDto({this.num, this.user});
 }
 
 class ConfigDto {
@@ -146,18 +138,14 @@ class ModuleConfigDto {
 
 class ChannelDto {
   final int? index;
-  final Map<String, dynamic>? rawProto;
-  final Uint8List? rawBytes;
-  const ChannelDto({this.index, this.rawProto, this.rawBytes});
+  const ChannelDto({this.index});
 }
 
 class QueueStatusDto {
   final int? size;
   final int? maxlen;
   final int? meshPacketId;
-  final Map<String, dynamic>? rawProto;
-  final Uint8List? rawBytes;
-  const QueueStatusDto({this.size, this.maxlen, this.meshPacketId, this.rawProto, this.rawBytes});
+  const QueueStatusDto({this.size, this.maxlen, this.meshPacketId});
 }
 
 class DeviceMetadataDto {
@@ -180,16 +168,12 @@ class MqttClientProxyMessageDto {
 class FileInfoDto {
   final String? fileName;
   final int? sizeBytes;
-  final Map<String, dynamic>? rawProto;
-  final Uint8List? rawBytes;
-  const FileInfoDto({this.fileName, this.sizeBytes, this.rawProto, this.rawBytes});
+  const FileInfoDto({this.fileName, this.sizeBytes});
 }
 
 class ClientNotificationDto {
   final String? message;
-  final Map<String, dynamic>? rawProto;
-  final Uint8List? rawBytes;
-  const ClientNotificationDto({this.message, this.rawProto, this.rawBytes});
+  const ClientNotificationDto({this.message});
 }
 
 class DeviceUiConfigDto {
@@ -204,7 +188,5 @@ class LogRecordDto {
   final String? level;
   final String? message;
   final String? source;
-  final Map<String, dynamic>? rawProto;
-  final Uint8List? rawBytes;
-  const LogRecordDto({this.level, this.message, this.source, this.rawProto, this.rawBytes});
+  const LogRecordDto({this.level, this.message, this.source});
 }

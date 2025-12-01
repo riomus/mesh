@@ -10,7 +10,7 @@
 - [x] Add a badges to README
 - [x] Create issue/PR templates
 - [x] Update release creation to include changelog based on all git commits since last release
-- [x] Update mapped meshtastic events to include all data avialble after buffer parsing - create DTOs for it - never drop data that is exposed in PB - we need to have all in Dart for example ModuleConfigDTO can not be empty it should containt all fields from parsed proto - do not keep only buffers - create DTOs with parsed fields etc
+- [ ] Update mapped meshtastic events to include all data avialble after protobuf parsing - read buffers to pb when needed - create DTOs for every data - never drop data that is exposed in PB - we need to have all in Dart for example ModuleConfigDTO can not be empty it should containt all fields from parsed proto - do not keep only buffers - create DTOs with parsed fields etc in structured format using classes
 - [ ] Create DeviceCommunicationEventService that should work like logging service - it should gather tagged events (for now just meshtastic), and allow for subscription
 - [ ] Create widget for events list display - similar to logging widget - show events with ability to search and filter using chips
 - [ ] Use widget for events on device details page 

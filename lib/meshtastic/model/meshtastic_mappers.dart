@@ -19,8 +19,6 @@ class MeshtasticMappers {
       case mesh.FromRadio_PayloadVariant.myInfo:
         return MyInfoEvent(MyInfoDto(
           myNodeNum: fr.myInfo.hasMyNodeNum() ? fr.myInfo.myNodeNum : null,
-          rawBytes: Uint8List.fromList(fr.myInfo.writeToBuffer()),
-          rawProto: fr.myInfo.toProto3Json() as Map<String, dynamic>,
         ));
       case mesh.FromRadio_PayloadVariant.nodeInfo:
         return NodeInfoEvent(NodeInfoDto(
@@ -33,8 +31,6 @@ class MeshtasticMappers {
                       fr.nodeInfo.user.hasShortName() ? fr.nodeInfo.user.shortName : null,
                 )
               : null,
-          rawBytes: Uint8List.fromList(fr.nodeInfo.writeToBuffer()),
-          rawProto: fr.nodeInfo.toProto3Json() as Map<String, dynamic>,
         ));
       case mesh.FromRadio_PayloadVariant.config:
         return ConfigEvent(ConfigDto(
@@ -46,8 +42,6 @@ class MeshtasticMappers {
           level: fr.logRecord.hasLevel() ? fr.logRecord.level.name : null,
           message: fr.logRecord.hasMessage() ? fr.logRecord.message : null,
           source: fr.logRecord.hasSource() ? fr.logRecord.source : null,
-          rawBytes: Uint8List.fromList(fr.logRecord.writeToBuffer()),
-          rawProto: fr.logRecord.toProto3Json() as Map<String, dynamic>,
         ));
       case mesh.FromRadio_PayloadVariant.configCompleteId:
         return ConfigCompleteEvent(fr.configCompleteId);
@@ -59,10 +53,7 @@ class MeshtasticMappers {
           rawProto: fr.moduleConfig.toProto3Json() as Map<String, dynamic>,
         ));
       case mesh.FromRadio_PayloadVariant.channel:
-        return ChannelEvent(ChannelDto(
-            index: fr.channel.hasIndex() ? fr.channel.index : null,
-            rawBytes: Uint8List.fromList(fr.channel.writeToBuffer()),
-            rawProto: fr.channel.toProto3Json() as Map<String, dynamic>));
+        return ChannelEvent(ChannelDto(index: fr.channel.hasIndex() ? fr.channel.index : null));
       case mesh.FromRadio_PayloadVariant.queueStatus:
         return QueueStatusEvent(QueueStatusDto(
           // Proto has `free` (entries free); we surface as `size` for UI brevity
@@ -70,8 +61,6 @@ class MeshtasticMappers {
           maxlen: fr.queueStatus.hasMaxlen() ? fr.queueStatus.maxlen : null,
           meshPacketId:
               fr.queueStatus.hasMeshPacketId() ? fr.queueStatus.meshPacketId : null,
-          rawBytes: Uint8List.fromList(fr.queueStatus.writeToBuffer()),
-          rawProto: fr.queueStatus.toProto3Json() as Map<String, dynamic>,
         ));
       case mesh.FromRadio_PayloadVariant.metadata:
         // Preserve full bytes; specific fields can be added later.
@@ -81,8 +70,7 @@ class MeshtasticMappers {
         ));
       case mesh.FromRadio_PayloadVariant.mqttClientProxyMessage:
         return MqttClientProxyEvent(MqttClientProxyMessageDto(
-          rawBytes:
-              Uint8List.fromList(fr.mqttClientProxyMessage.writeToBuffer()),
+          rawBytes: Uint8List.fromList(fr.mqttClientProxyMessage.writeToBuffer()),
           rawProto:
               fr.mqttClientProxyMessage.toProto3Json() as Map<String, dynamic>,
         ));
@@ -90,17 +78,12 @@ class MeshtasticMappers {
         return FileInfoEvent(FileInfoDto(
           fileName: fr.fileInfo.hasFileName() ? fr.fileInfo.fileName : null,
           sizeBytes: fr.fileInfo.hasSizeBytes() ? fr.fileInfo.sizeBytes : null,
-          rawBytes: Uint8List.fromList(fr.fileInfo.writeToBuffer()),
-          rawProto: fr.fileInfo.toProto3Json() as Map<String, dynamic>,
         ));
       case mesh.FromRadio_PayloadVariant.clientNotification:
         return ClientNotificationEvent(ClientNotificationDto(
             message: fr.clientNotification.hasMessage()
                 ? fr.clientNotification.message
-                : null,
-            rawBytes: Uint8List.fromList(fr.clientNotification.writeToBuffer()),
-            rawProto:
-                fr.clientNotification.toProto3Json() as Map<String, dynamic>));
+                : null));
       case mesh.FromRadio_PayloadVariant.deviceuiConfig:
         return DeviceUiConfigEvent(DeviceUiConfigDto(
           rawBytes: Uint8List.fromList(fr.deviceuiConfig.writeToBuffer()),
@@ -140,8 +123,8 @@ class MeshtasticMappers {
       transportMechanism:
           packet.hasTransportMechanism() ? packet.transportMechanism.name : null,
       decoded: decoded,
-      rawBytes: Uint8List.fromList(packet.writeToBuffer()),
       rawProto: packet.toProto3Json() as Map<String, dynamic>,
+      rawBytes: Uint8List.fromList(packet.writeToBuffer()),
     );
   }
 
