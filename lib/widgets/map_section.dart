@@ -46,26 +46,38 @@ class MapSection extends StatelessWidget {
             MarkerLayer(markers: [
               Marker(
                 point: point,
-                width: 40,
-                height: 40,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.location_pin, color: theme.colorScheme.primary, size: 36),
-                    if (label != null)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.surface.withOpacity(0.9),
-                          borderRadius: BorderRadius.circular(4),
+                // Give the marker a slightly bigger box and ensure
+                // the child always fits without causing RenderFlex overflow.
+                width: 48,
+                height: 48,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.bottomCenter,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.location_pin, color: theme.colorScheme.primary, size: 36),
+                      if (label != null)
+                        Container(
+                          margin: const EdgeInsets.only(top: 2),
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surface.withOpacity(0.9),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 120),
+                            child: Text(
+                              label!,
+                              style: theme.textTheme.labelSmall,
+                              maxLines: 1,
+                              softWrap: false,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                         ),
-                        child: Text(
-                          label!,
-                          style: theme.textTheme.labelSmall,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ]),
