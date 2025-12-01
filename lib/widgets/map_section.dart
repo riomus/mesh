@@ -40,7 +40,9 @@ class _MapSectionState extends State<MapSection> {
 
   void _zoomBy(double delta) {
     final camera = _controller.camera;
-    final newZoom = (camera.zoom + delta).clamp(widget.minZoom, widget.maxZoom) as double;
+    final newZoom = (camera.zoom + delta)
+        .clamp(widget.minZoom, widget.maxZoom)
+        .toDouble();
     _controller.move(camera.center, newZoom);
   }
 
@@ -88,7 +90,7 @@ class _MapSectionState extends State<MapSection> {
                           margin: const EdgeInsets.only(top: 2),
                           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.surface.withOpacity(0.9),
+                            color: theme.colorScheme.surface.withValues(alpha: 0.9),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: ConstrainedBox(
@@ -118,7 +120,7 @@ class _MapSectionState extends State<MapSection> {
               child: Container(
                 margin: const EdgeInsets.all(6),
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withValues(alpha: 0.8),
                 child: const Text('© OpenStreetMap contributors', style: TextStyle(fontSize: 10)),
               ),
             ),
@@ -164,7 +166,7 @@ class _ZoomButton extends StatelessWidget {
     final theme = Theme.of(context);
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withOpacity(0.95),
+        color: theme.colorScheme.surface.withValues(alpha: 0.95),
         borderRadius: BorderRadius.circular(8),
         boxShadow: const [
           BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),

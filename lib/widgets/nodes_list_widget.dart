@@ -36,9 +36,7 @@ class _NodesListWidgetState extends State<NodesListWidget> {
   final Map<String, Set<String>> _seenValuesByKey = <String, Set<String>>{};
   final List<_NodeChipFilter> _chips = <_NodeChipFilter>[];
 
-  // Local chip types
-  static const _presenceHint = 'Value (empty = presence)';
-  static const _regexHint = 'Regex (case-insensitive)';
+  // Local chip types (hints removed as unused)
 
   @override
   void initState() {
@@ -138,7 +136,7 @@ class _NodesListWidgetState extends State<NodesListWidget> {
         Expanded(
           child: ListView.separated(
             itemCount: filtered.length,
-            separatorBuilder: (_, __) => const Divider(height: 1),
+            separatorBuilder: (_, index2) => const Divider(height: 1),
             itemBuilder: (context, index) {
               final n = filtered[index];
               return ListTile(
@@ -334,7 +332,7 @@ class _NodesListWidgetState extends State<NodesListWidget> {
                     children: [
                       DropdownButtonFormField<String>(
                         decoration: const InputDecoration(labelText: 'Key'),
-                        value: draftKey,
+                        initialValue: draftKey,
                         items: keyItems,
                         onChanged: (v) => setDlg(() {
                           draftKey = v;

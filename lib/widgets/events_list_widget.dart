@@ -432,7 +432,7 @@ class _EventsListWidgetState extends State<EventsListWidget> {
                     children: [
                       DropdownButtonFormField<String>(
                         decoration: const InputDecoration(labelText: 'Key'),
-                        value: draftKey,
+                        initialValue: draftKey,
                         items: (() {
                           final list = _seenKeys.toList()..sort();
                           return list.map((k) => DropdownMenuItem<String>(value: k, child: Text(k))).toList();

@@ -13,7 +13,6 @@ class EventDetailsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final payload = event.payload;
-    final isMeshtastic = payload is MeshtasticDeviceEventPayload;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Event details')),
@@ -23,13 +22,13 @@ class EventDetailsPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header / Hero tile if Meshtastic
-            if (isMeshtastic)
+            if (payload case MeshtasticDeviceEventPayload m)
               Card(
                 margin: const EdgeInsets.only(bottom: 12),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   child: MeshtasticEventTile(
-                    event: (payload as MeshtasticDeviceEventPayload).event,
+                    event: m.event,
                   ),
                 ),
               ),
@@ -59,9 +58,9 @@ class EventDetailsPage extends StatelessWidget {
                       .toList(),
                 ),
               ),
-            if (isMeshtastic)
+            if (payload case MeshtasticDeviceEventPayload m)
               _MeshtasticEventDetails(
-                event: (payload as MeshtasticDeviceEventPayload).event,
+                event: m.event,
               )
             else if (payload != null)
               _Section(
@@ -334,7 +333,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
             'shortName': u.user.shortName,
           }),
         ),
-      RoutingPayloadDto r => _Section(
+      RoutingPayloadDto _ => _Section(
           emoji: '🧭',
           title: 'Routing',
           child: const Text('Routing payload'),
