@@ -7,6 +7,8 @@ import 'logging_service.dart';
 
 // Protobufs
 import '../generated/meshtastic/meshtastic/mesh.pb.dart' as mesh;
+import '../meshtastic/model/meshtastic_event.dart';
+import '../meshtastic/model/meshtastic_mappers.dart';
 
 /// Meshtastic BLE client that implements the documented flow:
 /// - Connect to device and set MTU 512
@@ -42,7 +44,7 @@ class MeshtasticBleClient {
 
   StreamSubscription<List<int>>? _fromNumSub;
 
-  final _fromRadioController = StreamController<mesh.FromRadio>.broadcast();
+  final _eventsController = StreamController<MeshtasticEvent>.broadcast();
 
   // Cache last negotiated MTU; default to a conservative 185, will request 512
   int _mtu = 185;
@@ -52,7 +54,8 @@ class MeshtasticBleClient {
 
   MeshtasticBleClient(this.device);
 
-  Stream<mesh.FromRadio> get fromRadioStream => _fromRadioController.stream;
+  /// High-level events parsed from FromRadio payloads.
+  Stream<MeshtasticEvent> get events => _eventsController.stream;
 
   Future<void> connect({Duration timeout = const Duration(seconds: 20)}) async {
     _ensureNotDisposed();
@@ -148,7 +151,13 @@ class MeshtasticBleClient {
       }
       try {
         final msg = mesh.FromRadio.fromBuffer(value);
-        _fromRadioController.add(msg);
+        // Emit structured event only (no legacy FromRadio stream)
+        try {
+          final event = MeshtasticMappers.fromFromRadio(msg);
+          _eventsController.add(event);
+        } catch (mapErr) {
+          _log('Failed to map FromRadio to event: $mapErr', level: 'warn');
+        }
       } catch (e, st) {
         _log('Failed to parse FromRadio: $e', level: 'error');
         if (kDebugMode) {
@@ -188,7 +197,7 @@ class MeshtasticBleClient {
     try {
       await _fromNumSub?.cancel();
     } catch (_) {}
-    await _fromRadioController.close();
+    await _eventsController.close();
     try {
       await device.disconnect();
     } catch (_) {}

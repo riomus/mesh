@@ -4,7 +4,7 @@ import 'pages/settings_page.dart';
 import 'services/settings_service.dart';
 import 'pages/logs_page.dart';
 
-import '../l10n/app_localizations.dart';
+import 'l10n/app_localizations.dart';
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -57,7 +57,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     final baseSeed = Colors.indigo;
     return MaterialApp(
-      onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
+      onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       themeMode: _themeMode,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: baseSeed, brightness: Brightness.light),
