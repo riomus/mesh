@@ -264,6 +264,8 @@ class ModuleConfigDto {
   final RemoteHardwareConfigDto? remoteHardware;
   final PaxcounterConfigDto? paxcounter;
   final CannedMessageConfigDto? cannedMessage;
+  final AmbientLightingConfigDto? ambientLighting;
+  final DetectionSensorConfigDto? detectionSensor;
   const ModuleConfigDto({
     this.mqtt,
     this.telemetry,
@@ -276,6 +278,8 @@ class ModuleConfigDto {
     this.remoteHardware,
     this.paxcounter,
     this.cannedMessage,
+    this.ambientLighting,
+    this.detectionSensor,
   });
 }
 
@@ -537,6 +541,44 @@ class CannedMessageConfigDto {
     this.enabled,
     this.allowInputSource,
     this.sendBell,
+  });
+}
+
+class AmbientLightingConfigDto {
+  final bool? ledState;
+  final int? current;
+  final int? red;
+  final int? green;
+  final int? blue;
+
+  const AmbientLightingConfigDto({
+    this.ledState,
+    this.current,
+    this.red,
+    this.green,
+    this.blue,
+  });
+}
+
+class DetectionSensorConfigDto {
+  final bool? enabled;
+  final int? minimumBroadcastSecs;
+  final int? stateBroadcastSecs;
+  final bool? sendBell;
+  final String? name;
+  final int? monitorPin;
+  final String? detectionTriggerType; // enum name
+  final bool? usePullup;
+
+  const DetectionSensorConfigDto({
+    this.enabled,
+    this.minimumBroadcastSecs,
+    this.stateBroadcastSecs,
+    this.sendBell,
+    this.name,
+    this.monitorPin,
+    this.detectionTriggerType,
+    this.usePullup,
   });
 }
 

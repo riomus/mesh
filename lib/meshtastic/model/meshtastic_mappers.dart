@@ -260,6 +260,34 @@ class MeshtasticMappers {
         i2sSck: a.hasI2sSck() ? a.i2sSck : null,
       );
     }
+    AmbientLightingConfigDto? ambientLighting;
+    if (mc.hasAmbientLighting()) {
+      final al = mc.ambientLighting;
+      ambientLighting = AmbientLightingConfigDto(
+        ledState: al.hasLedState() ? al.ledState : null,
+        current: al.hasCurrent() ? al.current : null,
+        red: al.hasRed() ? al.red : null,
+        green: al.hasGreen() ? al.green : null,
+        blue: al.hasBlue() ? al.blue : null,
+      );
+    }
+    DetectionSensorConfigDto? detectionSensor;
+    if (mc.hasDetectionSensor()) {
+      final ds = mc.detectionSensor;
+      detectionSensor = DetectionSensorConfigDto(
+        enabled: ds.hasEnabled() ? ds.enabled : null,
+        minimumBroadcastSecs:
+            ds.hasMinimumBroadcastSecs() ? ds.minimumBroadcastSecs : null,
+        stateBroadcastSecs:
+            ds.hasStateBroadcastSecs() ? ds.stateBroadcastSecs : null,
+        sendBell: ds.hasSendBell() ? ds.sendBell : null,
+        name: ds.hasName() ? ds.name : null,
+        monitorPin: ds.hasMonitorPin() ? ds.monitorPin : null,
+        detectionTriggerType:
+            ds.hasDetectionTriggerType() ? ds.detectionTriggerType.name : null,
+        usePullup: ds.hasUsePullup() ? ds.usePullup : null,
+      );
+    }
     NeighborInfoConfigDto? neighborInfo;
     if (mc.hasNeighborInfo()) {
       final ni = mc.neighborInfo;
@@ -339,6 +367,8 @@ class MeshtasticMappers {
       remoteHardware: remoteHardware,
       paxcounter: paxcounter,
       cannedMessage: cannedMessage,
+      ambientLighting: ambientLighting,
+      detectionSensor: detectionSensor,
     );
   }
 
