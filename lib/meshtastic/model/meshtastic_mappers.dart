@@ -74,7 +74,7 @@ class MeshtasticMappers {
       case mesh.FromRadio_PayloadVariant.queueStatus:
         return QueueStatusEvent(QueueStatusDto(
           // Proto has `free` (entries free); we surface as `size` for UI brevity
-          size: fr.queueStatus.hasFree() ? fr.queueStatus.free : null,
+          free: fr.queueStatus.hasFree() ? fr.queueStatus.free : null,
           maxlen: fr.queueStatus.hasMaxlen() ? fr.queueStatus.maxlen : null,
           meshPacketId:
               fr.queueStatus.hasMeshPacketId() ? fr.queueStatus.meshPacketId : null,

@@ -13,6 +13,7 @@ import '../meshtastic/model/meshtastic_event.dart';
 // Removed unused import: meshtastic_models.dart
 import '../widgets/events_list_widget.dart';
 import '../utils/text_sanitize.dart';
+import '../services/device_status_store.dart';
 
 class DeviceDetailsPage extends StatefulWidget {
   final ScanResult result;
@@ -26,16 +27,15 @@ class DeviceDetailsPage extends StatefulWidget {
 }
 
 class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
-  MeshtasticBleClient? _client;
+  // Connection status reflected from DeviceStatusStore to preserve across rebuilds
   bool _connecting = false;
   bool _connected = false;
   // Logs are now shown via reusable LogsViewer widget; no manual buffering here.
   StreamSubscription<LogEvent>? _logSub; // kept for backwards-compat, but unused
   // Stable device-scoped log stream (with replay) to avoid re-subscribe on rebuilds
   Stream<LogEvent>? _deviceLogStream;
-  // Capture high-level Meshtastic events for UI
-  final List<MeshtasticEvent> _events = [];
-  StreamSubscription<MeshtasticEvent>? _eventsSub;
+  // Device status subscription (global store)
+  StreamSubscription<DeviceStatus>? _statusSub;
 
   String _bestName(ScanResult r) {
     if (r.advertisementData.advName.isNotEmpty) return r.advertisementData.advName;
@@ -47,6 +47,7 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
   void initState() {
     super.initState();
     _initDeviceLogStream();
+    _subscribeStatus();
   }
 
   void _initDeviceLogStream() {
@@ -67,6 +68,8 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
     final newId = widget.result.device.remoteId.str;
     if (oldId != newId) {
       _initDeviceLogStream();
+      _statusSub?.cancel();
+      _subscribeStatus();
       setState(() {});
     }
   }
@@ -74,8 +77,7 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
   @override
   void dispose() {
     _logSub?.cancel();
-    _eventsSub?.cancel();
-    _client?.dispose();
+    _statusSub?.cancel();
     super.dispose();
   }
 
@@ -319,75 +321,46 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
   }
 
   Future<void> _connectMeshtastic() async {
-    setState(() {
-      _connecting = true;
-      _events.clear();
-    });
+    setState(() => _connecting = true);
     try {
-      final client = MeshtasticBleClient(widget.result.device);
-      // Logs are displayed via LogsViewer widget; no explicit subscription here.
-      // subscribe to incoming packets
-      _eventsSub?.cancel();
-      _eventsSub = client.events.listen((e) {
-        if (!mounted) return;
-        setState(() {
-          _events.add(e);
-          if (_events.length > 200) {
-            _events.removeRange(0, _events.length - 200);
-          }
-        });
-      });
-      await client.connect();
-      if (mounted) {
-        setState(() {
-          _client = client;
-          _connected = true;
-        });
-      }
+      await DeviceStatusStore.instance.connect(widget.result.device);
+      // status stream will flip _connected/_connecting accordingly
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Meshtastic connect failed: $e')),
         );
       }
-      await _client?.dispose();
-      await _logSub?.cancel();
-      await _eventsSub?.cancel();
-      if (mounted) {
-        setState(() {
-          _client = null;
-          _connected = false;
-        });
-      }
     } finally {
-      if (mounted) {
-        setState(() {
-          _connecting = false;
-        });
-      }
+      if (mounted) setState(() => _connecting = false);
     }
   }
 
   Future<void> _disconnectMeshtastic() async {
-    setState(() {
-      _connecting = true;
-    });
+    setState(() => _connecting = true);
     try {
       await _logSub?.cancel();
       _logSub = null;
-      await _eventsSub?.cancel();
-      _eventsSub = null;
-      await _client?.dispose();
+      await DeviceStatusStore.instance.disconnect(widget.result.device.remoteId.str);
     } catch (_) {} finally {
-      if (mounted) {
-        setState(() {
-          _client = null;
-          _connected = false;
-          _connecting = false;
-          _events.clear();
-        });
-      }
+      if (mounted) setState(() => _connecting = false);
     }
+  }
+
+  void _subscribeStatus() {
+    final id = widget.result.device.remoteId.str;
+    _statusSub = DeviceStatusStore.instance.statusStream(id).listen((s) {
+      if (!mounted) return;
+      setState(() {
+        _connecting = s.state == DeviceConnectionState.connecting;
+        _connected = s.state == DeviceConnectionState.connected;
+      });
+      if (s.state == DeviceConnectionState.error && s.error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Device error: ${s.error}')),
+        );
+      }
+    });
   }
 
 }

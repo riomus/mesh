@@ -188,7 +188,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
           emoji: '📬',
           title: 'Queue status',
           child: _kvTable({
-            'size': e.status.size,
+            'size': e.status.free,
             'maxlen': e.status.maxlen,
             'meshPacketId': e.status.meshPacketId,
           }),

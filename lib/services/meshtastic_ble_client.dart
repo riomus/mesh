@@ -44,6 +44,7 @@ class MeshtasticBleClient {
   BluetoothCharacteristic? _fromNum;
 
   StreamSubscription<List<int>>? _fromNumSub;
+  StreamSubscription<BluetoothConnectionState>? _connStateSub;
 
   final _eventsController = StreamController<MeshtasticEvent>.broadcast();
 
@@ -52,6 +53,10 @@ class MeshtasticBleClient {
 
   // removed unused _isInitialized flag
   bool _isDisposed = false;
+
+  // Heartbeat timer to periodically ping the radio while connected
+  Timer? _heartbeatTimer;
+  static const Duration _heartbeatInterval = Duration(minutes: 1);
 
   MeshtasticBleClient(this.device);
 
@@ -86,6 +91,22 @@ class MeshtasticBleClient {
 
     await _discoverAndBindCharacteristics();
     await _startInitialDownload();
+
+    // Start listening for connection state changes for logging/cleanup
+    _connStateSub?.cancel();
+    _connStateSub = device.connectionState.listen((state) async {
+      _log('Connection state changed: $state');
+      if (state == BluetoothConnectionState.disconnected) {
+        // Radio link dropped -> stop heartbeat and readers
+        _stopHeartbeat();
+        try {
+          await _fromNumSub?.cancel();
+        } catch (_) {}
+      }
+    });
+
+    // Kick off periodic heartbeat messages
+    _startHeartbeat();
   }
 
   Future<void> _discoverAndBindCharacteristics() async {
@@ -138,6 +159,29 @@ class MeshtasticBleClient {
 
     // Drain FromRadio until empty for initial state
     await _drainFromRadioUntilEmpty();
+  }
+
+  void _startHeartbeat() {
+    // Avoid duplicates
+    _heartbeatTimer?.cancel();
+    var nonce = 0;
+    _heartbeatTimer = Timer.periodic(_heartbeatInterval, (_) async {
+      try {
+        final hb = mesh.ToRadio(heartbeat: mesh.Heartbeat(nonce: nonce));
+        await sendToRadio(hb);
+        nonce = nonce+1;
+        _log('Heartbeat sent');
+      } catch (e) {
+        _log('Failed to send heartbeat: $e', level: 'warn');
+      }
+    });
+    _log('Heartbeat scheduler started: every ${_heartbeatInterval.inSeconds}s');
+  }
+
+  void _stopHeartbeat() {
+    _heartbeatTimer?.cancel();
+    _heartbeatTimer = null;
+    _log('Heartbeat scheduler stopped');
   }
 
   Future<void> _drainFromRadioUntilEmpty() async {
@@ -200,6 +244,29 @@ class MeshtasticBleClient {
     await sendToRadio(mesh.ToRadio(packet: packet));
   }
 
+  /// Send a polite disconnect command to the radio before tearing down BLE.
+  ///
+  /// This writes `ToRadio(disconnect: true)` to the ToRadio characteristic.
+  /// If the characteristic is not available or the write fails, the error is
+  /// logged and the method returns without throwing so higher-level teardown
+  /// can proceed.
+  Future<void> sendDisconnectCommand() async {
+    try {
+      // If client has not discovered/bound ToRadio yet, skip gracefully
+      if (_toRadio == null) {
+        _log('ToRadio characteristic not available, skipping ToRadio.disconnect',
+            level: 'warn');
+        return;
+      }
+      _log('Sending ToRadio.disconnect=true');
+      final msg = mesh.ToRadio(disconnect: true);
+      await sendToRadio(msg);
+      _log('ToRadio.disconnect sent');
+    } catch (e) {
+      _log('Failed to send ToRadio.disconnect: $e', level: 'warn');
+    }
+  }
+
   /// Dispose resources and disconnect.
   Future<void> dispose() async {
     if (_isDisposed) return;
@@ -208,6 +275,10 @@ class MeshtasticBleClient {
     try {
       await _fromNumSub?.cancel();
     } catch (_) {}
+    try {
+      await _connStateSub?.cancel();
+    } catch (_) {}
+    _stopHeartbeat();
     await _eventsController.close();
     try {
       await device.disconnect();

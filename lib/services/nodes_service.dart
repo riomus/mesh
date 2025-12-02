@@ -81,6 +81,19 @@ class NodesService {
         final info = evt.nodeInfo;
         final num = info.num;
         if (num != null) {
+          // Helper: normalize lastHeard to AGE seconds. Some firmwares/devices
+          // report NodeInfo.lastHeard as epoch seconds, others as age seconds.
+          // We detect epoch-like values and convert to age for consistent UI.
+          int? _normalizeLastHeard(int? v) {
+            if (v == null) return null;
+            final nowSec = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+            // Heuristic threshold: values greater than ~6 years in seconds
+            // are considered epoch seconds (since typical ages are much smaller).
+            const threshold = 6 * 365 * 24 * 60 * 60; // ~189216000
+            int age = v > threshold ? (nowSec - v) : v;
+            if (age < 0) age = 0;
+            return age;
+          }
           // Represent node id as lowercase hex without 0x prefix for consistency
           final nodeHexId = num.toRadixString(16).toLowerCase();
           final tags = <String, List<String>>{
@@ -120,7 +133,7 @@ class NodesService {
             user: info.user,
             position: info.position,
             snr: info.snr,
-            lastHeard: info.lastHeard,
+            lastHeard: _normalizeLastHeard(info.lastHeard),
             deviceMetrics: info.deviceMetrics,
             hopsAway: info.hopsAway,
             isFavorite: info.isFavorite,
@@ -129,6 +142,49 @@ class NodesService {
             tags: tags,
           );
           _emit();
+        }
+      }
+      // Many devices emit position updates as MeshPacket payloads separate from NodeInfo.
+      // When we receive such a packet, upsert the node's latest known position so the
+      // map can render markers even if a full NodeInfo with position hasn't arrived.
+      else if (evt is MeshPacketEvent) {
+        final decoded = evt.decoded;
+        if (decoded is PositionPayloadDto) {
+          final from = evt.packet.from; // node id of the position sender
+          if (from != null) {
+            final existing = _nodes[from];
+            final pos = decoded.position;
+            // Normalize lastHeard to AGE (seconds since last heard). For mesh packets, we
+            // only have rxTime (epoch seconds), so convert to age to be consistent with
+            // NodeInfo.lastHeard which is already an age value in seconds.
+            int? _ageFromEpochSeconds(int? epochSec) {
+              if (epochSec == null) return null;
+              final nowSec = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+              final age = nowSec - epochSec;
+              return age < 0 ? 0 : age;
+            }
+            // Build or merge node entry
+            final hexId = from.toRadixString(16).toLowerCase();
+            final merged = MeshNodeView(
+              num: from,
+              user: existing?.user,
+              position: pos,
+              snr: evt.packet.rxSnr ?? existing?.snr,
+              lastHeard: _ageFromEpochSeconds(evt.packet.rxTime) ?? existing?.lastHeard,
+              deviceMetrics: existing?.deviceMetrics,
+              hopsAway: existing?.hopsAway,
+              isFavorite: existing?.isFavorite,
+              isIgnored: existing?.isIgnored,
+              viaMqtt: evt.packet.viaMqtt ?? existing?.viaMqtt,
+              tags: existing?.tags ?? <String, List<String>>{
+                'network': const ['meshtastic'],
+                'deviceId': [hexId],
+                'name': ['0x$hexId'],
+              },
+            );
+            _nodes[from] = merged;
+            _emit();
+          }
         }
       }
     }

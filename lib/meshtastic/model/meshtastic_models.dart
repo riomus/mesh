@@ -802,10 +802,10 @@ class ChannelDto {
 }
 
 class QueueStatusDto {
-  final int? size;
+  final int? free;
   final int? maxlen;
   final int? meshPacketId;
-  const QueueStatusDto({this.size, this.maxlen, this.meshPacketId});
+  const QueueStatusDto({this.free, this.maxlen, this.meshPacketId});
 }
 
 class DeviceMetadataDto {

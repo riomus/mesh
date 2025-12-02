@@ -56,7 +56,8 @@ class EventsListWidget extends StatefulWidget {
 
 class _EventsListWidgetState extends State<EventsListWidget> {
   final _svc = DeviceCommunicationEventService.instance;
-  late StreamSubscription<DeviceEvent> _sub;
+  // Make subscription nullable to allow safe cancel before first assignment
+  StreamSubscription<DeviceEvent>? _sub;
   final List<DeviceEvent> _events = <DeviceEvent>[];
 
   // dynamic filters
@@ -95,15 +96,70 @@ class _EventsListWidgetState extends State<EventsListWidget> {
     if (widget.initialSearch != null) {
       _search = widget.initialSearch!;
     }
-    _sub = _svc.listenAll().listen(_onEvent);
+    _subscribe();
   }
 
   @override
   void dispose() {
-    _sub.cancel();
+    _sub?.cancel();
+    // Controllers are non-null; dispose directly
     _searchCtrl.dispose();
     _searchFocus.dispose();
     super.dispose();
+  }
+
+  void _subscribe() {
+    // Cancel any previous subscription
+    _sub?.cancel();
+    // Prefer replay so when the widget remounts (e.g., after navigating back),
+    // the recent history is visible immediately.
+    final hasInitialSeed = widget.initialEvents != null && widget.initialEvents!.isNotEmpty;
+    if (hasInitialSeed) {
+      // If the parent already provided an initial set to mirror, avoid double
+      // adding by listening live only.
+      _sub = _svc.listenAll().listen(_onEvent);
+      return;
+    }
+    // Build pre-filters for replay based on provided network/deviceId
+    final allEquals = <String, String>{};
+    if (widget.network != null && widget.network!.isNotEmpty) {
+      allEquals['network'] = widget.network!;
+    }
+    if (widget.deviceId != null && widget.deviceId!.isNotEmpty) {
+      allEquals['deviceId'] = widget.deviceId!;
+    }
+    final useFilters = allEquals.isNotEmpty;
+    _sub = _svc
+        .listenWithReplay(
+          allEquals: useFilters ? allEquals : null,
+        )
+        .listen(_onEvent);
+  }
+
+  @override
+  void didUpdateWidget(covariant EventsListWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final changed = oldWidget.deviceId != widget.deviceId ||
+        oldWidget.network != widget.network ||
+        oldWidget.initialEvents != widget.initialEvents ||
+        oldWidget.initialSearch != widget.initialSearch;
+    if (changed) {
+      // Reset state so the view reflects the new scope cleanly
+      setState(() {
+        _events.clear();
+        _seenKeys.clear();
+        _seenValuesByKey.clear();
+        _chips.clear();
+        _selectedNetwork = widget.network;
+        _selectedDeviceId = widget.deviceId;
+        if (widget.initialSearch != null) {
+          _search = widget.initialSearch!;
+        } else {
+          _search = '';
+        }
+      });
+      _subscribe();
+    }
   }
 
   void _onEvent(DeviceEvent e) {

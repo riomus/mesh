@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:latlong2/latlong.dart' as latlng;
 
 import '../services/nodes_service.dart';
@@ -134,8 +135,15 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
           if (hex != null) parts.add(Text('ID: 0x$hex'));
           if (n.user?.role != null) parts.add(Text(safeText('Role: ${n.user!.role!}')));
           if (n.hopsAway != null) parts.add(Text('Hops: ${n.hopsAway}'));
-          if (n.deviceMetrics?.batteryLevel != null) parts.add(Text('Battery: ${n.deviceMetrics!.batteryLevel}%'));
-          if (n.lastHeard != null) parts.add(Text('Last seen: ${_formatAgo(n.lastHeard!)}'));
+          if (n.deviceMetrics?.batteryLevel != null) {
+            final lvl = n.deviceMetrics!.batteryLevel!;
+            if (lvl == 101) {
+              parts.add(const Text('Battery: 🔌 charging'));
+            } else {
+              parts.add(Text('Battery: ${lvl}%'));
+            }
+          }
+          if (n.lastHeard != null) parts.add(Text('Last seen: ${_formatLastHeard(n.lastHeard!)}'));
           parts.add(Text('Coords: ${lat.toStringAsFixed(6)}, ${lon.toStringAsFixed(6)}'));
 
           return Padding(
@@ -244,12 +252,36 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'ai.bartusiak.mesh.app',
               ),
-              MarkerLayer(markers: markers),
+              // Cluster markers that are close to each other for better readability
+              MarkerClusterLayerWidget(
+                options: MarkerClusterLayerOptions(
+                  maxClusterRadius: 45,
+                  size: const Size(40, 40),
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.all(50),
+                  maxZoom: 15,
+                  markers: markers,
+                  builder: (context, clustered) {
+                    return Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: Colors.blue,
+                      ),
+                      child: Center(
+                        child: Text(
+                          clustered.length.toString(),
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
             ],
           ),
         ),
       ],
-    );
+      );
   }
 
   @override
@@ -299,13 +331,24 @@ class _EmptyMapState extends StatelessWidget {
   }
 }
 
-// Human friendly formatting for "ago" like in list widget
-String _formatAgo(int seconds) {
-  if (seconds < 60) return '${seconds}s ago';
-  final minutes = seconds ~/ 60;
-  if (minutes < 60) return '${minutes}m ago';
-  final hours = minutes ~/ 60;
-  if (hours < 24) return '${hours}h ago';
-  final days = hours ~/ 24;
-  return '${days}d ago';
+// Human friendly formatting for lastHeard (age in seconds from device):
+// - if < 2 days: show relative (h/m/s) "ago"
+// - else: show full local date/time (YYYY-MM-DD HH:mm:ss) and in parentheses how long ago
+String _formatLastHeard(int secondsAgo) {
+  const twoDays = 2 * 24 * 60 * 60; // 172800
+  if (secondsAgo < twoDays) {
+    if (secondsAgo < 60) return '${secondsAgo}s ago';
+    final minutes = secondsAgo ~/ 60;
+    if (minutes < 60) return '${minutes}m ago';
+    final hours = minutes ~/ 60;
+    if (hours < 24) return '${hours}h ago';
+    final days = hours ~/ 24;
+    return '${days}d ago';
+  }
+  final dt = DateTime.now().subtract(Duration(seconds: secondsAgo));
+  String two(int n) => n.toString().padLeft(2, '0');
+  // For >= 2 days also show a compact relative in parentheses, e.g. "(3d ago)"
+  final relDays = secondsAgo ~/ (24 * 60 * 60);
+  final dateStr = '${dt.year}-${two(dt.month)}-${two(dt.day)} ${two(dt.hour)}:${two(dt.minute)}:${two(dt.second)}';
+  return '$dateStr (${relDays}d ago)';
 }

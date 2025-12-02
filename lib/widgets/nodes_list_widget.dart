@@ -172,13 +172,20 @@ class _NodesListWidgetState extends State<NodesListWidget>
     if (n.num != null) parts.add('0x${n.num!.toRadixString(16)}');
     if (n.hopsAway != null) parts.add('${n.hopsAway} hops');
     if (n.position?.latitudeI != null && n.position?.longitudeI != null) parts.add('📍');
-    if (n.deviceMetrics?.batteryLevel != null) parts.add('🔋${n.deviceMetrics!.batteryLevel}%');
-    if (n.lastHeard != null) parts.add('⏱️ ${_formatAgo(n.lastHeard!)}');
-    final srcHex = _firstOrNull(n.tags['sourceDeviceId']);
+    if (n.deviceMetrics?.batteryLevel != null) {
+      final lvl = n.deviceMetrics!.batteryLevel!;
+      if (lvl == 101) {
+        // 101 indicates charging state for Meshtastic devices
+        parts.add('🔌 charging');
+      } else {
+        parts.add('🔋${lvl}%');
+      }
+    }
+    if (n.lastHeard != null) parts.add('⏱️ ${_formatLastHeard(n.lastHeard!)}');
+    // Show human-friendly source name on the "via" label instead of the id
     final srcName = _firstOrNull(n.tags['sourceNodeName']);
-    if (srcHex != null || srcName != null) {
-      final label = [if (srcName != null) srcName, if (srcHex != null) '0x$srcHex'].join(' ');
-      parts.add('via $label');
+    if (srcName != null && srcName.isNotEmpty) {
+      parts.add('via $srcName');
     }
     return Text(safeText(parts.join(' • ')));
   }
@@ -449,8 +456,12 @@ class _NodesListWidgetState extends State<NodesListWidget>
           r = _nullSafeCompare(a.snr, b.snr);
           break;
         case _SortField.lastSeen:
-          // Higher lastHeard means more recent; default desc -> nearest begin
-          r = _nullSafeCompare(a.lastHeard, b.lastHeard);
+          // We store lastHeard as AGE seconds. Convert to a comparable
+          // lastSeenEpochSeconds = now - age; larger epoch => more recent.
+          final nowSec = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+          final aEpoch = a.lastHeard != null ? nowSec - a.lastHeard! : null;
+          final bEpoch = b.lastHeard != null ? nowSec - b.lastHeard! : null;
+          r = _nullSafeCompare(aEpoch, bEpoch);
           break;
         case _SortField.role:
           r = _stringCompare(a.user?.role, b.user?.role);
@@ -494,14 +505,25 @@ class _NodesListWidgetState extends State<NodesListWidget>
     return R * c;
   }
 
-  String _formatAgo(int seconds) {
-    if (seconds < 60) return '${seconds}s ago';
-    final minutes = seconds ~/ 60;
-    if (minutes < 60) return '${minutes}m ago';
-    final hours = minutes ~/ 60;
-    if (hours < 24) return '${hours}h ago';
-    final days = hours ~/ 24;
-    return '${days}d ago';
+  // Format lastHeard (age seconds) per rule:
+  // - if < 2 days: show relative (h/m/s) "ago"
+  // - else: show full local date/time (YYYY-MM-DD HH:mm:ss) and in parentheses how long ago
+  String _formatLastHeard(int secondsAgo) {
+    const twoDays = 2 * 24 * 60 * 60; // 172800
+    if (secondsAgo < twoDays) {
+      if (secondsAgo < 60) return '${secondsAgo}s ago';
+      final minutes = secondsAgo ~/ 60;
+      if (minutes < 60) return '${minutes}m ago';
+      final hours = minutes ~/ 60;
+      if (hours < 24) return '${hours}h ago';
+      final days = hours ~/ 24;
+      return '${days}d ago';
+    }
+    final dt = DateTime.now().subtract(Duration(seconds: secondsAgo));
+    String two(int n) => n.toString().padLeft(2, '0');
+    final relDays = secondsAgo ~/ (24 * 60 * 60);
+    final dateStr = '${dt.year}-${two(dt.month)}-${two(dt.day)} ${two(dt.hour)}:${two(dt.minute)}:${two(dt.second)}';
+    return '$dateStr (${relDays}d ago)';
   }
 
   Future<void> _openSortDialog() async {

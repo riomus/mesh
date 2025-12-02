@@ -393,7 +393,7 @@ class _LogTile extends StatelessWidget {
 
 String? _queuePreview(QueueStatusDto s) {
   final parts = <String>[];
-  if (s.size != null) parts.add('size=${s.size}');
+  if (s.free != null) parts.add('free=${s.free}');
   if (s.maxlen != null) parts.add('max=${s.maxlen}');
   if (s.meshPacketId != null) parts.add('id=${s.meshPacketId}');
   return parts.isEmpty ? null : parts.join('  ');
