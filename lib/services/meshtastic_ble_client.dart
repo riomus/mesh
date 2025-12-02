@@ -45,6 +45,10 @@ class MeshtasticBleClient {
 
   StreamSubscription<List<int>>? _fromNumSub;
   StreamSubscription<BluetoothConnectionState>? _connStateSub;
+  // RSSI listener encapsulated in the client
+  StreamSubscription<dynamic>? _rssiSub;
+  final StreamController<int> _rssiController = StreamController<int>.broadcast();
+  int? _lastRssi;
 
   final _eventsController = StreamController<MeshtasticEvent>.broadcast();
 
@@ -62,6 +66,8 @@ class MeshtasticBleClient {
 
   /// High-level events parsed from FromRadio payloads.
   Stream<MeshtasticEvent> get events => _eventsController.stream;
+  /// Live RSSI updates (dBm) while connected. Emits when values change.
+  Stream<int> get rssi => _rssiController.stream;
 
   Future<void> connect({Duration timeout = const Duration(seconds: 20)}) async {
     _ensureNotDisposed();
@@ -99,6 +105,7 @@ class MeshtasticBleClient {
       if (state == BluetoothConnectionState.disconnected) {
         // Radio link dropped -> stop heartbeat and readers
         _stopHeartbeat();
+        _stopRssiListener();
         try {
           await _fromNumSub?.cancel();
         } catch (_) {}
@@ -107,6 +114,8 @@ class MeshtasticBleClient {
 
     // Kick off periodic heartbeat messages
     _startHeartbeat();
+    // Start RSSI listener
+    _startRssiListener();
   }
 
   Future<void> _discoverAndBindCharacteristics() async {
@@ -138,7 +147,7 @@ class MeshtasticBleClient {
     }
 
     _fromNumSub?.cancel();
-    _fromNumSub = _fromNum!.onValueReceived.listen((_) async {
+    _fromNumSub = _fromNum!.onValueReceived.listen((value) async {
       _log('FromNum notify received -> draining FromRadio');
       await _drainFromRadioUntilEmpty();
     });
@@ -278,8 +287,13 @@ class MeshtasticBleClient {
     try {
       await _connStateSub?.cancel();
     } catch (_) {}
+    try {
+      await _rssiSub?.cancel();
+    } catch (_) {}
+    _rssiSub = null;
     _stopHeartbeat();
     await _eventsController.close();
+    await _rssiController.close();
     try {
       await device.disconnect();
     } catch (_) {}
@@ -295,5 +309,51 @@ class MeshtasticBleClient {
   void _log(String msg, {String level = 'info'}) {
     final t = MeshtasticBleClient.logTagsForDevice(device);
     LoggingService.instance.push(tags: t, level: level, message: msg);
+  }
+
+  // ===== RSSI listener encapsulation =====
+  void _startRssiListener() {
+    // Cancel any previous listener
+    _rssiSub?.cancel();
+    // Seed one immediate read for quicker UI feedback
+    () async {
+      try {
+        final v = await device.readRssi();
+        if (v is int) {
+          _lastRssi = v;
+          if (!_rssiController.isClosed) _rssiController.add(v);
+        }
+      } catch (_) {}
+    }();
+    try {
+      _rssiSub = FlutterBluePlus.events.onReadRssi
+          .where((e) {
+            try {
+              return e.device.remoteId.str == device.remoteId.str;
+            } catch (_) {
+              return false;
+            }
+          })
+          .listen((e) {
+            try {
+              final val = e.rssi;
+              if (_lastRssi == null || (val - _lastRssi!).abs() >= 1) {
+                _lastRssi = val;
+                if (!_rssiController.isClosed) _rssiController.add(val);
+              }
+            } catch (_) {}
+          });
+      _log('Started RSSI listener (client)');
+    } catch (e) {
+      _log('Failed to start RSSI listener: $e', level: 'warn');
+    }
+  }
+
+  void _stopRssiListener() {
+    try {
+      _rssiSub?.cancel();
+    } catch (_) {}
+    _rssiSub = null;
+    _log('Stopped RSSI listener (client)');
   }
 }

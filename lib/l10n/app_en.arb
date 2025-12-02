@@ -39,5 +39,131 @@
   "loraOnlyFilterLabel": "LoRa only",
   "meshtasticLabel": "Meshtastic",
 
-  "settingsButtonLabel": "Settings"
+  "settingsButtonLabel": "Settings",
+
+
+  "nodesTitle": "Nodes",
+  "tabList": "List",
+  "tabMap": "Map",
+
+
+  "logs": "Logs",
+  "liveEvents": "Live events",
+  "serviceAvailable": "Service available",
+
+
+  "statusConnected": "Connected",
+  "statusConnecting": "Connecting...",
+  "statusDisconnected": "Disconnected",
+
+
+  "mapRefPrefix": "Ref",
+  "clearRef": "Clear ref",
+  "fitBounds": "Fit bounds",
+  "center": "Center",
+  "useAsRef": "Use as ref",
+  "details": "Details",
+  "copyCoords": "Copy coords",
+  "coordsCopied": "Coordinates copied",
+  "noNodesWithLocation": "No nodes with location yet.\nLong‑press on the map to set a custom distance reference.",
+  "customRefSet": "Custom distance reference set to {lat}, {lon}",
+  "coordinates": "Coordinates",
+
+
+  "searchNodes": "Search nodes",
+  "findByNameOrId": "Find by name or id ...",
+  "clear": "Clear",
+  "addFilter": "Add filter",
+  "sorting": "Sorting",
+  "clearFilters": "Clear filters",
+  "favoritesFirst": "Favorites first",
+  "distance": "Distance",
+  "snr": "SNR",
+  "lastSeen": "Last seen",
+  "role": "Role",
+  "name": "Name",
+  "hops": "hops",
+  "via": "via",
+
+
+  "addFilterTitle": "Add filter",
+  "key": "Key",
+  "exact": "Exact",
+  "regex": "Regex",
+  "hasValueFor": "has {key}",
+  "customValueOptional": "Custom value (optional)",
+  "regexCaseInsensitive": "Regex (case-insensitive)",
+  "resetToDefault": "Reset to default",
+  "useSourceAsRef": "Use source device as distance ref",
+  "tipSetCustomRef": "Tip: set a custom reference by long‑pressing on the Map tab",
+  "cancel": "Cancel",
+  "addAction": "Add",
+  "apply": "Apply",
+  "searchEvents": "Search events",
+  "searchInSummaryOrTags": "Search in summary or tags",
+
+
+  "battery": "Battery",
+  "charging": "charging",
+  "location": "Location",
+  "locationUnavailable": "Location is not available for this node",
+  "sourceDevice": "Source device",
+  "viaMqtt": "via MQTT",
+  "connectFailed": "Connect failed",
+  "meshtasticConnectFailed": "Meshtastic connect failed",
+  "deviceError": "Device error",
+
+
+  "eventsTitle": "Events",
+  "failedToShareEvents": "Failed to share events: {error}",
+  "noEventsYet": "No events yet",
+
+
+  "eventDetailsTitle": "Event details",
+  "timestamp": "Timestamp",
+  "summary": "Summary",
+  "tags": "Tags",
+  "payload": "Payload",
+  "waypoint": "Waypoint",
+  "user": "User",
+  "routing": "Routing",
+  "routingPayload": "Routing payload",
+  "admin": "Admin",
+  "remoteHardware": "Remote hardware",
+  "neighborInfo": "Neighbor info",
+  "neighbors": "Neighbors",
+  "storeForward": "Store & Forward",
+  "telemetry": "Telemetry",
+  "paxcounter": "Paxcounter",
+  "traceroute": "Traceroute",
+  "keyVerification": "Key verification",
+  "rawPayload": "Raw payload",
+
+
+  "fullscreen": "Fullscreen",
+  "close": "Close",
+  "shareEvents": "Share events (JSON)",
+  "eventsExport": "Events export",
+  "shareLogs": "Share logs (JSON)",
+  "logsExport": "Logs export",
+  "addFilters": "Add filters",
+  "resume": "Resume",
+  "pause": "Pause",
+  "clearAll": "Clear",
+  "failedToShareLogs": "Failed to share logs: {error}",
+
+
+  "mapAttribution": "© OpenStreetMap contributors",
+
+
+  "nodeIdHex": "ID: 0x{hex}",
+  "nodeTitleHex": "Node 0x{hex}",
+  "roleLabel": "Role",
+  "hopsAway": "Hops away",
+  "snrLabel": "SNR",
+  "lastSeenLabel": "Last seen",
+  "chat": "Chat",
+  "typeMessage": "Type a message...",
+  "messageTooLong": "Message too long",
+  "sendFailed": "Failed to send: {error}"
 }

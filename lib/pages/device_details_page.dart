@@ -9,11 +9,12 @@ import '../services/meshtastic_ble_client.dart';
 import '../services/logging_service.dart';
 import '../widgets/logs_viewer.dart';
 import '../widgets/mesh_app_bar.dart';
-import '../meshtastic/model/meshtastic_event.dart';
+
 // Removed unused import: meshtastic_models.dart
 import '../widgets/events_list_widget.dart';
 import '../utils/text_sanitize.dart';
 import '../services/device_status_store.dart';
+import 'device_chat_page.dart';
 
 class DeviceDetailsPage extends StatefulWidget {
   final ScanResult result;
@@ -30,6 +31,7 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
   // Connection status reflected from DeviceStatusStore to preserve across rebuilds
   bool _connecting = false;
   bool _connected = false;
+  int? _rssi; // live RSSI from DeviceStatusStore while connected
   // Logs are now shown via reusable LogsViewer widget; no manual buffering here.
   StreamSubscription<LogEvent>? _logSub; // kept for backwards-compat, but unused
   // Stable device-scoped log stream (with replay) to avoid re-subscribe on rebuilds
@@ -120,20 +122,20 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                 title: Text(AppLocalizations.of(context).signalRssi),
                 subtitle: Padding(
                   padding: const EdgeInsets.only(top: 8.0),
-                  child: RssiBar(rssi: result.rssi),
+                  child: RssiBar(rssi: (_rssi ?? result.rssi)),
                 ),
-                trailing: Text('${result.rssi} dBm'),
+                trailing: Text('${_rssi ?? result.rssi} dBm'),
               ),
             ],
           ),
           // Meshtastic section
           _Section(
-            title: 'Meshtastic',
+            title: AppLocalizations.of(context).meshtasticLabel,
             children: [
               ListTile(
                 leading: const Icon(Icons.memory),
-                title: const Text('Service available'),
-                subtitle: Text(hasMeshtasticService ? 'Yes' : 'No'),
+                title: Text(AppLocalizations.of(context).serviceAvailable),
+                subtitle: Text(hasMeshtasticService ? AppLocalizations.of(context).yes : AppLocalizations.of(context).no),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -155,16 +157,28 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                         }
                       },
                     ),
+                    const SizedBox(width: 8),
+                    IconButton.filledTonal(
+                      icon: const Icon(Icons.chat),
+                      tooltip: AppLocalizations.of(context).chat,
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => DeviceChatPage(device: widget.result.device),
+                          ),
+                        );
+                      },
+                    ),
                     const SizedBox(width: 12),
                     if (_connecting) const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
                         _connected
-                            ? 'Connected'
+                            ? AppLocalizations.of(context).statusConnected
                             : _connecting
-                                ? 'Connecting...'
-                                : 'Disconnected',
+                                ? AppLocalizations.of(context).statusConnecting
+                                : AppLocalizations.of(context).statusDisconnected,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -181,7 +195,7 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                       children: [
                         const Icon(Icons.list_alt),
                         const SizedBox(width: 8),
-                        Text('Logs', style: Theme.of(context).textTheme.titleSmall),
+                        Text(AppLocalizations.of(context).logs, style: Theme.of(context).textTheme.titleSmall),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -210,7 +224,7 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                       children: [
                         const Text('📡', style: TextStyle(fontSize: 18)),
                         const SizedBox(width: 8),
-                        Text('Live events',
+                        Text(AppLocalizations.of(context).liveEvents,
                             style: Theme.of(context).textTheme.titleSmall),
                       ],
                     ),
@@ -328,7 +342,7 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Meshtastic connect failed: $e')),
+          SnackBar(content: Text('${AppLocalizations.of(context).meshtasticConnectFailed}: $e')),
         );
       }
     } finally {
@@ -354,10 +368,11 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
       setState(() {
         _connecting = s.state == DeviceConnectionState.connecting;
         _connected = s.state == DeviceConnectionState.connected;
+        _rssi = s.rssi ?? _rssi; // keep last known if null
       });
       if (s.state == DeviceConnectionState.error && s.error != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Device error: ${s.error}')),
+          SnackBar(content: Text('${AppLocalizations.of(context).deviceError}: ${s.error}')),
         );
       }
     });

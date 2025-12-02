@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../widgets/events_list_widget.dart';
 import '../widgets/mesh_app_bar.dart';
+import '../l10n/app_localizations.dart';
 
 /// Events page that hosts the reusable EventsListWidget component.
 class EventsPage extends StatelessWidget {
@@ -14,7 +15,7 @@ class EventsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: MeshAppBar(
-        title: const Text('Events'),
+        title: Text(AppLocalizations.of(context).eventsTitle),
         onToggleTheme: onToggleTheme,
         themeMode: themeMode,
         onOpenSettings: onOpenSettings,

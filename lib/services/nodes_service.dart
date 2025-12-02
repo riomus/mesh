@@ -81,6 +81,7 @@ class NodesService {
         final info = evt.nodeInfo;
         final num = info.num;
         if (num != null) {
+          final existing = _nodes[num];
           // Helper: normalize lastHeard to AGE seconds. Some firmwares/devices
           // report NodeInfo.lastHeard as epoch seconds, others as age seconds.
           // We detect epoch-like values and convert to age for consistent UI.
@@ -96,22 +97,29 @@ class NodesService {
           }
           // Represent node id as lowercase hex without 0x prefix for consistency
           final nodeHexId = num.toRadixString(16).toLowerCase();
-          final tags = <String, List<String>>{
-            'network': const ['meshtastic'],
-            // deviceId on Nodes should represent the NODE id
-            'deviceId': [nodeHexId],
-            if (info.user?.longName != null && info.user!.longName!.isNotEmpty)
-              'name': [info.user!.longName!]
-            else if (info.user?.shortName != null && info.user!.shortName!.isNotEmpty)
-              'name': [info.user!.shortName!]
-            else
-              'name': ['0x$nodeHexId'],
-            if (info.user?.role != null) 'role': [info.user!.role!],
-            if (info.hopsAway != null) 'hops': ['${info.hopsAway}'],
-            if (info.isFavorite == true) 'favorite': const ['true'] else 'favorite': const ['false'],
-            if (info.isIgnored == true) 'ignored': const ['true'] else 'ignored': const ['false'],
-            if (info.viaMqtt == true) 'viaMqtt': const ['true'] else 'viaMqtt': const ['false'],
-          };
+          // Start with existing tags (if any) so we don't lose derived fields
+          final tags = <String, List<String>>{};
+          if (existing?.tags.isNotEmpty == true) {
+            for (final e in existing!.tags.entries) {
+              tags[e.key] = List<String>.from(e.value);
+            }
+          }
+          // Base tags for this node info
+          tags['network'] = const ['meshtastic'];
+          tags['deviceId'] = [nodeHexId]; // node id
+          // Name/role/hops/favorite/ignored/mqtt — prefer new values if provided
+          if (info.user?.longName != null && info.user!.longName!.isNotEmpty) {
+            tags['name'] = [info.user!.longName!];
+          } else if (info.user?.shortName != null && info.user!.shortName!.isNotEmpty) {
+            tags['name'] = [info.user!.shortName!];
+          } else if (!(tags.containsKey('name') && (tags['name']?.isNotEmpty == true))) {
+            tags['name'] = ['0x$nodeHexId'];
+          }
+          if (info.user?.role != null) tags['role'] = [info.user!.role!];
+          if (info.hopsAway != null) tags['hops'] = ['${info.hopsAway}'];
+          tags['favorite'] = [info.isFavorite == true ? 'true' : 'false'];
+          tags['ignored'] = [info.isIgnored == true ? 'true' : 'false'];
+          tags['viaMqtt'] = [info.viaMqtt == true ? 'true' : 'false'];
           // Preserve reporter device as sourceDeviceId when available
           final reporterIds = e.tags['deviceId'];
           if (reporterIds != null && reporterIds.isNotEmpty) {
@@ -128,17 +136,21 @@ class NodesService {
             }
           }
 
+          // Merge with existing so we don't drop previously known position or metrics
           _nodes[num] = MeshNodeView(
             num: num,
-            user: info.user,
-            position: info.position,
-            snr: info.snr,
-            lastHeard: _normalizeLastHeard(info.lastHeard),
-            deviceMetrics: info.deviceMetrics,
-            hopsAway: info.hopsAway,
-            isFavorite: info.isFavorite,
-            isIgnored: info.isIgnored,
-            viaMqtt: info.viaMqtt,
+            user: info.user ?? existing?.user,
+            // Preserve previous position if new info lacks coordinates
+            position: (info.position?.latitudeI != null && info.position?.longitudeI != null)
+                ? info.position
+                : (existing?.position ?? info.position),
+            snr: info.snr ?? existing?.snr,
+            lastHeard: _normalizeLastHeard(info.lastHeard) ?? existing?.lastHeard,
+            deviceMetrics: info.deviceMetrics ?? existing?.deviceMetrics,
+            hopsAway: info.hopsAway ?? existing?.hopsAway,
+            isFavorite: info.isFavorite ?? existing?.isFavorite,
+            isIgnored: info.isIgnored ?? existing?.isIgnored,
+            viaMqtt: info.viaMqtt ?? existing?.viaMqtt,
             tags: tags,
           );
           _emit();

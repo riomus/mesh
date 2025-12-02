@@ -39,5 +39,127 @@
   "loraOnlyFilterLabel": "Tylko LoRa",
   "meshtasticLabel": "Meshtastic",
 
-  "settingsButtonLabel": "Ustawienia"
+  "settingsButtonLabel": "Ustawienia",
+
+
+  "nodesTitle": "Węzły",
+  "tabList": "Lista",
+  "tabMap": "Mapa",
+
+
+  "logs": "Logi",
+  "liveEvents": "Zdarzenia na żywo",
+  "serviceAvailable": "Usługa dostępna",
+
+
+  "statusConnected": "Połączono",
+  "statusConnecting": "Łączenie...",
+  "statusDisconnected": "Rozłączono",
+
+
+  "mapRefPrefix": "Ref",
+  "clearRef": "Wyczyść ref",
+  "fitBounds": "Dopasuj widok",
+  "center": "Wyśrodkuj",
+  "useAsRef": "Użyj jako ref",
+  "details": "Szczegóły",
+  "copyCoords": "Kopiuj współrz.",
+  "coordsCopied": "Skopiowano współrzędne",
+  "noNodesWithLocation": "Brak węzłów z lokalizacją.\nPrzytrzymaj na mapie aby ustawić własny punkt odniesienia.",
+  "customRefSet": "Ustawiono punkt odniesienia: {lat}, {lon}",
+
+
+  "searchNodes": "Szukaj węzłów",
+  "findByNameOrId": "Szukaj po nazwie lub ID ...",
+  "clear": "Wyczyść",
+  "addFilter": "Dodaj filtr",
+  "sorting": "Sortowanie",
+  "clearFilters": "Wyczyść filtry",
+  "favoritesFirst": "Ulubione na początku",
+  "distance": "Dystans",
+  "snr": "SNR",
+  "lastSeen": "Ostatnio widziany",
+  "role": "Rola",
+  "name": "Nazwa",
+  "hops": "skoki",
+  "via": "przez",
+
+
+  "addFilterTitle": "Dodaj filtr",
+  "key": "Klucz",
+  "exact": "Dokładnie",
+  "regex": "Regex",
+  "hasValueFor": "ma {key}",
+  "customValueOptional": "Własna wartość (opcjonalnie)",
+  "regexCaseInsensitive": "Regex (bez rozróżniania wielkości liter)",
+  "resetToDefault": "Przywróć domyślne",
+  "useSourceAsRef": "Użyj urządzenia źródłowego jako ref",
+  "tipSetCustomRef": "Wskazówka: ustaw ref przytrzymując na zakładce Mapa",
+  "cancel": "Anuluj",
+  "addAction": "Dodaj",
+
+
+  "battery": "Bateria",
+  "charging": "ładowanie",
+  "location": "Lokalizacja",
+  "locationUnavailable": "Brak lokalizacji dla tego węzła",
+  "sourceDevice": "Urządzenie źródłowe"
+,
+  "viaMqtt": "przez MQTT",
+  "connectFailed": "Połączenie nieudane",
+  "meshtasticConnectFailed": "Połączenie z Meshtastic nieudane",
+  "deviceError": "Błąd urządzenia",
+
+
+  "eventsTitle": "Zdarzenia",
+  "failedToShareEvents": "Nie udało się udostępnić zdarzeń: {error}",
+  "noEventsYet": "Brak zdarzeń",
+
+
+  "eventDetailsTitle": "Szczegóły zdarzenia",
+  "timestamp": "Znacznik czasu",
+  "summary": "Podsumowanie",
+  "tags": "Tagi",
+  "payload": "Ładunek",
+  "waypoint": "Punkt trasy",
+  "user": "Użytkownik",
+  "routing": "Routing",
+  "routingPayload": "Ładunek routingu",
+  "admin": "Administrator",
+  "remoteHardware": "Zdalny sprzęt",
+  "neighborInfo": "Informacje o sąsiadach",
+  "neighbors": "Sąsiedzi",
+  "storeForward": "Przechowaj i przekaż",
+  "telemetry": "Telemetria",
+  "paxcounter": "Paxcounter",
+  "traceroute": "Traceroute",
+  "keyVerification": "Weryfikacja klucza",
+  "rawPayload": "Surowy ładunek",
+
+
+  "fullscreen": "Pełny ekran",
+  "close": "Zamknij",
+  "shareEvents": "Udostępnij zdarzenia (JSON)",
+  "shareLogs": "Udostępnij logi (JSON)",
+  "logsExport": "Eksport logów",
+  "addFilters": "Dodaj filtry",
+  "resume": "Wznów",
+  "pause": "Pauza",
+  "clearAll": "Wyczyść",
+
+
+  "mapAttribution": "© Współtwórcy OpenStreetMap",
+
+
+  "nodeIdHex": "ID: 0x{hex}",
+  "roleLabel": "Rola",
+  "hopsAway": "Skoki",
+  "snrLabel": "SNR",
+  "lastSeenLabel": "Ostatnio widziany",
+  "chat": "Czat",
+  "typeMessage": "Wpisz wiadomość...",
+  "messageTooLong": "Wiadomość za długa",
+  "sendFailed": "Nie udało się wysłać: {error}",
+
+  "failedToShareLogs": "Nie udało się udostępnić logów: {error}"
 }

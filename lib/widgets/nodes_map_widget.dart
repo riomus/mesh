@@ -7,6 +7,8 @@ import 'package:latlong2/latlong.dart' as latlng;
 
 import '../services/nodes_service.dart';
 import '../utils/text_sanitize.dart';
+import '../pages/node_details_page.dart';
+import '../l10n/app_localizations.dart';
 
 class NodesMapWidget extends StatefulWidget {
   const NodesMapWidget({super.key});
@@ -27,6 +29,21 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
   @override
   void initState() {
     super.initState();
+    // Prefill from current snapshot so we don't flash an empty map when
+    // nodes are already known (e.g., coming from the List tab)
+    final snap = _svc.snapshot;
+    if (snap.isNotEmpty) {
+      _nodes = snap;
+      // If we already have points from the snapshot, schedule an initial fit
+      // to make the view immediately useful.
+      if (_nodePoints.isNotEmpty) {
+        _didAutoFit = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          _fitBounds();
+        });
+      }
+    }
     _sub = _svc.listenAll().listen((value) {
       // Guard against setState after dispose if an event lands late
       if (!mounted) return;
@@ -58,7 +75,12 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
     for (final n in _nodes) {
       final p = n.position;
       if (p?.latitudeI != null && p?.longitudeI != null) {
-        yield (n, p!.latitudeI! / 1e7, p.longitudeI! / 1e7);
+        final lat = p!.latitudeI! / 1e7;
+        final lon = p.longitudeI! / 1e7;
+        // Defensive filtering: ignore impossible coordinates
+        if (lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+          yield (n, lat, lon);
+        }
       }
     }
   }
@@ -97,7 +119,7 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
     _svc.setCustomDistanceReference(lat: point.latitude, lon: point.longitude);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Custom distance reference set to ${point.latitude.toStringAsFixed(5)}, ${point.longitude.toStringAsFixed(5)}')),
+      SnackBar(content: Text(AppLocalizations.of(context).customRefSet(point.latitude.toStringAsFixed(5), point.longitude.toStringAsFixed(5))))
     );
   }
 
@@ -133,18 +155,18 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
           parts.add(const SizedBox(height: 8));
           final hex = n.num?.toRadixString(16);
           if (hex != null) parts.add(Text('ID: 0x$hex'));
-          if (n.user?.role != null) parts.add(Text(safeText('Role: ${n.user!.role!}')));
-          if (n.hopsAway != null) parts.add(Text('Hops: ${n.hopsAway}'));
+          if (n.user?.role != null) parts.add(Text(safeText('${AppLocalizations.of(ctx).role}: ${n.user!.role!}')));
+          if (n.hopsAway != null) parts.add(Text('${AppLocalizations.of(ctx).hops}: ${n.hopsAway}'));
           if (n.deviceMetrics?.batteryLevel != null) {
             final lvl = n.deviceMetrics!.batteryLevel!;
             if (lvl == 101) {
-              parts.add(const Text('Battery: 🔌 charging'));
+              parts.add(Text('${AppLocalizations.of(ctx).battery}: 🔌 ${AppLocalizations.of(ctx).charging}'));
             } else {
-              parts.add(Text('Battery: ${lvl}%'));
+              parts.add(Text('${AppLocalizations.of(ctx).battery}: ${lvl}%'));
             }
           }
-          if (n.lastHeard != null) parts.add(Text('Last seen: ${_formatLastHeard(n.lastHeard!)}'));
-          parts.add(Text('Coords: ${lat.toStringAsFixed(6)}, ${lon.toStringAsFixed(6)}'));
+          if (n.lastHeard != null) parts.add(Text('${AppLocalizations.of(ctx).lastSeen}: ${_formatLastHeard(n.lastHeard!)}'));
+          parts.add(Text('${AppLocalizations.of(ctx).coordinates}: ${lat.toStringAsFixed(6)}, ${lon.toStringAsFixed(6)}'));
 
           return Padding(
             padding: const EdgeInsets.all(16),
@@ -161,7 +183,7 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
                       Navigator.of(ctx).maybePop();
                     },
                     icon: const Icon(Icons.center_focus_strong),
-                    label: const Text('Center'),
+                    label: Text(AppLocalizations.of(ctx).center),
                   ),
                   FilledButton.tonalIcon(
                     onPressed: () {
@@ -169,26 +191,44 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
                       Navigator.of(ctx).maybePop();
                     },
                     icon: const Icon(Icons.my_location),
-                    label: const Text('Use as ref'),
+                    label: Text(AppLocalizations.of(ctx).useAsRef),
                   ),
-                  OutlinedButton.icon(
-                    onPressed: () async {
-                      await Clipboard.setData(ClipboardData(text: '$lat,$lon'));
-                      if (!ctx.mounted) return;
-                      ScaffoldMessenger.of(ctx).showSnackBar(
-                        const SnackBar(content: Text('Coordinates copied')),
-                      );
-                    },
-                    icon: const Icon(Icons.copy_all),
-                    label: const Text('Copy coords'),
-                  ),
-                ]),
-              ],
-            ),
-          );
-        },
-      );
-    }
+                  FilledButton.icon(
+                    onPressed: n.num == null
+                        ? null
+                        : () {
+                            // Close the bottom sheet first, then open details
+                            Navigator.of(ctx).maybePop();
+                            Future.microtask(() {
+                              if (!mounted) return;
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => NodeDetailsPage(nodeNum: n.num!),
+                                ),
+                              );
+                            });
+                          },
+                      icon: const Icon(Icons.open_in_new),
+                      label: Text(AppLocalizations.of(ctx).details),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: () async {
+                        await Clipboard.setData(ClipboardData(text: '$lat,$lon'));
+                        if (!ctx.mounted) return;
+                        ScaffoldMessenger.of(ctx).showSnackBar(
+                          SnackBar(content: Text(AppLocalizations.of(ctx).coordsCopied)),
+                        );
+                      },
+                      icon: const Icon(Icons.copy_all),
+                      label: Text(AppLocalizations.of(ctx).copyCoords),
+                    ),
+                  ]),
+                ],
+              ),
+            );
+          },
+        );
+      }
 
     final markers = <Marker>[
       for (final p in points)
@@ -218,12 +258,12 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
                 child: Row(children: [
                   const Icon(Icons.my_location, size: 16),
                   const SizedBox(width: 4),
-                  Text('Ref: ${eff.$1.toStringAsFixed(5)}, ${eff.$2.toStringAsFixed(5)}'),
+                  Text('${AppLocalizations.of(context).mapRefPrefix}: ${eff.$1.toStringAsFixed(5)}, ${eff.$2.toStringAsFixed(5)}'),
                   const SizedBox(width: 8),
                   TextButton.icon(
                     onPressed: () => _svc.setCustomDistanceReference(lat: null, lon: null),
                     icon: const Icon(Icons.clear),
-                    label: const Text('Clear ref'),
+                    label: Text(AppLocalizations.of(context).clearRef),
                   ),
                 ]),
               ),
@@ -231,7 +271,7 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
             TextButton.icon(
               onPressed: _fitBounds,
               icon: const Icon(Icons.fit_screen),
-              label: const Text('Fit bounds'),
+              label: Text(AppLocalizations.of(context).fitBounds),
             ),
           ],
         ),
@@ -318,10 +358,7 @@ class _EmptyMapState extends StatelessWidget {
               ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Text(
-                  'No nodes with location yet.\nLong‑press on the map to set a custom distance reference.',
-                  textAlign: TextAlign.center,
-                ),
+                child: Text(AppLocalizations.of(context).noNodesWithLocation, textAlign: TextAlign.center),
               ),
             ),
           ),

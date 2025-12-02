@@ -14,25 +14,31 @@ class DeviceStatus {
   final DeviceConnectionState state;
   final Object? error;
   final DateTime updatedAt;
+  /// Latest known RSSI (dBm) for this device while connected. Null if unknown.
+  final int? rssi;
 
   DeviceStatus({
     required this.deviceId,
     required this.state,
     this.error,
+    this.rssi,
     DateTime? updatedAt,
   }) : updatedAt = updatedAt ?? DateTime.now();
 
   DeviceStatus copyWith({
     DeviceConnectionState? state,
     Object? error = _sentinel,
+    int? rssi = _rssiSentinel,
   }) => DeviceStatus(
         deviceId: deviceId,
         state: state ?? this.state,
         error: identical(error, _sentinel) ? this.error : error,
+        rssi: identical(rssi, _rssiSentinel) ? this.rssi : rssi,
       );
 }
 
 const _sentinel = Object();
+const _rssiSentinel = -999999; // impossible dBm sentinel for copyWith
 
 enum DeviceConnectionState { disconnected, connecting, connected, error }
 
@@ -71,6 +77,7 @@ class DeviceStatusStore {
       // Begin listening for OS/device connection state changes
       entry._listenConnectionState();
       entry._update(DeviceConnectionState.connected);
+      entry._subscribeClientRssi();
       _log(id, 'Connected');
       completer.complete(client);
       return client;
@@ -100,6 +107,7 @@ class DeviceStatusStore {
           // Proceed with teardown regardless of failures
         }
       }
+      entry._unsubscribeClientRssi();
       await entry.connStateSub?.cancel();
     } catch (_) {}
     try {
@@ -155,6 +163,8 @@ class _Entry {
   final StreamController<DeviceStatus> controller = StreamController<DeviceStatus>.broadcast();
   DeviceStatus? status;
   StreamSubscription<BluetoothConnectionState>? connStateSub;
+  // Subscription to client's RSSI stream
+  StreamSubscription<int>? _clientRssiSub;
 
   _Entry(this.device)
       : deviceId = device.remoteId.str,
@@ -164,17 +174,18 @@ class _Entry {
       : device = BluetoothDevice(remoteId: DeviceIdentifier(deviceId)),
         status = null;
 
-  void _update(DeviceConnectionState state, {Object? error}) {
-    final s = DeviceStatus(deviceId: deviceId, state: state, error: error);
+  void _update(DeviceConnectionState state, {Object? error, int? rssi}) {
+    final s = DeviceStatus(deviceId: deviceId, state: state, error: error, rssi: rssi ?? status?.rssi);
     status = s;
     controller.add(s);
-  }
+    }
 
   void _listenConnectionState() {
     connStateSub?.cancel();
     connStateSub = device.connectionState.listen((state) {
       if (state == BluetoothConnectionState.disconnected) {
         // Update status and notify services so UI can reflect and users can see it.
+        _unsubscribeClientRssi();
         _update(DeviceConnectionState.disconnected);
         DeviceStatusStore._log(deviceId, 'Disconnected (device event)');
         // Push a lightweight device communication event for user-visible notification
@@ -190,5 +201,25 @@ class _Entry {
         } catch (_) {}
       }
     });
+  }
+
+  void _subscribeClientRssi() {
+    _clientRssiSub?.cancel();
+    final c = client;
+    if (c == null) return;
+    _clientRssiSub = c.rssi.listen((value) {
+      try {
+        _update(status?.state ?? DeviceConnectionState.connected, rssi: value);
+      } catch (_) {}
+    });
+    DeviceStatusStore._log(deviceId, 'Subscribed to client RSSI');
+  }
+
+  void _unsubscribeClientRssi() {
+    try {
+      _clientRssiSub?.cancel();
+    } catch (_) {}
+    _clientRssiSub = null;
+    DeviceStatusStore._log(deviceId, 'Unsubscribed from client RSSI');
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:async' show StreamSubscription;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
@@ -5,14 +7,90 @@ import 'rssi_bar.dart';
 import '../pages/device_details_page.dart';
 import '../config/lora_config.dart';
 import '../config/manufacturer_db.dart';
+import '../services/device_status_store.dart';
 
 import '../l10n/app_localizations.dart';
-class DeviceTile extends StatelessWidget {
+
+class DeviceTile extends StatefulWidget {
   final ScanResult result;
   final VoidCallback? onToggleTheme;
   final ThemeMode? themeMode;
   final void Function(BuildContext context)? onOpenSettings;
   const DeviceTile({super.key, required this.result, this.onToggleTheme, this.themeMode, this.onOpenSettings});
+
+  @override
+  State<DeviceTile> createState() => _DeviceTileState();
+}
+
+class _DeviceTileState extends State<DeviceTile> {
+  bool _connecting = false;
+  bool _connected = false;
+  StreamSubscription<DeviceStatus>? _sub;
+  int? _rssi; // live RSSI from DeviceStatusStore while connected
+
+  ScanResult get result => widget.result;
+
+  @override
+  void initState() {
+    super.initState();
+    _subscribeStatus();
+  }
+
+  @override
+  void didUpdateWidget(covariant DeviceTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.result.device.remoteId.str != widget.result.device.remoteId.str) {
+      _sub?.cancel();
+      _connecting = false;
+      _connected = false;
+      _subscribeStatus();
+    }
+  }
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    super.dispose();
+  }
+
+  void _subscribeStatus() {
+    final id = widget.result.device.remoteId.str;
+    _sub = DeviceStatusStore.instance.statusStream(id).listen((s) {
+      if (!mounted) return;
+      setState(() {
+        _connecting = s.state == DeviceConnectionState.connecting;
+        _connected = s.state == DeviceConnectionState.connected;
+        _rssi = s.rssi ?? _rssi; // keep last known value if null
+      });
+    });
+  }
+
+  Future<void> _connect() async {
+    if (_connected || _connecting) return;
+    setState(() => _connecting = true);
+    try {
+      await DeviceStatusStore.instance.connect(widget.result.device);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Connect failed: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _connecting = false);
+    }
+  }
+
+  Future<void> _disconnect() async {
+    if (!_connected && !_connecting) return;
+    setState(() => _connecting = true);
+    try {
+      await DeviceStatusStore.instance.disconnect(widget.result.device.remoteId.str);
+    } catch (_) {
+    } finally {
+      if (mounted) setState(() => _connecting = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,13 +134,29 @@ class DeviceTile extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodySmall),
             _manufacturerLine(context, result),
             const SizedBox(height: 4),
-            RssiBar(rssi: result.rssi),
+            RssiBar(rssi: _rssi ?? result.rssi),
           ],
         ),
         trailing: result.advertisementData.connectable
-            ? Chip(
-                avatar: const Icon(Icons.link, size: 16),
-                label: Text(AppLocalizations.of(context).connectable),
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_connecting)
+                    const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  if (_connecting) const SizedBox(width: 8),
+                  Tooltip(
+                    message: _connected ? 'Disconnect' : 'Connect',
+                    child: FilledButton.tonalIcon(
+                      onPressed: _connecting ? null : (_connected ? _disconnect : _connect),
+                      icon: Icon(_connected ? Icons.link_off : Icons.link),
+                      label: Text(_connected ? t.disconnect : t.connect),
+                    ),
+                  ),
+                ],
               )
             : const SizedBox.shrink(),
         onTap: () {
@@ -70,9 +164,9 @@ class DeviceTile extends StatelessWidget {
             MaterialPageRoute(
               builder: (_) => DeviceDetailsPage(
                 result: result,
-                onToggleTheme: onToggleTheme,
-                themeMode: themeMode,
-                onOpenSettings: onOpenSettings,
+                onToggleTheme: widget.onToggleTheme,
+                themeMode: widget.themeMode,
+                onOpenSettings: widget.onOpenSettings,
               ),
             ),
           );

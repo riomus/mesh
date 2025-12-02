@@ -8,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 import '../services/device_communication_event_service.dart';
 import 'meshtastic_event_tiles.dart';
 import '../pages/event_details_page.dart';
+import '../l10n/app_localizations.dart';
 
 // Logs-like filter primitives (private to this file)
 enum _EventChipOp { exact, regex }
@@ -265,11 +266,11 @@ class _EventsListWidgetState extends State<EventsListWidget> {
           '${ts.minute.toString().padLeft(2, '0')}'
           '${ts.second.toString().padLeft(2, '0')}.json';
       final file = XFile.fromData(bytes, name: name, mimeType: 'application/json');
-      await Share.shareXFiles([file], text: 'Events export');
+      await Share.shareXFiles([file], text: AppLocalizations.of(context).eventsExport);
     } catch (err) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to share events: $err')),
+          SnackBar(content: Text(AppLocalizations.of(context).failedToShareEvents(err.toString()))),
         );
       }
     }
@@ -323,11 +324,11 @@ class _EventsListWidgetState extends State<EventsListWidget> {
               child: InputDecorator(
                 isFocused: _searchFocus.hasFocus,
                 isEmpty: false,
-                decoration: const InputDecoration(
-                  labelText: 'Search events',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context).searchEvents,
+                  border: const OutlineInputBorder(),
                   isDense: true,
-                  prefixIcon: Icon(Icons.search, size: 18),
+                  prefixIcon: const Icon(Icons.search, size: 18),
                 ),
                 child: Wrap(
                   spacing: 8,
@@ -344,8 +345,8 @@ class _EventsListWidgetState extends State<EventsListWidget> {
                             child: TextField(
                               focusNode: _searchFocus,
                               controller: _searchCtrl,
-                              decoration: const InputDecoration(
-                                hintText: 'Search in summary or tags',
+                              decoration: InputDecoration(
+                                hintText: AppLocalizations.of(context).searchInSummaryOrTags,
                                 isDense: true,
                                 border: InputBorder.none,
                               ),
@@ -356,7 +357,7 @@ class _EventsListWidgetState extends State<EventsListWidget> {
                             IconButton(
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),
-                              tooltip: 'Clear',
+                              tooltip: AppLocalizations.of(context).clear,
                               icon: const Icon(Icons.clear, size: 18),
                               onPressed: () {
                                 _searchCtrl.clear();
@@ -373,16 +374,16 @@ class _EventsListWidgetState extends State<EventsListWidget> {
           ),
           const SizedBox(width: 8),
           Tooltip(
-            message: 'Add filter',
+            message: AppLocalizations.of(context).addFilter,
             child: FilledButton.icon(
               icon: const Icon(Icons.filter_alt),
-              label: const Text('Add filter'),
+              label: Text(AppLocalizations.of(context).addFilter),
               onPressed: _openAddChipDialog,
             ),
           ),
           const SizedBox(width: 8),
           Tooltip(
-            message: 'Share events (JSON)',
+            message: AppLocalizations.of(context).shareEvents,
             child: IconButton(
               icon: const Icon(Icons.ios_share),
               onPressed: _shareFilteredEvents,
@@ -390,7 +391,7 @@ class _EventsListWidgetState extends State<EventsListWidget> {
           ),
           const SizedBox(width: 8),
           Tooltip(
-            message: 'Fullscreen',
+            message: AppLocalizations.of(context).fullscreen,
             child: IconButton(
               icon: const Icon(Icons.fullscreen),
               onPressed: () {
@@ -398,10 +399,10 @@ class _EventsListWidgetState extends State<EventsListWidget> {
                   MaterialPageRoute(
                     builder: (ctx) => Scaffold(
                       appBar: AppBar(
-                        title: const Text('Events'),
+                        title: Text(AppLocalizations.of(ctx).eventsTitle),
                         actions: [
                           IconButton(
-                            tooltip: 'Close',
+                            tooltip: AppLocalizations.of(ctx).close,
                             icon: const Icon(Icons.close_fullscreen),
                             onPressed: () => Navigator.of(ctx).maybePop(),
                           ),

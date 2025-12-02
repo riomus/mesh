@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../widgets/nodes_list_widget.dart';
 import '../widgets/mesh_app_bar.dart';
 import '../widgets/nodes_map_widget.dart';
+import '../l10n/app_localizations.dart';
 
 /// Nodes page that hosts the reusable NodesListWidget component.
 class NodesPage extends StatelessWidget {
@@ -17,14 +18,14 @@ class NodesPage extends StatelessWidget {
       length: 2,
       child: Scaffold(
         appBar: MeshAppBar(
-          title: const Text('Nodes'),
+          title: Text(AppLocalizations.of(context).nodesTitle),
           onToggleTheme: onToggleTheme,
           themeMode: themeMode,
           onOpenSettings: onOpenSettings,
-          bottom: const TabBar(
+          bottom: TabBar(
             tabs: [
-              Tab(icon: Icon(Icons.list), text: 'List'),
-              Tab(icon: Icon(Icons.map), text: 'Map'),
+              Tab(icon: const Icon(Icons.list), text: AppLocalizations.of(context).tabList),
+              Tab(icon: const Icon(Icons.map), text: AppLocalizations.of(context).tabMap),
             ],
           ),
         ),
