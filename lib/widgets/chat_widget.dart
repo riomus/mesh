@@ -1,27 +1,28 @@
 import 'dart:async';
-
 import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
-import '../generated/meshtastic/meshtastic/mesh.pb.dart' as mesh;
-import '../generated/meshtastic/meshtastic/portnums.pbenum.dart' as port;
 import '../meshtastic/model/meshtastic_event.dart';
 
 import '../meshtastic/model/meshtastic_models.dart';
 
 import '../services/device_communication_event_service.dart';
-import '../services/device_status_store.dart';
+import '../services/message_sender.dart';
 import '../utils/text_sanitize.dart';
 
 import '../l10n/app_localizations.dart';
 
 class ChatWidget extends StatefulWidget {
-  final BluetoothDevice device;
+  final MessageSender messageSender;
+  final String deviceId;
   final int? toNodeId;
 
-  const ChatWidget({super.key, required this.device, this.toNodeId});
+  const ChatWidget({
+    super.key,
+    required this.messageSender,
+    required this.deviceId,
+    this.toNodeId,
+  });
 
   @override
   State<ChatWidget> createState() => _ChatWidgetState();
@@ -32,10 +33,10 @@ class _ChatWidgetState extends State<ChatWidget> {
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
   StreamSubscription<DeviceEvent>? _eventSub;
-  
-  // Max payload size for Meshtastic is roughly 230 bytes depending on headers, 
+
+  // Max payload size for Meshtastic is roughly 230 bytes depending on headers,
   // but let's be safe with a lower limit for text.
-  static const int _maxBytes = 200; 
+  static const int _maxBytes = 200;
   int _currentBytes = 0;
 
   @override
@@ -56,19 +57,25 @@ class _ChatWidgetState extends State<ChatWidget> {
 
   void _updateByteCount() {
     setState(() {
-      _currentBytes = _textController.text.length; // Approximation for now, UTF-8 check later if needed
+      _currentBytes = _textController
+          .text
+          .length; // Approximation for now, UTF-8 check later if needed
       // Ideally we should encode to UTF-8 to get real byte count
       try {
-         _currentBytes = Uint8List.fromList(_textController.text.codeUnits).length;
+        _currentBytes = Uint8List.fromList(
+          _textController.text.codeUnits,
+        ).length;
       } catch (_) {}
     });
   }
 
   void _subscribeToEvents() {
-    _eventSub = DeviceCommunicationEventService.instance.listenAll().listen((event) {
+    _eventSub = DeviceCommunicationEventService.instance.listenAll().listen((
+      event,
+    ) {
       // Check if event is for this device
       final deviceIds = event.tags['deviceId'];
-      if (deviceIds == null || !deviceIds.contains(widget.device.remoteId.str)) {
+      if (deviceIds == null || !deviceIds.contains(widget.deviceId)) {
         return;
       }
 
@@ -76,7 +83,7 @@ class _ChatWidgetState extends State<ChatWidget> {
         final meshPayload = event.payload as MeshtasticDeviceEventPayload;
         if (meshPayload.event is MeshPacketEvent) {
           final packetEvent = meshPayload.event as MeshPacketEvent;
-          
+
           // Filter if we are in a direct chat
           if (widget.toNodeId != null) {
             final p = packetEvent.packet;
@@ -88,16 +95,20 @@ class _ChatWidgetState extends State<ChatWidget> {
           if (packetEvent.decoded is TextPayloadDto) {
             final textPayload = packetEvent.decoded as TextPayloadDto;
             setState(() {
-              _messages.add(ChatMessage(
-                text: textPayload.text,
-                isMe: packetEvent.packet.from == 0, // We don't easily know our own ID here without looking it up, but 0 is usually not valid for remote. 
-                // Better heuristic: if we sent it, we added it optimistically. 
-                // But if it comes back from the mesh (echo), we might duplicate.
-                // For now, let's assume incoming messages are not from us unless we can verify source.
-                // Actually, `isMe` in the UI is just for alignment.
-                // If we receive a packet, it's usually from someone else.
-                timestamp: event.timestamp,
-              ));
+              _messages.add(
+                ChatMessage(
+                  text: textPayload.text,
+                  isMe:
+                      packetEvent.packet.from ==
+                      0, // We don't easily know our own ID here without looking it up, but 0 is usually not valid for remote.
+                  // Better heuristic: if we sent it, we added it optimistically.
+                  // But if it comes back from the mesh (echo), we might duplicate.
+                  // For now, let's assume incoming messages are not from us unless we can verify source.
+                  // Actually, `isMe` in the UI is just for alignment.
+                  // If we receive a packet, it's usually from someone else.
+                  timestamp: event.timestamp,
+                ),
+              );
             });
             _scrollToBottom();
           }
@@ -130,39 +141,25 @@ class _ChatWidgetState extends State<ChatWidget> {
     }
 
     try {
-      final client = await DeviceStatusStore.instance.connect(widget.device);
-      
-      // Construct MeshPacket
-      final packet = mesh.MeshPacket();
-      if (widget.toNodeId != null) {
-        packet.to = widget.toNodeId!;
-      }
-      packet.decoded = mesh.Data();
-      packet.decoded.portnum = port.PortNum.TEXT_MESSAGE_APP;
-      packet.decoded.payload = Uint8List.fromList(text.codeUnits); 
-      packet.wantAck = true;
-      packet.hopLimit = 7;
-      packet.priority = mesh.MeshPacket_Priority.RELIABLE;
-      // Note: using codeUnits is simple; for full UTF-8 support use Utf8Encoder
-      
       // Send
-      await client.sendMeshPacket(packet);
+      await widget.messageSender.sendMessage(text);
 
       // Optimistic update
       setState(() {
-        _messages.add(ChatMessage(
-          text: text,
-          isMe: true,
-          timestamp: DateTime.now(),
-        ));
+        _messages.add(
+          ChatMessage(text: text, isMe: true, timestamp: DateTime.now()),
+        );
         _textController.clear();
       });
       _scrollToBottom();
-
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context).sendFailed(e.toString()))),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context).sendFailed(e.toString()),
+            ),
+          ),
         );
       }
     }
@@ -186,13 +183,18 @@ class _ChatWidgetState extends State<ChatWidget> {
             itemBuilder: (context, index) {
               final msg = _messages[index];
               return Align(
-                alignment: msg.isMe ? Alignment.centerRight : Alignment.centerLeft,
+                alignment: msg.isMe
+                    ? Alignment.centerRight
+                    : Alignment.centerLeft,
                 child: Container(
                   margin: const EdgeInsets.symmetric(vertical: 4.0),
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12.0,
+                    vertical: 8.0,
+                  ),
                   decoration: BoxDecoration(
-                    color: msg.isMe 
-                        ? Theme.of(context).colorScheme.primaryContainer 
+                    color: msg.isMe
+                        ? Theme.of(context).colorScheme.primaryContainer
                         : Theme.of(context).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(12.0),
                   ),
@@ -248,5 +250,9 @@ class ChatMessage {
   final bool isMe;
   final DateTime timestamp;
 
-  ChatMessage({required this.text, required this.isMe, required this.timestamp});
+  ChatMessage({
+    required this.text,
+    required this.isMe,
+    required this.timestamp,
+  });
 }

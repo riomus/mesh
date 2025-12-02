@@ -5,8 +5,10 @@ import 'services/settings_service.dart';
 import 'pages/logs_page.dart';
 import 'pages/events_page.dart';
 import 'pages/nodes_page.dart';
+import 'services/device_state_service.dart';
 
 import 'l10n/app_localizations.dart';
+
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -25,6 +27,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     _loadSettings();
+    DeviceStateService.instance.init();
   }
 
   Future<void> _loadSettings() async {
@@ -38,9 +41,12 @@ class _MyAppState extends State<MyApp> {
   void _toggleTheme() {
     // Toggle relative to the current EFFECTIVE brightness.
     // If we're in system mode, respect the platform's brightness for the first toggle.
-    final platformBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
-    final isCurrentlyDark = _themeMode == ThemeMode.dark ||
-        (_themeMode == ThemeMode.system && platformBrightness == Brightness.dark);
+    final platformBrightness =
+        WidgetsBinding.instance.platformDispatcher.platformBrightness;
+    final isCurrentlyDark =
+        _themeMode == ThemeMode.dark ||
+        (_themeMode == ThemeMode.system &&
+            platformBrightness == Brightness.dark);
 
     setState(() {
       _themeMode = isCurrentlyDark ? ThemeMode.light : ThemeMode.dark;
@@ -62,20 +68,24 @@ class _MyAppState extends State<MyApp> {
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       themeMode: _themeMode,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: baseSeed, brightness: Brightness.light),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: baseSeed,
+          brightness: Brightness.light,
+        ),
         useMaterial3: true,
       ),
       darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: baseSeed, brightness: Brightness.dark),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: baseSeed,
+          brightness: Brightness.dark,
+        ),
         useMaterial3: true,
       ),
       locale: _locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: !_loaded
-          ? const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            )
+          ? const Scaffold(body: Center(child: CircularProgressIndicator()))
           : Home(
               locale: _locale,
               setLocale: _setLocale,
@@ -182,10 +192,22 @@ class _HomeState extends State<Home> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         destinations: [
-          NavigationDestination(icon: const Icon(Icons.devices), label: AppLocalizations.of(context).devicesTab),
-          NavigationDestination(icon: const Icon(Icons.list_alt), label: AppLocalizations.of(context).logsTitle),
-          NavigationDestination(icon: const Icon(Icons.event_note), label: AppLocalizations.of(context).eventsTitle),
-          NavigationDestination(icon: const Icon(Icons.hub), label: AppLocalizations.of(context).nodesTitle),
+          NavigationDestination(
+            icon: const Icon(Icons.devices),
+            label: AppLocalizations.of(context).devicesTab,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.list_alt),
+            label: AppLocalizations.of(context).logsTitle,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.event_note),
+            label: AppLocalizations.of(context).eventsTitle,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.hub),
+            label: AppLocalizations.of(context).nodesTitle,
+          ),
         ],
         onDestinationSelected: (i) => setState(() => _selectedIndex = i),
       ),

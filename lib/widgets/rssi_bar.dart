@@ -31,12 +31,15 @@ class RssiBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final activeColor = _colorFor(context);
-    final inactiveColor = Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.15);
+    final inactiveColor = Theme.of(
+      context,
+    ).colorScheme.onSurface.withValues(alpha: 0.15);
 
     // Heights for bars from left (shortest) to right (tallest)
     const heights = [8.0, 12.0, 16.0, 20.0, 24.0];
 
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         for (int i = 0; i < _totalBars; i++)
           Padding(

@@ -519,6 +519,9 @@ class AppLocalizationsPl extends AppLocalizations {
   String get channel => 'Kanał';
 
   @override
+  String get channels => 'Kanały';
+
+  @override
   String get queueStatus => 'Stan kolejki';
 
   @override
@@ -712,4 +715,44 @@ class AppLocalizationsPl extends AppLocalizations {
   String connectFailedError(Object error) {
     return 'Połączenie nieudane: $error';
   }
+
+  @override
+  String get power => 'Zasilanie';
+
+  @override
+  String get network => 'Sieć';
+
+  @override
+  String get display => 'Wyświetlacz';
+
+  @override
+  String get lora => 'LoRa';
+
+  @override
+  String get bluetooth => 'Bluetooth';
+
+  @override
+  String get security => 'Bezpieczeństwo';
+
+  @override
+  String get sessionKey => 'Klucz sesji';
+
+  @override
+  String get nodeMod => 'Modyfikacje węzła';
+
+  @override
+  String get nodeModAdmin => 'Admin modyfikacji węzła';
+
+  @override
+  String get idleGame => 'Gra bezczynności';
+
+  @override
+  String get deviceState => 'Stan urządzenia';
+
+  @override
+  String get noDeviceState => 'Brak stanu urządzenia';
+
+  @override
+  String get connectToViewState =>
+      'Połącz się z urządzeniem, aby zobaczyć jego stan';
 }

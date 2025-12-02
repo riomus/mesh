@@ -6,6 +6,7 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'logging_service.dart';
 import 'meshtastic_ble_client.dart';
 import 'device_communication_event_service.dart';
+import '../meshtastic/model/meshtastic_event.dart';
 
 /// Represents the connection state for a device along with optional error.
 @immutable
@@ -14,6 +15,7 @@ class DeviceStatus {
   final DeviceConnectionState state;
   final Object? error;
   final DateTime updatedAt;
+
   /// Latest known RSSI (dBm) for this device while connected. Null if unknown.
   final int? rssi;
 
@@ -30,11 +32,11 @@ class DeviceStatus {
     Object? error = _sentinel,
     int? rssi = _rssiSentinel,
   }) => DeviceStatus(
-        deviceId: deviceId,
-        state: state ?? this.state,
-        error: identical(error, _sentinel) ? this.error : error,
-        rssi: identical(rssi, _rssiSentinel) ? this.rssi : rssi,
-      );
+    deviceId: deviceId,
+    state: state ?? this.state,
+    error: identical(error, _sentinel) ? this.error : error,
+    rssi: identical(rssi, _rssiSentinel) ? this.rssi : rssi,
+  );
 }
 
 const _sentinel = Object();
@@ -51,6 +53,11 @@ class DeviceStatusStore {
 
   static final DeviceStatusStore instance = DeviceStatusStore._();
 
+  final StreamController<List<BluetoothDevice>> _connectedDevicesController =
+      StreamController.broadcast();
+  Stream<List<BluetoothDevice>> get connectedDevicesStream =>
+      _connectedDevicesController.stream;
+
   // Per-device entry
   final Map<String, _Entry> _entries = <String, _Entry>{};
 
@@ -60,7 +67,8 @@ class DeviceStatusStore {
     final id = device.remoteId.str;
     final entry = _entries.putIfAbsent(id, () => _Entry(device));
     // If already connected or connecting, return the existing client
-    if (entry.client != null && entry.status?.state == DeviceConnectionState.connected) {
+    if (entry.client != null &&
+        entry.status?.state == DeviceConnectionState.connected) {
       return entry.client!;
     }
     if (entry.connecting != null) {
@@ -72,12 +80,41 @@ class DeviceStatusStore {
     entry.connecting = completer.future;
     try {
       final client = MeshtasticBleClient(device);
+
+      // Wait for ConfigCompleteEvent to ensure we have full state
+      final configCompleter = Completer<void>();
+      // We must subscribe before connecting because connect() triggers the initial download
+      final configSub = client.events.listen((event) {
+        if (event is ConfigCompleteEvent) {
+          if (!configCompleter.isCompleted) {
+            configCompleter.complete();
+          }
+        }
+      });
+
       await client.connect();
       entry.client = client;
+
+      // Wait for config to complete or timeout, but don't block forever
+      try {
+        _log(id, 'Waiting for ConfigCompleteEvent...');
+        await configCompleter.future.timeout(const Duration(seconds: 15));
+        _log(id, 'ConfigCompleteEvent received');
+      } catch (e) {
+        _log(
+          id,
+          'Timed out waiting for ConfigCompleteEvent, proceeding anyway',
+          level: 'warn',
+        );
+      } finally {
+        configSub.cancel();
+      }
+
       // Begin listening for OS/device connection state changes
       entry._listenConnectionState();
       entry._update(DeviceConnectionState.connected);
       entry._subscribeClientRssi();
+      _connectedDevicesController.add(connectedDevices);
       _log(id, 'Connected');
       completer.complete(client);
       return client;
@@ -115,6 +152,7 @@ class DeviceStatusStore {
     } catch (_) {}
     entry.client = null;
     entry._update(DeviceConnectionState.disconnected);
+    _connectedDevicesController.add(connectedDevices);
     _log(deviceId, 'Disconnected');
   }
 
@@ -124,7 +162,10 @@ class DeviceStatusStore {
   /// A stream of status updates for a given device that first replays the last
   /// known status (if any) and then emits live updates.
   Stream<DeviceStatus> statusStream(String deviceId) async* {
-    final entry = _entries.putIfAbsent(deviceId, () => _Entry.placeholder(deviceId));
+    final entry = _entries.putIfAbsent(
+      deviceId,
+      () => _Entry.placeholder(deviceId),
+    );
     if (entry.status != null) {
       yield entry.status!;
     }
@@ -137,12 +178,16 @@ class DeviceStatusStore {
 
   /// Returns the first connected device found, or null if none.
   BluetoothDevice? get connectedDevice {
-    for (final e in _entries.values) {
-      if (e.status?.state == DeviceConnectionState.connected) {
-        return e.device;
-      }
-    }
-    return null;
+    final devices = connectedDevices;
+    return devices.isNotEmpty ? devices.first : null;
+  }
+
+  /// Returns all connected devices.
+  List<BluetoothDevice> get connectedDevices {
+    return _entries.values
+        .where((e) => e.status?.state == DeviceConnectionState.connected)
+        .map((e) => e.device)
+        .toList();
   }
 
   /// Dispose all clients (e.g., on app shutdown).
@@ -161,7 +206,11 @@ class DeviceStatusStore {
 
   static void _log(String deviceId, String msg, {String level = 'info'}) {
     final tags = MeshtasticBleClient.logTagsForDeviceId(deviceId);
-    LoggingService.instance.push(tags: tags, level: level, message: '[DeviceStatusStore] $msg');
+    LoggingService.instance.push(
+      tags: tags,
+      level: level,
+      message: '[DeviceStatusStore] $msg',
+    );
   }
 }
 
@@ -170,25 +219,34 @@ class _Entry {
   BluetoothDevice device;
   MeshtasticBleClient? client;
   Future<MeshtasticBleClient>? connecting;
-  final StreamController<DeviceStatus> controller = StreamController<DeviceStatus>.broadcast();
+  final StreamController<DeviceStatus> controller =
+      StreamController<DeviceStatus>.broadcast();
   DeviceStatus? status;
   StreamSubscription<BluetoothConnectionState>? connStateSub;
   // Subscription to client's RSSI stream
   StreamSubscription<int>? _clientRssiSub;
 
   _Entry(this.device)
-      : deviceId = device.remoteId.str,
-        status = DeviceStatus(deviceId: device.remoteId.str, state: DeviceConnectionState.disconnected);
+    : deviceId = device.remoteId.str,
+      status = DeviceStatus(
+        deviceId: device.remoteId.str,
+        state: DeviceConnectionState.disconnected,
+      );
 
   _Entry.placeholder(this.deviceId)
-      : device = BluetoothDevice(remoteId: DeviceIdentifier(deviceId)),
-        status = null;
+    : device = BluetoothDevice(remoteId: DeviceIdentifier(deviceId)),
+      status = null;
 
   void _update(DeviceConnectionState state, {Object? error, int? rssi}) {
-    final s = DeviceStatus(deviceId: deviceId, state: state, error: error, rssi: rssi ?? status?.rssi);
+    final s = DeviceStatus(
+      deviceId: deviceId,
+      state: state,
+      error: error,
+      rssi: rssi ?? status?.rssi,
+    );
     status = s;
     controller.add(s);
-    }
+  }
 
   void _listenConnectionState() {
     connStateSub?.cancel();
@@ -197,6 +255,9 @@ class _Entry {
         // Update status and notify services so UI can reflect and users can see it.
         _unsubscribeClientRssi();
         _update(DeviceConnectionState.disconnected);
+        DeviceStatusStore.instance._connectedDevicesController.add(
+          DeviceStatusStore.instance.connectedDevices,
+        );
         DeviceStatusStore._log(deviceId, 'Disconnected (device event)');
         // Push a lightweight device communication event for user-visible notification
         try {

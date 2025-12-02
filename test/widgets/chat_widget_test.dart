@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:mesh/widgets/chat_widget.dart';
 import 'package:mesh/l10n/app_localizations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:mockito/annotations.dart';
 
 // Generate mocks if needed, but for now we can just use a fake device
 // or rely on the fact that we can pass a device.
@@ -20,37 +18,45 @@ import 'package:mockito/annotations.dart';
 // Or I can skip the test if it's too complex for this iteration, but the user asked for tests.
 // I'll try to create a basic test.
 
-@GenerateMocks([BluetoothDevice])
-import 'chat_widget_test.mocks.dart';
+import 'package:mesh/services/message_sender.dart';
+
+class MockMessageSender extends Mock implements MessageSender {
+  @override
+  Future<void> sendMessage(String content) async {}
+}
 
 void main() {
-  testWidgets('ChatWidget renders input and button', (WidgetTester tester) async {
-    final mockDevice = MockBluetoothDevice();
-    when(mockDevice.remoteId).thenReturn(const DeviceIdentifier('00:00:00:00:00:00'));
+  testWidgets('ChatWidget renders input and button', (
+    WidgetTester tester,
+  ) async {
+    final mockSender = MockMessageSender();
     // We need to provide AppLocalizations
     await tester.pumpWidget(
       MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
-          body: ChatWidget(device: mockDevice),
+          body: ChatWidget(
+            messageSender: mockSender,
+            deviceId: '00:00:00:00:00:00',
+          ),
         ),
       ),
     );
 
     // Verify input field is present
     expect(find.byType(TextField), findsOneWidget);
-    
+
     // Verify send button is present
     expect(find.byIcon(Icons.send), findsOneWidget);
-    
+
     // Verify character count is 0/200
     expect(find.text('0/200'), findsOneWidget);
-    
+
     // Enter text
     await tester.enterText(find.byType(TextField), 'Hello');
     await tester.pump();
-    
+
     // Verify character count updates
     expect(find.text('5/200'), findsOneWidget);
   });

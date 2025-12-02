@@ -1046,6 +1046,12 @@ abstract class AppLocalizations {
   /// **'Channel'**
   String get channel;
 
+  /// No description provided for @channels.
+  ///
+  /// In en, this message translates to:
+  /// **'Channels'**
+  String get channels;
+
   /// No description provided for @queueStatus.
   ///
   /// In en, this message translates to:
@@ -1381,6 +1387,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Connect failed: {error}'**
   String connectFailedError(Object error);
+
+  /// No description provided for @power.
+  ///
+  /// In en, this message translates to:
+  /// **'Power'**
+  String get power;
+
+  /// No description provided for @network.
+  ///
+  /// In en, this message translates to:
+  /// **'Network'**
+  String get network;
+
+  /// No description provided for @display.
+  ///
+  /// In en, this message translates to:
+  /// **'Display'**
+  String get display;
+
+  /// No description provided for @lora.
+  ///
+  /// In en, this message translates to:
+  /// **'LoRa'**
+  String get lora;
+
+  /// No description provided for @bluetooth.
+  ///
+  /// In en, this message translates to:
+  /// **'Bluetooth'**
+  String get bluetooth;
+
+  /// No description provided for @security.
+  ///
+  /// In en, this message translates to:
+  /// **'Security'**
+  String get security;
+
+  /// No description provided for @sessionKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Session key'**
+  String get sessionKey;
+
+  /// No description provided for @nodeMod.
+  ///
+  /// In en, this message translates to:
+  /// **'Node mod'**
+  String get nodeMod;
+
+  /// No description provided for @nodeModAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Node mod admin'**
+  String get nodeModAdmin;
+
+  /// No description provided for @idleGame.
+  ///
+  /// In en, this message translates to:
+  /// **'Idle game'**
+  String get idleGame;
+
+  /// No description provided for @deviceState.
+  ///
+  /// In en, this message translates to:
+  /// **'Device State'**
+  String get deviceState;
+
+  /// No description provided for @noDeviceState.
+  ///
+  /// In en, this message translates to:
+  /// **'No device state'**
+  String get noDeviceState;
+
+  /// No description provided for @connectToViewState.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to the device to view its state'**
+  String get connectToViewState;
 }
 
 class _AppLocalizationsDelegate

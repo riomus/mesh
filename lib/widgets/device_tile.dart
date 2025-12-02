@@ -16,7 +16,13 @@ class DeviceTile extends StatefulWidget {
   final VoidCallback? onToggleTheme;
   final ThemeMode? themeMode;
   final void Function(BuildContext context)? onOpenSettings;
-  const DeviceTile({super.key, required this.result, this.onToggleTheme, this.themeMode, this.onOpenSettings});
+  const DeviceTile({
+    super.key,
+    required this.result,
+    this.onToggleTheme,
+    this.themeMode,
+    this.onOpenSettings,
+  });
 
   @override
   State<DeviceTile> createState() => _DeviceTileState();
@@ -39,7 +45,8 @@ class _DeviceTileState extends State<DeviceTile> {
   @override
   void didUpdateWidget(covariant DeviceTile oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.result.device.remoteId.str != widget.result.device.remoteId.str) {
+    if (oldWidget.result.device.remoteId.str !=
+        widget.result.device.remoteId.str) {
       _sub?.cancel();
       _connecting = false;
       _connected = false;
@@ -73,7 +80,11 @@ class _DeviceTileState extends State<DeviceTile> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context).connectFailedError(e.toString()))),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context).connectFailedError(e.toString()),
+            ),
+          ),
         );
       }
     } finally {
@@ -85,7 +96,9 @@ class _DeviceTileState extends State<DeviceTile> {
     if (!_connected && !_connecting) return;
     setState(() => _connecting = true);
     try {
-      await DeviceStatusStore.instance.disconnect(widget.result.device.remoteId.str);
+      await DeviceStatusStore.instance.disconnect(
+        widget.result.device.remoteId.str,
+      );
     } catch (_) {
     } finally {
       if (mounted) setState(() => _connecting = false);
@@ -99,8 +112,8 @@ class _DeviceTileState extends State<DeviceTile> {
     final name = result.advertisementData.advName.isNotEmpty
         ? result.advertisementData.advName
         : (device.platformName.isNotEmpty
-            ? device.platformName
-            : device.remoteId.str);
+              ? device.platformName
+              : device.remoteId.str);
     final lora = isLoraDevice(result);
 
     return Card(
@@ -110,11 +123,7 @@ class _DeviceTileState extends State<DeviceTile> {
         title: Row(
           children: [
             Expanded(
-              child: Text(
-                name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+              child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis),
             ),
             if (lora) ...[
               const SizedBox(width: 8),
@@ -130,8 +139,10 @@ class _DeviceTileState extends State<DeviceTile> {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(device.remoteId.str,
-                style: Theme.of(context).textTheme.bodySmall),
+            Text(
+              device.remoteId.str,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
             _manufacturerLine(context, result),
             const SizedBox(height: 4),
             RssiBar(rssi: _rssi ?? result.rssi),
@@ -151,7 +162,9 @@ class _DeviceTileState extends State<DeviceTile> {
                   Tooltip(
                     message: _connected ? t.disconnect : t.connect,
                     child: FilledButton.tonalIcon(
-                      onPressed: _connecting ? null : (_connected ? _disconnect : _connect),
+                      onPressed: _connecting
+                          ? null
+                          : (_connected ? _disconnect : _connect),
                       icon: Icon(_connected ? Icons.link_off : Icons.link),
                       label: Text(_connected ? t.disconnect : t.connect),
                     ),
@@ -163,7 +176,8 @@ class _DeviceTileState extends State<DeviceTile> {
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (_) => DeviceDetailsPage(
-                result: result,
+                device: result.device,
+                scanResult: result,
                 onToggleTheme: widget.onToggleTheme,
                 themeMode: widget.themeMode,
                 onOpenSettings: widget.onOpenSettings,

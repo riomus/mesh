@@ -187,6 +187,7 @@
   "rebooted": "Rebooted",
   "moduleConfig": "Module config",
   "channel": "Channel",
+  "channels": "Channels",
   "queueStatus": "Queue status",
   "deviceMetadata": "Device metadata",
   "mqttProxy": "MQTT proxy",
@@ -242,5 +243,18 @@
   "regexTip": "Tip: regex uses Dart syntax and is case-insensitive by default",
   "selectLevels": "Select levels",
   "unspecified": "(unspecified)",
-  "connectFailedError": "Connect failed: {error}"
+  "connectFailedError": "Connect failed: {error}",
+  "power": "Power",
+  "network": "Network",
+  "display": "Display",
+  "lora": "LoRa",
+  "bluetooth": "Bluetooth",
+  "security": "Security",
+  "sessionKey": "Session key",
+  "nodeMod": "Node mod",
+  "nodeModAdmin": "Node mod admin",
+  "idleGame": "Idle game",
+  "deviceState": "Device State",
+  "noDeviceState": "No device state",
+  "connectToViewState": "Connect to the device to view its state"
 }

@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as latlng;
 import '../utils/text_sanitize.dart';
 import '../l10n/app_localizations.dart';
+import 'map_zoom_controls.dart';
 
 /// Simple reusable map section using flutter_map (OpenStreetMap tiles).
 ///
@@ -40,14 +41,6 @@ class MapSection extends StatefulWidget {
 class _MapSectionState extends State<MapSection> {
   late final MapController _controller = MapController();
 
-  void _zoomBy(double delta) {
-    final camera = _controller.camera;
-    final newZoom = (camera.zoom + delta)
-        .clamp(widget.minZoom, widget.maxZoom)
-        .toDouble();
-    _controller.move(camera.center, newZoom);
-  }
-
   @override
   Widget build(BuildContext context) {
     final point = latlng.LatLng(widget.latitude, widget.longitude);
@@ -73,44 +66,55 @@ class _MapSectionState extends State<MapSection> {
               urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
               userAgentPackageName: 'ai.bartusiak.mesh.app',
             ),
-            MarkerLayer(markers: [
-              Marker(
-                point: point,
-                // Give the marker a slightly bigger box and ensure
-                // the child always fits without causing RenderFlex overflow.
-                width: 48,
-                height: 48,
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.bottomCenter,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.location_pin, color: theme.colorScheme.primary, size: 36),
-                      if (widget.label != null)
-                        Container(
-                          margin: const EdgeInsets.only(top: 2),
-                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.surface.withValues(alpha: 0.9),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 120),
-                            child: Text(
-                              safeText(widget.label!),
-                              style: theme.textTheme.labelSmall,
-                              maxLines: 1,
-                              softWrap: false,
-                              overflow: TextOverflow.ellipsis,
+            MarkerLayer(
+              markers: [
+                Marker(
+                  point: point,
+                  // Give the marker a slightly bigger box and ensure
+                  // the child always fits without causing RenderFlex overflow.
+                  width: 48,
+                  height: 48,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.bottomCenter,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.location_pin,
+                          color: theme.colorScheme.primary,
+                          size: 36,
+                        ),
+                        if (widget.label != null)
+                          Container(
+                            margin: const EdgeInsets.only(top: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 1,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.surface.withValues(
+                                alpha: 0.9,
+                              ),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 120),
+                              child: Text(
+                                safeText(widget.label!),
+                                style: theme.textTheme.labelSmall,
+                                maxLines: 1,
+                                softWrap: false,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ]),
+              ],
+            ),
             if (widget.showScalebar)
               const Scalebar(
                 alignment: Alignment.bottomLeft,
@@ -123,29 +127,19 @@ class _MapSectionState extends State<MapSection> {
                 margin: const EdgeInsets.all(6),
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 color: Colors.white.withValues(alpha: 0.8),
-                child: Text(AppLocalizations.of(context).mapAttribution, style: const TextStyle(fontSize: 10)),
+                child: Text(
+                  AppLocalizations.of(context).mapAttribution,
+                  style: const TextStyle(fontSize: 10),
+                ),
               ),
             ),
             if (widget.showZoomControls)
-              Align(
-                alignment: Alignment.bottomRight,
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 6, bottom: 40),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _ZoomButton(
-                        icon: Icons.add,
-                        onPressed: () => _zoomBy(widget.zoomStep),
-                      ),
-                      const SizedBox(height: 6),
-                      _ZoomButton(
-                        icon: Icons.remove,
-                        onPressed: () => _zoomBy(-widget.zoomStep),
-                      ),
-                    ],
-                  ),
-                ),
+              MapZoomControls(
+                controller: _controller,
+                minZoom: widget.minZoom,
+                maxZoom: widget.maxZoom,
+                zoomStep: widget.zoomStep,
+                padding: const EdgeInsets.only(right: 6, bottom: 40),
               ),
           ],
         ),
@@ -154,38 +148,7 @@ class _MapSectionState extends State<MapSection> {
   }
 }
 
-class _ZoomButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onPressed;
-
-  const _ZoomButton({
-    required this.icon,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withValues(alpha: 0.95),
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: const [
-          BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
-        ],
-      ),
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.all(6),
-          child: Icon(icon, size: 18),
-        ),
-      ),
-    );
-  }
-}
-
 /// Helper to convert Meshtastic fixed-point (1e-7) ints to double degrees.
 double? latFromI(int? latitudeI) => latitudeI != null ? latitudeI / 1e7 : null;
-double? lonFromI(int? longitudeI) => longitudeI != null ? longitudeI / 1e7 : null;
+double? lonFromI(int? longitudeI) =>
+    longitudeI != null ? longitudeI / 1e7 : null;

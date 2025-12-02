@@ -9,6 +9,7 @@ import '../services/nodes_service.dart';
 import '../utils/text_sanitize.dart';
 import '../pages/node_details_page.dart';
 import '../l10n/app_localizations.dart';
+import 'map_zoom_controls.dart';
 
 class NodesMapWidget extends StatefulWidget {
   const NodesMapWidget({super.key});
@@ -103,14 +104,20 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
       );
     } catch (_) {
       // Fallback: compute average center if fitCamera throws (shouldn't on v8)
-      double minLat = pts.first.$2, maxLat = pts.first.$2, minLon = pts.first.$3, maxLon = pts.first.$3;
+      double minLat = pts.first.$2,
+          maxLat = pts.first.$2,
+          minLon = pts.first.$3,
+          maxLon = pts.first.$3;
       for (final p in pts) {
         minLat = p.$2 < minLat ? p.$2 : minLat;
         maxLat = p.$2 > maxLat ? p.$2 : maxLat;
         minLon = p.$3 < minLon ? p.$3 : minLon;
         maxLon = p.$3 > maxLon ? p.$3 : maxLon;
       }
-      final center = latlng.LatLng((minLat + maxLat) / 2, (minLon + maxLon) / 2);
+      final center = latlng.LatLng(
+        (minLat + maxLat) / 2,
+        (minLon + maxLon) / 2,
+      );
       _controller.move(center, 10);
     }
   }
@@ -119,14 +126,22 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
     _svc.setCustomDistanceReference(lat: point.latitude, lon: point.longitude);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppLocalizations.of(context).customRefSet(point.latitude.toStringAsFixed(5), point.longitude.toStringAsFixed(5))))
+      SnackBar(
+        content: Text(
+          AppLocalizations.of(context).customRefSet(
+            point.latitude.toStringAsFixed(5),
+            point.longitude.toStringAsFixed(5),
+          ),
+        ),
+      ),
     );
   }
 
   String _formatLastHeard(BuildContext context, int secondsAgo) {
     const twoDays = 2 * 24 * 60 * 60; // 172800
     if (secondsAgo < twoDays) {
-      if (secondsAgo < 60) return AppLocalizations.of(context).agoSeconds(secondsAgo);
+      if (secondsAgo < 60)
+        return AppLocalizations.of(context).agoSeconds(secondsAgo);
       final minutes = secondsAgo ~/ 60;
       if (minutes < 60) return AppLocalizations.of(context).agoMinutes(minutes);
       final hours = minutes ~/ 60;
@@ -137,7 +152,8 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
     final dt = DateTime.now().subtract(Duration(seconds: secondsAgo));
     String two(int n) => n.toString().padLeft(2, '0');
     final relDays = secondsAgo ~/ (24 * 60 * 60);
-    final dateStr = '${dt.year}-${two(dt.month)}-${two(dt.day)} ${two(dt.hour)}:${two(dt.minute)}:${two(dt.second)}';
+    final dateStr =
+        '${dt.year}-${two(dt.month)}-${two(dt.day)} ${two(dt.hour)}:${two(dt.minute)}:${two(dt.second)}';
     return '$dateStr (${AppLocalizations.of(context).agoDays(relDays)})';
   }
 
@@ -148,9 +164,20 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
 
     // Deterministic color per node for clarity
     final palette = <Color>[
-      Colors.red, Colors.blue, Colors.green, Colors.orange, Colors.purple,
-      Colors.pink, Colors.teal, Colors.cyan, Colors.indigo, Colors.lime,
-      Colors.amber, Colors.brown, Colors.deepPurple, Colors.deepOrange,
+      Colors.red,
+      Colors.blue,
+      Colors.green,
+      Colors.orange,
+      Colors.purple,
+      Colors.pink,
+      Colors.teal,
+      Colors.cyan,
+      Colors.indigo,
+      Colors.lime,
+      Colors.amber,
+      Colors.brown,
+      Colors.deepPurple,
+      Colors.deepOrange,
     ];
     Color colorFor(MeshNodeView n) {
       final key = (n.num ?? n.displayName.hashCode) & 0x7fffffff;
@@ -163,28 +190,54 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
         useSafeArea: true,
         builder: (ctx) {
           final parts = <Widget>[];
-          parts.add(Row(
-            children: [
-              Icon(Icons.location_pin, color: colorFor(n)),
-              const SizedBox(width: 8),
-              Expanded(child: Text(safeText(n.displayName), style: Theme.of(ctx).textTheme.titleMedium)),
-            ],
-          ));
+          parts.add(
+            Row(
+              children: [
+                Icon(Icons.location_pin, color: colorFor(n)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    safeText(n.displayName),
+                    style: Theme.of(ctx).textTheme.titleMedium,
+                  ),
+                ),
+              ],
+            ),
+          );
           parts.add(const SizedBox(height: 8));
           final hex = n.num?.toRadixString(16);
           if (hex != null) parts.add(Text('ID: 0x$hex'));
-          if (n.user?.role != null) parts.add(Text(safeText('${AppLocalizations.of(ctx).role}: ${n.user!.role!}')));
-          if (n.hopsAway != null) parts.add(Text('${AppLocalizations.of(ctx).hops}: ${n.hopsAway}'));
+          if (n.user?.role != null)
+            parts.add(
+              Text(
+                safeText('${AppLocalizations.of(ctx).role}: ${n.user!.role!}'),
+              ),
+            );
+          if (n.hopsAway != null)
+            parts.add(Text('${AppLocalizations.of(ctx).hops}: ${n.hopsAway}'));
           if (n.deviceMetrics?.batteryLevel != null) {
             final lvl = n.deviceMetrics!.batteryLevel!;
             if (lvl == 101) {
-              parts.add(Text('${AppLocalizations.of(ctx).battery}: 🔌 ${AppLocalizations.of(ctx).charging}'));
+              parts.add(
+                Text(
+                  '${AppLocalizations.of(ctx).battery}: 🔌 ${AppLocalizations.of(ctx).charging}',
+                ),
+              );
             } else {
               parts.add(Text('${AppLocalizations.of(ctx).battery}: ${lvl}%'));
             }
           }
-          if (n.lastHeard != null) parts.add(Text('${AppLocalizations.of(ctx).lastSeen}: ${_formatLastHeard(ctx, n.lastHeard!)}'));
-          parts.add(Text('${AppLocalizations.of(ctx).coordinates}: ${lat.toStringAsFixed(6)}, ${lon.toStringAsFixed(6)}'));
+          if (n.lastHeard != null)
+            parts.add(
+              Text(
+                '${AppLocalizations.of(ctx).lastSeen}: ${_formatLastHeard(ctx, n.lastHeard!)}',
+              ),
+            );
+          parts.add(
+            Text(
+              '${AppLocalizations.of(ctx).coordinates}: ${lat.toStringAsFixed(6)}, ${lon.toStringAsFixed(6)}',
+            ),
+          );
 
           return Padding(
             padding: const EdgeInsets.all(16),
@@ -194,59 +247,69 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
               children: [
                 ...parts,
                 const SizedBox(height: 12),
-                Wrap(spacing: 8, children: [
-                  FilledButton.tonalIcon(
-                    onPressed: () {
-                      _controller.move(latlng.LatLng(lat, lon), 14);
-                      Navigator.of(ctx).maybePop();
-                    },
-                    icon: const Icon(Icons.center_focus_strong),
-                    label: Text(AppLocalizations.of(ctx).center),
-                  ),
-                  FilledButton.tonalIcon(
-                    onPressed: () {
-                      _svc.setCustomDistanceReference(lat: lat, lon: lon);
-                      Navigator.of(ctx).maybePop();
-                    },
-                    icon: const Icon(Icons.my_location),
-                    label: Text(AppLocalizations.of(ctx).useAsRef),
-                  ),
-                  FilledButton.icon(
-                    onPressed: n.num == null
-                        ? null
-                        : () {
-                            // Close the bottom sheet first, then open details
-                            Navigator.of(ctx).maybePop();
-                            Future.microtask(() {
-                              if (!mounted) return;
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => NodeDetailsPage(nodeNum: n.num!),
-                                ),
-                              );
-                            });
-                          },
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    FilledButton.tonalIcon(
+                      onPressed: () {
+                        _controller.move(latlng.LatLng(lat, lon), 14);
+                        Navigator.of(ctx).maybePop();
+                      },
+                      icon: const Icon(Icons.center_focus_strong),
+                      label: Text(AppLocalizations.of(ctx).center),
+                    ),
+                    FilledButton.tonalIcon(
+                      onPressed: () {
+                        _svc.setCustomDistanceReference(lat: lat, lon: lon);
+                        Navigator.of(ctx).maybePop();
+                      },
+                      icon: const Icon(Icons.my_location),
+                      label: Text(AppLocalizations.of(ctx).useAsRef),
+                    ),
+                    FilledButton.icon(
+                      onPressed: n.num == null
+                          ? null
+                          : () {
+                              // Close the bottom sheet first, then open details
+                              Navigator.of(ctx).maybePop();
+                              Future.microtask(() {
+                                if (!mounted) return;
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        NodeDetailsPage(nodeNum: n.num!),
+                                  ),
+                                );
+                              });
+                            },
                       icon: const Icon(Icons.open_in_new),
                       label: Text(AppLocalizations.of(ctx).details),
                     ),
                     OutlinedButton.icon(
                       onPressed: () async {
-                        await Clipboard.setData(ClipboardData(text: '$lat,$lon'));
+                        await Clipboard.setData(
+                          ClipboardData(text: '$lat,$lon'),
+                        );
                         if (!ctx.mounted) return;
                         ScaffoldMessenger.of(ctx).showSnackBar(
-                          SnackBar(content: Text(AppLocalizations.of(ctx).coordsCopied)),
+                          SnackBar(
+                            content: Text(
+                              AppLocalizations.of(ctx).coordsCopied,
+                            ),
+                          ),
                         );
                       },
                       icon: const Icon(Icons.copy_all),
                       label: Text(AppLocalizations.of(ctx).copyCoords),
                     ),
-                  ]),
-                ],
-              ),
-            );
-          },
-        );
-      }
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    }
 
     final markers = <Marker>[
       for (final p in points)
@@ -273,17 +336,22 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
             if (eff != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 8.0),
-                child: Row(children: [
-                  const Icon(Icons.my_location, size: 16),
-                  const SizedBox(width: 4),
-                  Text('${AppLocalizations.of(context).mapRefPrefix}: ${eff.$1.toStringAsFixed(5)}, ${eff.$2.toStringAsFixed(5)}'),
-                  const SizedBox(width: 8),
-                  TextButton.icon(
-                    onPressed: () => _svc.setCustomDistanceReference(lat: null, lon: null),
-                    icon: const Icon(Icons.clear),
-                    label: Text(AppLocalizations.of(context).clearRef),
-                  ),
-                ]),
+                child: Row(
+                  children: [
+                    const Icon(Icons.my_location, size: 16),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${AppLocalizations.of(context).mapRefPrefix}: ${eff.$1.toStringAsFixed(5)}, ${eff.$2.toStringAsFixed(5)}',
+                    ),
+                    const SizedBox(width: 8),
+                    TextButton.icon(
+                      onPressed: () =>
+                          _svc.setCustomDistanceReference(lat: null, lon: null),
+                      icon: const Icon(Icons.clear),
+                      label: Text(AppLocalizations.of(context).clearRef),
+                    ),
+                  ],
+                ),
               ),
             const Spacer(),
             TextButton.icon(
@@ -295,51 +363,59 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
         ),
         Expanded(
           child: points.isEmpty
-              ? _EmptyMapState(onLongPress: _onLongPress)
+              ? _EmptyMapState(
+                  controller: _controller,
+                  onLongPress: _onLongPress,
+                )
               : FlutterMap(
-            mapController: _controller,
-            options: MapOptions(
-              initialCenter: points.isNotEmpty
-                  ? latlng.LatLng(points.first.$2, points.first.$3)
-                  : const latlng.LatLng(0, 0),
-              initialZoom: 3,
-              onLongPress: _onLongPress,
-            ),
-            children: [
-              TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'ai.bartusiak.mesh.app',
-              ),
-              // Cluster markers that are close to each other for better readability
-              MarkerClusterLayerWidget(
-                options: MarkerClusterLayerOptions(
-                  maxClusterRadius: 45,
-                  size: const Size(40, 40),
-                  alignment: Alignment.center,
-                  padding: const EdgeInsets.all(50),
-                  maxZoom: 15,
-                  markers: markers,
-                  builder: (context, clustered) {
-                    return Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Colors.blue,
+                  mapController: _controller,
+                  options: MapOptions(
+                    initialCenter: points.isNotEmpty
+                        ? latlng.LatLng(points.first.$2, points.first.$3)
+                        : const latlng.LatLng(0, 0),
+                    initialZoom: 3,
+                    onLongPress: _onLongPress,
+                  ),
+                  children: [
+                    TileLayer(
+                      urlTemplate:
+                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      userAgentPackageName: 'ai.bartusiak.mesh.app',
+                    ),
+                    // Cluster markers that are close to each other for better readability
+                    MarkerClusterLayerWidget(
+                      options: MarkerClusterLayerOptions(
+                        maxClusterRadius: 45,
+                        size: const Size(40, 40),
+                        alignment: Alignment.center,
+                        padding: const EdgeInsets.all(50),
+                        maxZoom: 15,
+                        markers: markers,
+                        builder: (context, clustered) {
+                          return Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Colors.blue,
+                            ),
+                            child: Center(
+                              child: Text(
+                                clustered.length.toString(),
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                      child: Center(
-                        child: Text(
-                          clustered.length.toString(),
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    );
-                  },
+                    ),
+                    MapZoomControls(
+                      controller: _controller,
+                      padding: const EdgeInsets.only(right: 16, bottom: 16),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
         ),
       ],
-      );
+    );
   }
 
   @override
@@ -347,12 +423,14 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
 }
 
 class _EmptyMapState extends StatelessWidget {
+  final MapController controller;
   final void Function(TapPosition, latlng.LatLng) onLongPress;
-  const _EmptyMapState({required this.onLongPress});
+  const _EmptyMapState({required this.controller, required this.onLongPress});
 
   @override
   Widget build(BuildContext context) {
     return FlutterMap(
+      mapController: controller,
       options: MapOptions(
         initialCenter: const latlng.LatLng(0, 0),
         initialZoom: 2,
@@ -370,20 +448,32 @@ class _EmptyMapState extends StatelessWidget {
             padding: const EdgeInsets.all(12.0),
             child: DecoratedBox(
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
+                color: Theme.of(
+                  context,
+                ).colorScheme.surface.withValues(alpha: 0.95),
                 borderRadius: BorderRadius.circular(8),
-                boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+                boxShadow: const [
+                  BoxShadow(color: Colors.black26, blurRadius: 4),
+                ],
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Text(AppLocalizations.of(context).noNodesWithLocation, textAlign: TextAlign.center),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                child: Text(
+                  AppLocalizations.of(context).noNodesWithLocation,
+                  textAlign: TextAlign.center,
+                ),
               ),
             ),
           ),
+        ),
+        MapZoomControls(
+          controller: controller,
+          padding: const EdgeInsets.only(right: 16, bottom: 16),
         ),
       ],
     );
   }
 }
-
-

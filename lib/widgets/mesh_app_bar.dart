@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 import '../l10n/app_localizations.dart';
+import '../services/device_status_store.dart';
+import '../pages/device_details_page.dart';
 
 class MeshAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget title;
@@ -22,9 +24,8 @@ class MeshAppBar extends StatelessWidget implements PreferredSizeWidget {
   });
 
   @override
-  Size get preferredSize => Size.fromHeight(
-        kToolbarHeight + (bottom?.preferredSize.height ?? 0),
-      );
+  Size get preferredSize =>
+      Size.fromHeight(kToolbarHeight + (bottom?.preferredSize.height ?? 0));
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +35,53 @@ class MeshAppBar extends StatelessWidget implements PreferredSizeWidget {
       bottom: bottom,
       actions: [
         if (extraActions != null) ...extraActions!,
+        // Connected devices indicator (scrollable)
+        StreamBuilder<List<BluetoothDevice>>(
+          stream: DeviceStatusStore.instance.connectedDevicesStream,
+          initialData: DeviceStatusStore.instance.connectedDevices,
+          builder: (context, snapshot) {
+            final devices = snapshot.data ?? [];
+            if (devices.isEmpty) return const SizedBox.shrink();
+
+            return ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 300),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final device in devices)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: ActionChip(
+                          avatar: const Icon(Icons.link, size: 16),
+                          label: Text(
+                            device.platformName.isNotEmpty
+                                ? device.platformName
+                                : device.remoteId.str,
+                            style: const TextStyle(fontSize: 12),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => DeviceDetailsPage(
+                                  device: device,
+                                  onToggleTheme: onToggleTheme,
+                                  themeMode: themeMode,
+                                  onOpenSettings: onOpenSettings,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
         // Bluetooth adapter state indicator
         StreamBuilder<BluetoothAdapterState>(
           stream: FlutterBluePlus.adapterState,

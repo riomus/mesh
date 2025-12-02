@@ -28,10 +28,10 @@ class MeshtasticBleClient {
   /// Structured logging tags for Meshtastic devices.
   /// Example: {'network': ['meshtastic'], 'deviceId': [<id>], 'class': ['MeshtasticBleClient']}
   static Map<String, Object?> logTagsForDeviceId(String deviceId) => {
-        'network': 'meshtastic',
-        'deviceId': deviceId,
-        'class': 'MeshtasticBleClient',
-      };
+    'network': 'meshtastic',
+    'deviceId': deviceId,
+    'class': 'MeshtasticBleClient',
+  };
 
   /// Convenience overload to build structured tags directly from a device.
   static Map<String, Object?> logTagsForDevice(BluetoothDevice device) =>
@@ -47,7 +47,8 @@ class MeshtasticBleClient {
   StreamSubscription<BluetoothConnectionState>? _connStateSub;
   // RSSI listener encapsulated in the client
   StreamSubscription<dynamic>? _rssiSub;
-  final StreamController<int> _rssiController = StreamController<int>.broadcast();
+  final StreamController<int> _rssiController =
+      StreamController<int>.broadcast();
   int? _lastRssi;
 
   final _eventsController = StreamController<MeshtasticEvent>.broadcast();
@@ -66,6 +67,7 @@ class MeshtasticBleClient {
 
   /// High-level events parsed from FromRadio payloads.
   Stream<MeshtasticEvent> get events => _eventsController.stream;
+
   /// Live RSSI updates (dBm) while connected. Emits when values change.
   Stream<int> get rssi => _rssiController.stream;
 
@@ -73,11 +75,15 @@ class MeshtasticBleClient {
     _ensureNotDisposed();
     _log('Connecting to ${device.remoteId.str} ...');
     int? requestMtu = 512;
-    if (kIsWeb){
-      requestMtu=null;
+    if (kIsWeb) {
+      requestMtu = null;
     }
 
-    await device.connect(timeout: timeout, license: License.free, mtu: requestMtu);
+    await device.connect(
+      timeout: timeout,
+      license: License.free,
+      mtu: requestMtu,
+    );
 
     // Request MTU 512 only on Android. Other platforms either ignore or don't support it.
     // On non-Android, just read the current MTU.
@@ -156,7 +162,7 @@ class MeshtasticBleClient {
     try {
       await _fromNum!.setNotifyValue(true);
     } catch (e) {
-        _log('Failed to enable notifications on FromNum: $e', level: 'error');
+      _log('Failed to enable notifications on FromNum: $e', level: 'error');
     }
     _log('Discovery done');
   }
@@ -178,7 +184,7 @@ class MeshtasticBleClient {
       try {
         final hb = mesh.ToRadio(heartbeat: mesh.Heartbeat(nonce: nonce));
         await sendToRadio(hb);
-        nonce = nonce+1;
+        nonce = nonce + 1;
         _log('Heartbeat sent');
       } catch (e) {
         _log('Failed to send heartbeat: $e', level: 'warn');
@@ -243,11 +249,15 @@ class MeshtasticBleClient {
     final characteristic = _toRadio!;
 
     final maxChunk = max(20, (_mtu - 3));
-    _log('Total bytes to send: ${data.length}, MTU: $_mtu, Chunk size: $maxChunk');
+    _log(
+      'Total bytes to send: ${data.length}, MTU: $_mtu, Chunk size: $maxChunk',
+    );
 
     int offset = 0;
     while (offset < data.length) {
-      final end = (offset + maxChunk) > data.length ? data.length : (offset + maxChunk);
+      final end = (offset + maxChunk) > data.length
+          ? data.length
+          : (offset + maxChunk);
       final chunk = data.sublist(offset, end);
       _log('Sending chunk: $offset to $end (${chunk.length} bytes)');
       await characteristic.write(chunk, withoutResponse: false);
@@ -271,8 +281,10 @@ class MeshtasticBleClient {
     try {
       // If client has not discovered/bound ToRadio yet, skip gracefully
       if (_toRadio == null) {
-        _log('ToRadio characteristic not available, skipping ToRadio.disconnect',
-            level: 'warn');
+        _log(
+          'ToRadio characteristic not available, skipping ToRadio.disconnect',
+          level: 'warn',
+        );
         return;
       }
       _log('Sending ToRadio.disconnect=true');
@@ -307,7 +319,6 @@ class MeshtasticBleClient {
     } catch (_) {}
   }
 
-
   void _ensureNotDisposed() {
     if (_isDisposed) {
       throw StateError('MeshtasticBleClient is disposed');
@@ -327,10 +338,8 @@ class MeshtasticBleClient {
     () async {
       try {
         final v = await device.readRssi();
-        if (v is int) {
-          _lastRssi = v;
-          if (!_rssiController.isClosed) _rssiController.add(v);
-        }
+        _lastRssi = v;
+        if (!_rssiController.isClosed) _rssiController.add(v);
       } catch (_) {}
     }();
     try {

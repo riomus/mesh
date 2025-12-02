@@ -10,6 +10,7 @@ import '../utils/text_sanitize.dart';
 import '../services/device_status_store.dart';
 import 'device_chat_page.dart';
 import '../l10n/app_localizations.dart';
+import '../widgets/map_zoom_controls.dart';
 
 /// Detailed view of a single mesh node.
 class NodeDetailsPage extends StatefulWidget {
@@ -24,6 +25,7 @@ class _NodeDetailsPageState extends State<NodeDetailsPage> {
   final _svc = NodesService.instance;
   StreamSubscription<List<MeshNodeView>>? _sub;
   MeshNodeView? _node;
+  late final MapController _mapController = MapController();
 
   @override
   void initState() {
@@ -92,7 +94,13 @@ class _NodeDetailsPageState extends State<NodeDetailsPage> {
     final n = _node;
     return Scaffold(
       appBar: AppBar(
-        title: Text(n != null ? safeText(n.displayName) : AppLocalizations.of(context).nodeTitleHex(widget.nodeNum.toRadixString(16))),
+        title: Text(
+          n != null
+              ? safeText(n.displayName)
+              : AppLocalizations.of(
+                  context,
+                ).nodeTitleHex(widget.nodeNum.toRadixString(16)),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.chat),
@@ -105,13 +113,21 @@ class _NodeDetailsPageState extends State<NodeDetailsPage> {
                     builder: (context) => DeviceChatPage(
                       device: device,
                       toNodeId: widget.nodeNum,
-                      chatTitle: n?.displayName ?? AppLocalizations.of(context).nodeTitleHex(widget.nodeNum.toRadixString(16)),
+                      chatTitle:
+                          n?.displayName ??
+                          AppLocalizations.of(
+                            context,
+                          ).nodeTitleHex(widget.nodeNum.toRadixString(16)),
                     ),
                   ),
                 );
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(AppLocalizations.of(context).meshtasticConnectFailed)),
+                  SnackBar(
+                    content: Text(
+                      AppLocalizations.of(context).meshtasticConnectFailed,
+                    ),
+                  ),
                 );
               }
             },
@@ -119,31 +135,72 @@ class _NodeDetailsPageState extends State<NodeDetailsPage> {
         ],
       ),
       body: n == null
-          ? const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()))
+          ? const Center(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: CircularProgressIndicator(),
+              ),
+            )
           : ListView(
               padding: const EdgeInsets.all(12),
               children: [
                 Card(
                   child: ListTile(
-                    leading: CircleAvatar(child: Text(safeInitial(n.displayName))),
+                    leading: CircleAvatar(
+                      child: Text(safeInitial(n.displayName)),
+                    ),
                     title: Text(safeText(n.displayName)),
-                    subtitle: Text(AppLocalizations.of(context).nodeIdHex(n.num!.toRadixString(16))),
+                    subtitle: Text(
+                      AppLocalizations.of(
+                        context,
+                      ).nodeIdHex(n.num!.toRadixString(16)),
+                    ),
                   ),
                 ),
                 Card(
                   child: Column(
                     children: [
-                      _infoTile(Icons.badge, AppLocalizations.of(context).role, n.user?.role),
+                      _infoTile(
+                        Icons.badge,
+                        AppLocalizations.of(context).role,
+                        n.user?.role,
+                      ),
                       const Divider(height: 1),
-                      _infoTile(Icons.alt_route, AppLocalizations.of(context).hopsAway, n.hopsAway?.toString()),
+                      _infoTile(
+                        Icons.alt_route,
+                        AppLocalizations.of(context).hopsAway,
+                        n.hopsAway?.toString(),
+                      ),
                       const Divider(height: 1),
-                      _infoTile(Icons.network_cell, AppLocalizations.of(context).snrLabel, n.snr?.toStringAsFixed(1)),
+                      _infoTile(
+                        Icons.network_cell,
+                        AppLocalizations.of(context).snrLabel,
+                        n.snr?.toStringAsFixed(1),
+                      ),
                       const Divider(height: 1),
-                      _infoTile(Icons.cloud, AppLocalizations.of(context).viaMqtt, n.viaMqtt == true ? AppLocalizations.of(context).yes : (n.viaMqtt == false ? AppLocalizations.of(context).no : null)),
+                      _infoTile(
+                        Icons.cloud,
+                        AppLocalizations.of(context).viaMqtt,
+                        n.viaMqtt == true
+                            ? AppLocalizations.of(context).yes
+                            : (n.viaMqtt == false
+                                  ? AppLocalizations.of(context).no
+                                  : null),
+                      ),
                       const Divider(height: 1),
-                      _infoTile(Icons.battery_full, AppLocalizations.of(context).battery, _batteryText(n)),
+                      _infoTile(
+                        Icons.battery_full,
+                        AppLocalizations.of(context).battery,
+                        _batteryText(n),
+                      ),
                       const Divider(height: 1),
-                      _infoTile(Icons.access_time, AppLocalizations.of(context).lastSeenLabel, n.lastHeard != null ? _formatLastHeard(n.lastHeard!) : null),
+                      _infoTile(
+                        Icons.access_time,
+                        AppLocalizations.of(context).lastSeenLabel,
+                        n.lastHeard != null
+                            ? _formatLastHeard(n.lastHeard!)
+                            : null,
+                      ),
                     ],
                   ),
                 ),
@@ -200,29 +257,45 @@ class _NodeDetailsPageState extends State<NodeDetailsPage> {
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text('lat: ${lat.toStringAsFixed(6)}, lon: ${lon.toStringAsFixed(6)}'),
+              child: Text(
+                'lat: ${lat.toStringAsFixed(6)}, lon: ${lon.toStringAsFixed(6)}',
+              ),
             ),
             const SizedBox(height: 8),
             SizedBox(
               height: 220,
               child: FlutterMap(
+                mapController: _mapController,
                 options: MapOptions(
                   initialCenter: latlng.LatLng(lat, lon),
                   initialZoom: 13,
                 ),
                 children: [
                   TileLayer(
-                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    urlTemplate:
+                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                     userAgentPackageName: 'ai.bartusiak.mesh.app',
                   ),
-                  MarkerLayer(markers: [
-                    Marker(
-                      point: latlng.LatLng(lat, lon),
-                      width: 44,
-                      height: 44,
-                      child: const Icon(Icons.location_pin, size: 36, color: Colors.red),
-                    ),
-                  ]),
+
+                  MarkerLayer(
+                    markers: [
+                      Marker(
+                        point: latlng.LatLng(lat, lon),
+                        width: 44,
+                        height: 44,
+                        child: const Icon(
+                          Icons.location_pin,
+                          size: 36,
+                          color: Colors.red,
+                        ),
+                      ),
+                    ],
+                  ),
+                  MapZoomControls(
+                    controller: _mapController,
+                    padding: const EdgeInsets.only(right: 8, bottom: 8),
+                    zoomStep: 1.0,
+                  ),
                 ],
               ),
             ),
@@ -245,13 +318,15 @@ class _NodeDetailsPageState extends State<NodeDetailsPage> {
     final name = _firstOrNull(n.tags['sourceNodeName']);
     final id = _firstOrNull(n.tags['sourceDeviceId']);
     final short = id != null ? _shortId(id) : null;
-    if (name != null && short != null) return AppLocalizations.of(context).viaNameId(name, short);
+    if (name != null && short != null)
+      return AppLocalizations.of(context).viaNameId(name, short);
     if (name != null) return AppLocalizations.of(context).viaName(name);
     if (short != null) return AppLocalizations.of(context).viaId(short);
     return '—';
   }
 
-  String? _firstOrNull(List<String>? vs) => (vs == null || vs.isEmpty) ? null : vs.first;
+  String? _firstOrNull(List<String>? vs) =>
+      (vs == null || vs.isEmpty) ? null : vs.first;
 
   // Take last 4 hex digits if looks like hex, otherwise last 4 characters
   String _shortId(String raw) {
@@ -265,7 +340,8 @@ class _NodeDetailsPageState extends State<NodeDetailsPage> {
   String _formatLastHeard(int secondsAgo) {
     const twoDays = 2 * 24 * 60 * 60;
     if (secondsAgo < twoDays) {
-      if (secondsAgo < 60) return AppLocalizations.of(context).agoSeconds(secondsAgo);
+      if (secondsAgo < 60)
+        return AppLocalizations.of(context).agoSeconds(secondsAgo);
       final minutes = secondsAgo ~/ 60;
       if (minutes < 60) return AppLocalizations.of(context).agoMinutes(minutes);
       final hours = minutes ~/ 60;
@@ -276,7 +352,8 @@ class _NodeDetailsPageState extends State<NodeDetailsPage> {
     final dt = DateTime.now().subtract(Duration(seconds: secondsAgo));
     String two(int n) => n.toString().padLeft(2, '0');
     final relDays = secondsAgo ~/ (24 * 60 * 60);
-    final dateStr = '${dt.year}-${two(dt.month)}-${two(dt.day)} ${two(dt.hour)}:${two(dt.minute)}:${two(dt.second)}';
+    final dateStr =
+        '${dt.year}-${two(dt.month)}-${two(dt.day)} ${two(dt.hour)}:${two(dt.minute)}:${two(dt.second)}';
     return '$dateStr (${AppLocalizations.of(context).agoDays(relDays)})';
   }
 }

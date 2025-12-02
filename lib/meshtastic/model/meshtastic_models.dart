@@ -280,6 +280,14 @@ class KeyVerificationPayloadDto extends DecodedPayloadDto {
 }
 
 // FromRadio variant DTOs (typed, minimal fields used by UI)
+class XModemDto {
+  final String? control; // enum name
+  final int? seq;
+  final int? crc16;
+  final Uint8List? buffer;
+  const XModemDto({this.control, this.seq, this.crc16, this.buffer});
+}
+
 class MyInfoDto {
   final NodeNum? myNodeNum;
   final int? rebootCount;
@@ -346,7 +354,39 @@ class NodeInfoDto {
 class ConfigDto {
   final DeviceConfigDto? device;
   final PositionConfigDto? position;
-  const ConfigDto({this.device, this.position});
+  final PowerConfigDto? power;
+  final NetworkConfigDto? network;
+  final DisplayConfigDto? display;
+  final LoRaConfigDto? lora;
+  final BluetoothConfigDto? bluetooth;
+  final SecurityConfigDto? security;
+  final SessionkeyConfigDto? sessionkey;
+
+  const ConfigDto({
+    this.device,
+    this.position,
+    this.power,
+    this.network,
+    this.display,
+    this.lora,
+    this.bluetooth,
+    this.security,
+    this.sessionkey,
+  });
+
+  ConfigDto copyWith(ConfigDto other) {
+    return ConfigDto(
+      device: other.device ?? device,
+      position: other.position ?? position,
+      power: other.power ?? power,
+      network: other.network ?? network,
+      display: other.display ?? display,
+      lora: other.lora ?? lora,
+      bluetooth: other.bluetooth ?? bluetooth,
+      security: other.security ?? security,
+      sessionkey: other.sessionkey ?? sessionkey,
+    );
+  }
 }
 
 class DeviceConfigDto {
@@ -411,6 +451,169 @@ class PositionConfigDto {
   });
 }
 
+class PowerConfigDto {
+  final bool? isPowerSaving;
+  final int? onBatteryShutdownAfterSecs;
+  final double? adcMultiplierOverride;
+  final int? waitBluetoothSecs;
+  final int? sdsSecs;
+  final int? lsSecs;
+  final int? minWakeSecs;
+  final int? deviceBatteryInaAddress;
+  final int? powermonEnables;
+
+  const PowerConfigDto({
+    this.isPowerSaving,
+    this.onBatteryShutdownAfterSecs,
+    this.adcMultiplierOverride,
+    this.waitBluetoothSecs,
+    this.sdsSecs,
+    this.lsSecs,
+    this.minWakeSecs,
+    this.deviceBatteryInaAddress,
+    this.powermonEnables,
+  });
+}
+
+class NetworkConfigDto {
+  final bool? wifiEnabled;
+  final String? wifiSsid;
+  final String? wifiPsk;
+  final String? ntpServer;
+  final bool? ethEnabled;
+  final String? addressMode; // enum name
+  final IpV4ConfigDto? ipv4Config;
+  final String? rsyslogServer;
+  final int? enabledProtocols;
+  final bool? ipv6Enabled;
+
+  const NetworkConfigDto({
+    this.wifiEnabled,
+    this.wifiSsid,
+    this.wifiPsk,
+    this.ntpServer,
+    this.ethEnabled,
+    this.addressMode,
+    this.ipv4Config,
+    this.rsyslogServer,
+    this.enabledProtocols,
+    this.ipv6Enabled,
+  });
+}
+
+class IpV4ConfigDto {
+  final int? ip;
+  final int? gateway;
+  final int? subnet;
+  final int? dns;
+
+  const IpV4ConfigDto({this.ip, this.gateway, this.subnet, this.dns});
+}
+
+class DisplayConfigDto {
+  final int? screenOnSecs;
+  final int? autoScreenCarouselSecs;
+  final bool? compassNorthTop;
+  final bool? flipScreen;
+  final String? units; // enum name
+  final String? oled; // enum name
+  final String? displaymode; // enum name
+  final bool? headingBold;
+  final bool? wakeOnTapOrMotion;
+  final String? compassOrientation; // enum name
+  final bool? use12hClock;
+  final bool? useLongNodeName;
+
+  const DisplayConfigDto({
+    this.screenOnSecs,
+    this.autoScreenCarouselSecs,
+    this.compassNorthTop,
+    this.flipScreen,
+    this.units,
+    this.oled,
+    this.displaymode,
+    this.headingBold,
+    this.wakeOnTapOrMotion,
+    this.compassOrientation,
+    this.use12hClock,
+    this.useLongNodeName,
+  });
+}
+
+class LoRaConfigDto {
+  final bool? usePreset;
+  final String? modemPreset; // enum name
+  final int? bandwidth;
+  final int? spreadFactor;
+  final int? codingRate;
+  final double? frequencyOffset;
+  final String? region; // enum name
+  final int? hopLimit;
+  final bool? txEnabled;
+  final int? txPower;
+  final int? channelNum;
+  final bool? overrideDutyCycle;
+  final bool? sx126xRxBoostedGain;
+  final double? overrideFrequency;
+  final bool? paFanDisabled;
+  final List<int>? ignoreIncoming;
+  final bool? ignoreMqtt;
+  final bool? configOkToMqtt;
+
+  const LoRaConfigDto({
+    this.usePreset,
+    this.modemPreset,
+    this.bandwidth,
+    this.spreadFactor,
+    this.codingRate,
+    this.frequencyOffset,
+    this.region,
+    this.hopLimit,
+    this.txEnabled,
+    this.txPower,
+    this.channelNum,
+    this.overrideDutyCycle,
+    this.sx126xRxBoostedGain,
+    this.overrideFrequency,
+    this.paFanDisabled,
+    this.ignoreIncoming,
+    this.ignoreMqtt,
+    this.configOkToMqtt,
+  });
+}
+
+class BluetoothConfigDto {
+  final bool? enabled;
+  final String? mode; // enum name
+  final int? fixedPin;
+
+  const BluetoothConfigDto({this.enabled, this.mode, this.fixedPin});
+}
+
+class SecurityConfigDto {
+  final Uint8List? publicKey;
+  final Uint8List? privateKey;
+  final List<Uint8List>? adminKey;
+  final bool? isManaged;
+  final bool? serialEnabled;
+  final bool? debugLogApiEnabled;
+  final bool? adminChannelEnabled;
+
+  const SecurityConfigDto({
+    this.publicKey,
+    this.privateKey,
+    this.adminKey,
+    this.isManaged,
+    this.serialEnabled,
+    this.debugLogApiEnabled,
+    this.adminChannelEnabled,
+  });
+}
+
+class SessionkeyConfigDto {
+  const SessionkeyConfigDto();
+}
+
 // Structured ModuleConfig DTO (incremental: starts with MQTT fields)
 class ModuleConfigDto {
   final MqttConfigDto? mqtt;
@@ -428,6 +631,9 @@ class ModuleConfigDto {
   final DetectionSensorConfigDto? detectionSensor;
   final DtnOverlayConfigDto? dtnOverlay;
   final BroadcastAssistConfigDto? broadcastAssist;
+  final NodeModConfigDto? nodeMod;
+  final NodeModAdminConfigDto? nodeModAdmin;
+  final IdleGameConfigDto? idleGame;
   const ModuleConfigDto({
     this.mqtt,
     this.telemetry,
@@ -444,7 +650,110 @@ class ModuleConfigDto {
     this.detectionSensor,
     this.dtnOverlay,
     this.broadcastAssist,
+    this.nodeMod,
+    this.nodeModAdmin,
+    this.idleGame,
   });
+
+  ModuleConfigDto copyWith(ModuleConfigDto other) {
+    return ModuleConfigDto(
+      mqtt: other.mqtt ?? mqtt,
+      telemetry: other.telemetry ?? telemetry,
+      serial: other.serial ?? serial,
+      storeForward: other.storeForward ?? storeForward,
+      rangeTest: other.rangeTest ?? rangeTest,
+      externalNotification: other.externalNotification ?? externalNotification,
+      audio: other.audio ?? audio,
+      neighborInfo: other.neighborInfo ?? neighborInfo,
+      remoteHardware: other.remoteHardware ?? remoteHardware,
+      paxcounter: other.paxcounter ?? paxcounter,
+      cannedMessage: other.cannedMessage ?? cannedMessage,
+      ambientLighting: other.ambientLighting ?? ambientLighting,
+      detectionSensor: other.detectionSensor ?? detectionSensor,
+      dtnOverlay: other.dtnOverlay ?? dtnOverlay,
+      broadcastAssist: other.broadcastAssist ?? broadcastAssist,
+      nodeMod: other.nodeMod ?? nodeMod,
+      nodeModAdmin: other.nodeModAdmin ?? nodeModAdmin,
+      idleGame: other.idleGame ?? idleGame,
+    );
+  }
+}
+
+class NodeModConfigDto {
+  final String? textStatus;
+  final String? emoji;
+  const NodeModConfigDto({this.textStatus, this.emoji});
+}
+
+class NodeModAdminConfigDto {
+  final bool? snifferEnabled;
+  final bool? doNotSendPrvOverMqtt;
+  final bool? localStatsOverMeshEnabled;
+  final bool? localStatsExtendedOverMeshEnabled;
+  final bool? idlegameEnabled;
+  final int? additionalChutil;
+  final double? additionalTxutil;
+  final int? additionalPoliteChannelPercent;
+  final int? additionalPoliteDutyCyclePercent;
+  final double? currentTxUtilLimit;
+  final int? currentMaxChannelUtilPercent;
+  final int? currentPoliteChannelUtilPercent;
+  final int? currentPoliteDutyCyclePercent;
+  final bool? autoResponderEnabled;
+  final String? autoResponderText;
+  final bool? autoRedirectMessages;
+  final int? autoRedirectTargetNodeId;
+  final bool? telemetryLimiterEnabled;
+  final int? telemetryLimiterPacketsPerMinute;
+  final bool? telemetryLimiterAutoChanutilEnabled;
+  final int? telemetryLimiterAutoChanutilThreshold;
+  final bool? positionLimiterEnabled;
+  final int? positionLimiterTimeMinutesThreshold;
+  final bool? opportunisticFloodingEnabled;
+  final int? opportunisticBaseDelayMs;
+  final int? opportunisticHopDelayMs;
+  final int? opportunisticSnrGainMs;
+  final int? opportunisticJitterMs;
+  final bool? opportunisticCancelOnFirstHear;
+  final bool? opportunisticAuto;
+
+  const NodeModAdminConfigDto({
+    this.snifferEnabled,
+    this.doNotSendPrvOverMqtt,
+    this.localStatsOverMeshEnabled,
+    this.localStatsExtendedOverMeshEnabled,
+    this.idlegameEnabled,
+    this.additionalChutil,
+    this.additionalTxutil,
+    this.additionalPoliteChannelPercent,
+    this.additionalPoliteDutyCyclePercent,
+    this.currentTxUtilLimit,
+    this.currentMaxChannelUtilPercent,
+    this.currentPoliteChannelUtilPercent,
+    this.currentPoliteDutyCyclePercent,
+    this.autoResponderEnabled,
+    this.autoResponderText,
+    this.autoRedirectMessages,
+    this.autoRedirectTargetNodeId,
+    this.telemetryLimiterEnabled,
+    this.telemetryLimiterPacketsPerMinute,
+    this.telemetryLimiterAutoChanutilEnabled,
+    this.telemetryLimiterAutoChanutilThreshold,
+    this.positionLimiterEnabled,
+    this.positionLimiterTimeMinutesThreshold,
+    this.opportunisticFloodingEnabled,
+    this.opportunisticBaseDelayMs,
+    this.opportunisticHopDelayMs,
+    this.opportunisticSnrGainMs,
+    this.opportunisticJitterMs,
+    this.opportunisticCancelOnFirstHear,
+    this.opportunisticAuto,
+  });
+}
+
+class IdleGameConfigDto {
+  final String? variant; // oneof name
+  const IdleGameConfigDto({this.variant});
 }
 
 class MqttConfigDto {
@@ -801,11 +1110,7 @@ class ChannelDto {
   final String? role; // enum name
   final ChannelSettingsDto? settings;
 
-  const ChannelDto({
-    this.index,
-    this.role,
-    this.settings,
-  });
+  const ChannelDto({this.index, this.role, this.settings});
 }
 
 class ChannelSettingsDto {
@@ -831,16 +1136,15 @@ class ChannelSettingsDto {
 class ModuleSettingsDto {
   final int? positionPrecision;
 
-  const ModuleSettingsDto({
-    this.positionPrecision,
-  });
+  const ModuleSettingsDto({this.positionPrecision});
 }
 
 class QueueStatusDto {
+  final int? res; // ErrorCode
   final int? free;
   final int? maxlen;
   final int? meshPacketId;
-  const QueueStatusDto({this.free, this.maxlen, this.meshPacketId});
+  const QueueStatusDto({this.res, this.free, this.maxlen, this.meshPacketId});
 }
 
 class DeviceMetadataDto {
@@ -900,8 +1204,19 @@ class FileInfoDto {
 }
 
 class ClientNotificationDto {
+  final int? replyId;
+  final int? time;
+  final String? level; // enum name
   final String? message;
-  const ClientNotificationDto({this.message});
+  final String? payloadVariant;
+  // We can add specific payload fields later if needed (KeyVerification etc.)
+  const ClientNotificationDto({
+    this.replyId,
+    this.time,
+    this.level,
+    this.message,
+    this.payloadVariant,
+  });
 }
 
 class DeviceUiConfigDto {
@@ -965,10 +1280,7 @@ class DeviceUiNodeHighlightDto {
   final bool? highlightEnabled;
   final int? minSnr;
 
-  const DeviceUiNodeHighlightDto({
-    this.highlightEnabled,
-    this.minSnr,
-  });
+  const DeviceUiNodeHighlightDto({this.highlightEnabled, this.minSnr});
 }
 
 class DeviceUiMapDto {

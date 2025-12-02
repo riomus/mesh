@@ -519,6 +519,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get channel => 'Channel';
 
   @override
+  String get channels => 'Channels';
+
+  @override
   String get queueStatus => 'Queue status';
 
   @override
@@ -710,4 +713,43 @@ class AppLocalizationsEn extends AppLocalizations {
   String connectFailedError(Object error) {
     return 'Connect failed: $error';
   }
+
+  @override
+  String get power => 'Power';
+
+  @override
+  String get network => 'Network';
+
+  @override
+  String get display => 'Display';
+
+  @override
+  String get lora => 'LoRa';
+
+  @override
+  String get bluetooth => 'Bluetooth';
+
+  @override
+  String get security => 'Security';
+
+  @override
+  String get sessionKey => 'Session key';
+
+  @override
+  String get nodeMod => 'Node mod';
+
+  @override
+  String get nodeModAdmin => 'Node mod admin';
+
+  @override
+  String get idleGame => 'Idle game';
+
+  @override
+  String get deviceState => 'Device State';
+
+  @override
+  String get noDeviceState => 'No device state';
+
+  @override
+  String get connectToViewState => 'Connect to the device to view its state';
 }

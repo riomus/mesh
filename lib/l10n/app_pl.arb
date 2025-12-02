@@ -185,6 +185,7 @@
   "rebooted": "Zrestartowano",
   "moduleConfig": "Konfiguracja modułu",
   "channel": "Kanał",
+  "channels": "Kanały",
   "queueStatus": "Stan kolejki",
   "deviceMetadata": "Metadane urządzenia",
   "mqttProxy": "Proxy MQTT",
@@ -244,5 +245,18 @@
   "apply": "Zastosuj",
   "coordinates": "Współrzędne",
   "searchEvents": "Szukaj zdarzeń",
-  "searchInSummaryOrTags": "Szukaj w podsumowaniu lub tagach"
+  "searchInSummaryOrTags": "Szukaj w podsumowaniu lub tagach",
+  "power": "Zasilanie",
+  "network": "Sieć",
+  "display": "Wyświetlacz",
+  "lora": "LoRa",
+  "bluetooth": "Bluetooth",
+  "security": "Bezpieczeństwo",
+  "sessionKey": "Klucz sesji",
+  "nodeMod": "Modyfikacje węzła",
+  "nodeModAdmin": "Admin modyfikacji węzła",
+  "idleGame": "Gra bezczynności",
+  "deviceState": "Stan urządzenia",
+  "noDeviceState": "Brak stanu urządzenia",
+  "connectToViewState": "Połącz się z urządzeniem, aby zobaczyć jego stan"
 }
