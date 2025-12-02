@@ -48,10 +48,10 @@ class AppLocalizationsPl extends AppLocalizations {
   String get connectable => 'Możliwość połączenia';
 
   @override
-  String get connect => 'Connect';
+  String get connect => 'Połącz';
 
   @override
-  String get disconnect => 'Disconnect';
+  String get disconnect => 'Rozłącz';
 
   @override
   String get yes => 'Tak';
@@ -184,7 +184,7 @@ class AppLocalizationsPl extends AppLocalizations {
   }
 
   @override
-  String get coordinates => 'Coordinates';
+  String get coordinates => 'Współrzędne';
 
   @override
   String get searchNodes => 'Szukaj węzłów';
@@ -268,13 +268,13 @@ class AppLocalizationsPl extends AppLocalizations {
   String get addAction => 'Dodaj';
 
   @override
-  String get apply => 'Apply';
+  String get apply => 'Zastosuj';
 
   @override
-  String get searchEvents => 'Search events';
+  String get searchEvents => 'Szukaj zdarzeń';
 
   @override
-  String get searchInSummaryOrTags => 'Search in summary or tags';
+  String get searchInSummaryOrTags => 'Szukaj w podsumowaniu lub tagach';
 
   @override
   String get battery => 'Bateria';
@@ -673,5 +673,43 @@ class AppLocalizationsPl extends AppLocalizations {
   @override
   String viaId(Object id) {
     return 'przez 0x$id';
+  }
+
+  @override
+  String get devicesTab => 'Urządzenia';
+
+  @override
+  String get searchLogs => 'Szukaj w logach';
+
+  @override
+  String get searchLogsHint =>
+      'Szukaj w czasie, poziomie, tagach lub wiadomości';
+
+  @override
+  String get logsTitle => 'Logi';
+
+  @override
+  String get tag => 'Tag';
+
+  @override
+  String get level => 'Poziom';
+
+  @override
+  String get valueEmptyPresence =>
+      'Wartość (pusta = tylko obecność dla dokładnego)';
+
+  @override
+  String get regexTip =>
+      'Wskazówka: regex używa składni Dart i domyślnie nie rozróżnia wielkości liter';
+
+  @override
+  String get selectLevels => 'Wybierz poziomy';
+
+  @override
+  String get unspecified => '(nieokreślony)';
+
+  @override
+  String connectFailedError(Object error) {
+    return 'Połączenie nieudane: $error';
   }
 }

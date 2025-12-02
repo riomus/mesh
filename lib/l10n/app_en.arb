@@ -231,5 +231,16 @@
   "batteryLevel": "🔋{percentage}%",
   "viaNameId": "via {name} (0x{id})",
   "viaName": "via {name}",
-  "viaId": "via 0x{id}"
+  "viaId": "via 0x{id}",
+  "devicesTab": "Devices",
+  "searchLogs": "Search logs",
+  "searchLogsHint": "Search in time, level, tags or message",
+  "logsTitle": "Logs",
+  "tag": "Tag",
+  "level": "Level",
+  "valueEmptyPresence": "Value (empty = presence only for exact)",
+  "regexTip": "Tip: regex uses Dart syntax and is case-insensitive by default",
+  "selectLevels": "Select levels",
+  "unspecified": "(unspecified)",
+  "connectFailedError": "Connect failed: {error}"
 }

@@ -674,4 +674,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String viaId(Object id) {
     return 'via 0x$id';
   }
+
+  @override
+  String get devicesTab => 'Devices';
+
+  @override
+  String get searchLogs => 'Search logs';
+
+  @override
+  String get searchLogsHint => 'Search in time, level, tags or message';
+
+  @override
+  String get logsTitle => 'Logs';
+
+  @override
+  String get tag => 'Tag';
+
+  @override
+  String get level => 'Level';
+
+  @override
+  String get valueEmptyPresence => 'Value (empty = presence only for exact)';
+
+  @override
+  String get regexTip =>
+      'Tip: regex uses Dart syntax and is case-insensitive by default';
+
+  @override
+  String get selectLevels => 'Select levels';
+
+  @override
+  String get unspecified => '(unspecified)';
+
+  @override
+  String connectFailedError(Object error) {
+    return 'Connect failed: $error';
+  }
 }

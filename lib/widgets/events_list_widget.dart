@@ -505,9 +505,9 @@ class _EventsListWidgetState extends State<EventsListWidget> {
                       ),
                       const SizedBox(height: 8),
                       SegmentedButton<_EventChipOp>(
-                        segments: const [
-                          ButtonSegment(value: _EventChipOp.exact, label: Text('Exact')),
-                          ButtonSegment(value: _EventChipOp.regex, label: Text('Regex')),
+                        segments: [
+                          ButtonSegment(value: _EventChipOp.exact, label: Text(AppLocalizations.of(context).exact)),
+                          ButtonSegment(value: _EventChipOp.regex, label: Text(AppLocalizations.of(context).regex)),
                         ],
                         selected: {draftOp},
                         onSelectionChanged: (s) => setDlg(() => draftOp = s.first),
@@ -519,7 +519,7 @@ class _EventsListWidgetState extends State<EventsListWidget> {
                           runSpacing: 8,
                           children: [
                             FilterChip(
-                              label: Text('has ${draftKey ?? 'value'}'),
+                              label: Text(AppLocalizations.of(context).hasValueFor(draftKey ?? 'value')),
                               selected: presence,
                               onSelected: (v) => setDlg(() => presence = v),
                             ),
@@ -539,8 +539,8 @@ class _EventsListWidgetState extends State<EventsListWidget> {
                         const SizedBox(height: 8),
                         TextField(
                           controller: customCtrl,
-                          decoration: const InputDecoration(
-                            labelText: 'Custom value (optional)',
+                          decoration: InputDecoration(
+                            labelText: AppLocalizations.of(context).customValueOptional,
                             isDense: true,
                             border: OutlineInputBorder(),
                           ),
@@ -549,8 +549,8 @@ class _EventsListWidgetState extends State<EventsListWidget> {
                       ] else ...[
                         TextField(
                           controller: customCtrl,
-                          decoration: const InputDecoration(
-                            labelText: 'Regex (case-insensitive)',
+                          decoration: InputDecoration(
+                            labelText: AppLocalizations.of(context).regexCaseInsensitive,
                             isDense: true,
                             border: OutlineInputBorder(),
                           ),
@@ -563,8 +563,8 @@ class _EventsListWidgetState extends State<EventsListWidget> {
               ),
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.of(context).maybePop(), child: const Text('Cancel')),
-              FilledButton(onPressed: addSelected, child: const Text('Add')),
+              TextButton(onPressed: () => Navigator.of(context).maybePop(), child: Text(AppLocalizations.of(context).cancel)),
+              FilledButton(onPressed: addSelected, child: Text(AppLocalizations.of(context).addAction)),
             ],
           );
         },
@@ -587,8 +587,8 @@ class _Empty extends StatelessWidget {
   const _Empty();
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text('No events yet'),
+    return Center(
+      child: Text(AppLocalizations.of(context).noEventsYet),
     );
   }
 }

@@ -17,6 +17,7 @@ import '../../generated/meshtastic/meshtastic/remote_hardware.pb.dart'
     as rhw;
 import '../../generated/meshtastic/meshtastic/storeforward.pb.dart' as sfwd;
 import '../../generated/meshtastic/meshtastic/paxcount.pb.dart' as pax;
+import '../../generated/meshtastic/meshtastic/channel.pb.dart' as channel;
 import 'meshtastic_event.dart';
 import 'meshtastic_models.dart';
 
@@ -70,7 +71,7 @@ class MeshtasticMappers {
       case mesh.FromRadio_PayloadVariant.moduleConfig:
         return ModuleConfigEvent(_toModuleConfigDto(fr.moduleConfig));
       case mesh.FromRadio_PayloadVariant.channel:
-        return ChannelEvent(ChannelDto(index: fr.channel.hasIndex() ? fr.channel.index : null));
+        return ChannelEvent(_toChannelDto(fr.channel));
       case mesh.FromRadio_PayloadVariant.queueStatus:
         return QueueStatusEvent(QueueStatusDto(
           // Proto has `free` (entries free); we surface as `size` for UI brevity
@@ -485,6 +486,35 @@ class MeshtasticMappers {
       detectionSensor: detectionSensor,
       dtnOverlay: dtnOverlay,
       broadcastAssist: broadcastAssist,
+    );
+  }
+
+  static ChannelDto _toChannelDto(channel.Channel c) {
+    return ChannelDto(
+      index: c.hasIndex() ? c.index : null,
+      role: c.hasRole() ? c.role.name : null,
+      settings: c.hasSettings() ? _toChannelSettingsDto(c.settings) : null,
+    );
+  }
+
+  static ChannelSettingsDto _toChannelSettingsDto(channel.ChannelSettings s) {
+    return ChannelSettingsDto(
+      channelNum: s.hasChannelNum() ? s.channelNum : null,
+      psk: s.hasPsk() ? Uint8List.fromList(s.psk) : null,
+      name: s.hasName() ? s.name : null,
+      id: s.hasId() ? s.id : null,
+      uplinkEnabled: s.hasUplinkEnabled() ? s.uplinkEnabled : null,
+      downlinkEnabled: s.hasDownlinkEnabled() ? s.downlinkEnabled : null,
+      moduleSettings: s.hasModuleSettings()
+          ? _toModuleSettingsDto(s.moduleSettings)
+          : null,
+    );
+  }
+
+  static ModuleSettingsDto _toModuleSettingsDto(channel.ModuleSettings m) {
+    return ModuleSettingsDto(
+      positionPrecision:
+          m.hasPositionPrecision() ? m.positionPrecision : null,
     );
   }
 

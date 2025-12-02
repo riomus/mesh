@@ -547,7 +547,7 @@ class _NodesListWidgetState extends State<NodesListWidget>
     String two(int n) => n.toString().padLeft(2, '0');
     final relDays = secondsAgo ~/ (24 * 60 * 60);
     final dateStr = '${dt.year}-${two(dt.month)}-${two(dt.day)} ${two(dt.hour)}:${two(dt.minute)}:${two(dt.second)}';
-    return '$dateStr (${relDays}d ago)';
+    return '$dateStr (${AppLocalizations.of(context).agoDays(relDays)})';
   }
 
   Future<void> _openSortDialog() async {

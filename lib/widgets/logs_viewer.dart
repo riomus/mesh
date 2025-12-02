@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../services/logging_service.dart';
+import '../l10n/app_localizations.dart';
 
 /// A reusable logs viewer widget with rich filtering, searching and formatting.
 ///
@@ -201,8 +202,8 @@ class _LogsViewerState extends State<LogsViewer> {
               child: InputDecorator(
                 isFocused: _searchFocus.hasFocus,
                 isEmpty: false,
-                decoration: const InputDecoration(
-                  labelText: 'Search logs',
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context).searchLogs,
                   border: OutlineInputBorder(),
                   isDense: true,
                   prefixIcon: Icon(Icons.search, size: 18),
@@ -223,8 +224,8 @@ class _LogsViewerState extends State<LogsViewer> {
                             child: TextField(
                               focusNode: _searchFocus,
                               controller: _textCtrl,
-                              decoration: const InputDecoration(
-                                hintText: 'Search in time, level, tags or message',
+                              decoration: InputDecoration(
+                                hintText: AppLocalizations.of(context).searchLogsHint,
                                 isDense: true,
                                 border: InputBorder.none,
                               ),
@@ -235,7 +236,7 @@ class _LogsViewerState extends State<LogsViewer> {
                             IconButton(
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),
-                              tooltip: 'Clear',
+                              tooltip: AppLocalizations.of(context).clear,
                               icon: const Icon(Icons.clear, size: 18),
                               onPressed: () {
                                 _textCtrl.clear();
@@ -253,7 +254,7 @@ class _LogsViewerState extends State<LogsViewer> {
           const SizedBox(width: 8),
           // Share filtered logs as JSON
           Tooltip(
-            message: 'Share logs (JSON)',
+            message: AppLocalizations.of(context).shareLogs,
             child: IconButton(
               key: const Key('logs_share_button'),
               icon: const Icon(Icons.ios_share),
@@ -263,7 +264,7 @@ class _LogsViewerState extends State<LogsViewer> {
           const SizedBox(width: 8),
           // Fullscreen toggle
           Tooltip(
-            message: 'Fullscreen',
+            message: AppLocalizations.of(context).fullscreen,
             child: IconButton(
               key: const Key('logs_fullscreen_button'),
               icon: const Icon(Icons.fullscreen),
@@ -272,10 +273,10 @@ class _LogsViewerState extends State<LogsViewer> {
                   MaterialPageRoute(
                     builder: (ctx) => Scaffold(
                       appBar: AppBar(
-                        title: const Text('Logs'),
+                        title: Text(AppLocalizations.of(context).logsTitle),
                         actions: [
                           IconButton(
-                            tooltip: 'Close',
+                            tooltip: AppLocalizations.of(context).close,
                             icon: const Icon(Icons.close_fullscreen),
                             onPressed: () => Navigator.of(ctx).maybePop(),
                           ),
@@ -293,7 +294,7 @@ class _LogsViewerState extends State<LogsViewer> {
           ),
           const SizedBox(width: 8),
           Tooltip(
-            message: 'Add filters',
+            message: AppLocalizations.of(context).addFilters,
             child: IconButton(
               icon: const Icon(Icons.filter_list),
               onPressed: _openAddChipDialog,
@@ -301,14 +302,14 @@ class _LogsViewerState extends State<LogsViewer> {
           ),
           const SizedBox(width: 8),
           Tooltip(
-            message: _paused ? 'Resume' : 'Pause',
+            message: _paused ? AppLocalizations.of(context).resume : AppLocalizations.of(context).pause,
             child: IconButton(
               icon: Icon(_paused ? Icons.play_arrow : Icons.pause),
               onPressed: () => setState(() => _paused = !_paused),
             ),
           ),
           Tooltip(
-            message: 'Clear',
+            message: AppLocalizations.of(context).clearAll,
             child: IconButton(
               onPressed: _all.isEmpty
                   ? null
@@ -345,11 +346,11 @@ class _LogsViewerState extends State<LogsViewer> {
         name: name,
         mimeType: 'application/json',
       );
-      await Share.shareXFiles([file], text: 'Logs export');
+      await Share.shareXFiles([file], text: AppLocalizations.of(context).logsExport);
     } catch (err) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to share logs: $err')),
+          SnackBar(content: Text(AppLocalizations.of(context).failedToShareLogs(err.toString()))),
         );
       }
     }
@@ -412,7 +413,7 @@ class _LogsViewerState extends State<LogsViewer> {
             }
 
             return AlertDialog(
-              title: const Text('Add filter'),
+              title: Text(AppLocalizations.of(context).addFilterTitle),
               content: SizedBox(
                 width: 420,
                 child: ConstrainedBox(
@@ -427,9 +428,9 @@ class _LogsViewerState extends State<LogsViewer> {
                       children: [
                     // Toggle between tag or level filters
                     SegmentedButton<_ChipKind>(
-                      segments: const [
-                        ButtonSegment(value: _ChipKind.tag, label: Text('Tag')),
-                        ButtonSegment(value: _ChipKind.level, label: Text('Level')),
+                      segments: [
+                        ButtonSegment(value: _ChipKind.tag, label: Text(AppLocalizations.of(context).tag)),
+                        ButtonSegment(value: _ChipKind.level, label: Text(AppLocalizations.of(context).level)),
                       ],
                       selected: {draftKind},
                       onSelectionChanged: (s) => setDlg(() => draftKind = s.first),
@@ -437,7 +438,7 @@ class _LogsViewerState extends State<LogsViewer> {
                     const SizedBox(height: 8),
                     if (draftKind == _ChipKind.tag) ...[
                       DropdownButtonFormField<String>(
-                        decoration: const InputDecoration(labelText: 'Key'),
+                        decoration: InputDecoration(labelText: AppLocalizations.of(context).key),
                         initialValue: draftKey,
                         items: [
                           if (draftKey != null) DropdownMenuItem(value: draftKey, child: Text(draftKey!)),
@@ -454,8 +455,8 @@ class _LogsViewerState extends State<LogsViewer> {
                           Expanded(
                             child: TextFormField(
                               initialValue: draftValue,
-                              decoration: const InputDecoration(
-                                labelText: 'Value (empty = presence only for exact)',
+                              decoration: InputDecoration(
+                                labelText: AppLocalizations.of(context).valueEmptyPresence,
                               ),
                               onChanged: (v) => draftValue = v,
                             ),
@@ -463,9 +464,9 @@ class _LogsViewerState extends State<LogsViewer> {
                           const SizedBox(width: 8),
                           DropdownButton<_ChipOp>(
                             value: draftOp,
-                            items: const [
-                              DropdownMenuItem(value: _ChipOp.exact, child: Text('exact')),
-                              DropdownMenuItem(value: _ChipOp.regex, child: Text('regex')),
+                            items: [
+                              DropdownMenuItem(value: _ChipOp.exact, child: Text(AppLocalizations.of(context).exact)),
+                              DropdownMenuItem(value: _ChipOp.regex, child: Text(AppLocalizations.of(context).regex)),
                             ],
                             onChanged: (op) => setDlg(() => draftOp = op ?? _ChipOp.exact),
                           ),
@@ -486,7 +487,7 @@ class _LogsViewerState extends State<LogsViewer> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Tip: regex uses Dart syntax and is case-insensitive by default',
+                          AppLocalizations.of(context).regexTip,
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
@@ -494,7 +495,7 @@ class _LogsViewerState extends State<LogsViewer> {
                       // Level chip UI (no regex; multi-select via checkboxes)
                       Align(
                         alignment: Alignment.centerLeft,
-                        child: Text('Select levels', style: Theme.of(context).textTheme.bodyMedium),
+                        child: Text(AppLocalizations.of(context).selectLevels, style: Theme.of(context).textTheme.bodyMedium),
                       ),
                       const SizedBox(height: 6),
                       Column(
@@ -526,7 +527,7 @@ class _LogsViewerState extends State<LogsViewer> {
                 ),
               ),
               actions: [
-                TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+                TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(AppLocalizations.of(context).cancel)),
                 FilledButton.icon(
                   onPressed: () {
                     if (draftKind == _ChipKind.tag) {
@@ -545,7 +546,7 @@ class _LogsViewerState extends State<LogsViewer> {
                     }
                   },
                   icon: const Icon(Icons.add),
-                  label: const Text('Add'),
+                  label: Text(AppLocalizations.of(context).addAction),
                 ),
               ],
             );
@@ -715,7 +716,7 @@ class _LogsViewerState extends State<LogsViewer> {
   }
 
   String _joinedTags(LogEvent e) {
-    if (e.tags.isEmpty) return '(unspecified)';
+    if (e.tags.isEmpty) return AppLocalizations.of(context).unspecified;
     final keys = e.tags.keys.toList()..sort();
     final parts = <String>[];
     for (final k in keys) {
@@ -742,7 +743,7 @@ class _LogTile extends StatelessWidget {
     final color = _levelColor(context, event.level);
     final time = _formatTime(event.timestamp);
     final level = event.level.toUpperCase();
-    final srcDisplay = _joinedTagsStatic(event);
+    final srcDisplay = _joinedTagsStatic(context, event);
     return ListTile(
       dense: true,
       leading: Icon(Icons.circle, size: 12, color: color),
@@ -782,8 +783,8 @@ class _LogTile extends StatelessWidget {
     }
   }
 
-  static String _joinedTagsStatic(LogEvent e) {
-    if (e.tags.isEmpty) return '(unspecified)';
+  static String _joinedTagsStatic(BuildContext context, LogEvent e) {
+    if (e.tags.isEmpty) return AppLocalizations.of(context).unspecified;
     final keys = e.tags.keys.toList()..sort();
     final parts = <String>[];
     for (final k in keys) {

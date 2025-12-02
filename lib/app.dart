@@ -76,87 +76,119 @@ class _MyAppState extends State<MyApp> {
           ? const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             )
-          : Scaffold(
-              body: IndexedStack(
-                index: _selectedIndex,
-                children: [
-                  ScannerPage(
-                    onToggleTheme: _toggleTheme,
-                    themeMode: _themeMode,
-                    onOpenSettings: (ctx) {
-                      Navigator.of(ctx).push(
-                        MaterialPageRoute(
-                          builder: (_) => SettingsPage(
-                            initialLocale: _locale,
-                            onChangedLocale: _setLocale,
-                            onToggleTheme: _toggleTheme,
-                            themeMode: _themeMode,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  LogsPage(
-                    onToggleTheme: _toggleTheme,
-                    themeMode: _themeMode,
-                    onOpenSettings: (ctx) {
-                      Navigator.of(ctx).push(
-                        MaterialPageRoute(
-                          builder: (_) => SettingsPage(
-                            initialLocale: _locale,
-                            onChangedLocale: _setLocale,
-                            onToggleTheme: _toggleTheme,
-                            themeMode: _themeMode,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  EventsPage(
-                    onToggleTheme: _toggleTheme,
-                    themeMode: _themeMode,
-                    onOpenSettings: (ctx) {
-                      Navigator.of(ctx).push(
-                        MaterialPageRoute(
-                          builder: (_) => SettingsPage(
-                            initialLocale: _locale,
-                            onChangedLocale: _setLocale,
-                            onToggleTheme: _toggleTheme,
-                            themeMode: _themeMode,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  NodesPage(
-                    onToggleTheme: _toggleTheme,
-                    themeMode: _themeMode,
-                    onOpenSettings: (ctx) {
-                      Navigator.of(ctx).push(
-                        MaterialPageRoute(
-                          builder: (_) => SettingsPage(
-                            initialLocale: _locale,
-                            onChangedLocale: _setLocale,
-                            onToggleTheme: _toggleTheme,
-                            themeMode: _themeMode,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-              bottomNavigationBar: NavigationBar(
-                selectedIndex: _selectedIndex,
-                destinations: const [
-                  NavigationDestination(icon: Icon(Icons.devices), label: 'Devices'),
-                  NavigationDestination(icon: Icon(Icons.list_alt), label: 'Logs'),
-                  NavigationDestination(icon: Icon(Icons.event_note), label: 'Events'),
-                  NavigationDestination(icon: Icon(Icons.hub), label: 'Nodes'),
-                ],
-                onDestinationSelected: (i) => setState(() => _selectedIndex = i),
-              ),
+          : Home(
+              locale: _locale,
+              setLocale: _setLocale,
+              toggleTheme: _toggleTheme,
+              themeMode: _themeMode,
             ),
+    );
+  }
+}
+
+class Home extends StatefulWidget {
+  final Locale? locale;
+  final ValueChanged<Locale?> setLocale;
+  final VoidCallback toggleTheme;
+  final ThemeMode themeMode;
+
+  const Home({
+    super.key,
+    required this.locale,
+    required this.setLocale,
+    required this.toggleTheme,
+    required this.themeMode,
+  });
+
+  @override
+  State<Home> createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
+  int _selectedIndex = 0; // 0 = Scanner, 1 = Logs, 2 = Events, 3 = Nodes
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: [
+          ScannerPage(
+            onToggleTheme: widget.toggleTheme,
+            themeMode: widget.themeMode,
+            onOpenSettings: (ctx) {
+              Navigator.of(ctx).push(
+                MaterialPageRoute(
+                  builder: (_) => SettingsPage(
+                    initialLocale: widget.locale,
+                    onChangedLocale: widget.setLocale,
+                    onToggleTheme: widget.toggleTheme,
+                    themeMode: widget.themeMode,
+                  ),
+                ),
+              );
+            },
+          ),
+          LogsPage(
+            onToggleTheme: widget.toggleTheme,
+            themeMode: widget.themeMode,
+            onOpenSettings: (ctx) {
+              Navigator.of(ctx).push(
+                MaterialPageRoute(
+                  builder: (_) => SettingsPage(
+                    initialLocale: widget.locale,
+                    onChangedLocale: widget.setLocale,
+                    onToggleTheme: widget.toggleTheme,
+                    themeMode: widget.themeMode,
+                  ),
+                ),
+              );
+            },
+          ),
+          EventsPage(
+            onToggleTheme: widget.toggleTheme,
+            themeMode: widget.themeMode,
+            onOpenSettings: (ctx) {
+              Navigator.of(ctx).push(
+                MaterialPageRoute(
+                  builder: (_) => SettingsPage(
+                    initialLocale: widget.locale,
+                    onChangedLocale: widget.setLocale,
+                    onToggleTheme: widget.toggleTheme,
+                    themeMode: widget.themeMode,
+                  ),
+                ),
+              );
+            },
+          ),
+          NodesPage(
+            onToggleTheme: widget.toggleTheme,
+            themeMode: widget.themeMode,
+            onOpenSettings: (ctx) {
+              Navigator.of(ctx).push(
+                MaterialPageRoute(
+                  builder: (_) => SettingsPage(
+                    initialLocale: widget.locale,
+                    onChangedLocale: widget.setLocale,
+                    onToggleTheme: widget.toggleTheme,
+                    themeMode: widget.themeMode,
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _selectedIndex,
+        destinations: [
+          NavigationDestination(icon: const Icon(Icons.devices), label: AppLocalizations.of(context).devicesTab),
+          NavigationDestination(icon: const Icon(Icons.list_alt), label: AppLocalizations.of(context).logsTitle),
+          NavigationDestination(icon: const Icon(Icons.event_note), label: AppLocalizations.of(context).eventsTitle),
+          NavigationDestination(icon: const Icon(Icons.hub), label: AppLocalizations.of(context).nodesTitle),
+        ],
+        onDestinationSelected: (i) => setState(() => _selectedIndex = i),
+      ),
     );
   }
 }

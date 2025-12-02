@@ -798,7 +798,42 @@ class BroadcastAssistConfigDto {
 
 class ChannelDto {
   final int? index;
-  const ChannelDto({this.index});
+  final String? role; // enum name
+  final ChannelSettingsDto? settings;
+
+  const ChannelDto({
+    this.index,
+    this.role,
+    this.settings,
+  });
+}
+
+class ChannelSettingsDto {
+  final int? channelNum;
+  final Uint8List? psk;
+  final String? name;
+  final int? id;
+  final bool? uplinkEnabled;
+  final bool? downlinkEnabled;
+  final ModuleSettingsDto? moduleSettings;
+
+  const ChannelSettingsDto({
+    this.channelNum,
+    this.psk,
+    this.name,
+    this.id,
+    this.uplinkEnabled,
+    this.downlinkEnabled,
+    this.moduleSettings,
+  });
+}
+
+class ModuleSettingsDto {
+  final int? positionPrecision;
+
+  const ModuleSettingsDto({
+    this.positionPrecision,
+  });
 }
 
 class QueueStatusDto {

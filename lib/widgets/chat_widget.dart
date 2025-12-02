@@ -140,6 +140,9 @@ class _ChatWidgetState extends State<ChatWidget> {
       packet.decoded = mesh.Data();
       packet.decoded.portnum = port.PortNum.TEXT_MESSAGE_APP;
       packet.decoded.payload = Uint8List.fromList(text.codeUnits); 
+      packet.wantAck = true;
+      packet.hopLimit = 7;
+      packet.priority = mesh.MeshPacket_Priority.RELIABLE;
       // Note: using codeUnits is simple; for full UTF-8 support use Utf8Encoder
       
       // Send

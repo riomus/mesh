@@ -14,8 +14,8 @@
   "advertisement": "Reklama",
   "advertisedName": "Nazwa z reklamy",
   "connectable": "Możliwość połączenia",
-  "connect": "Connect",
-  "disconnect": "Disconnect",
+  "connect": "Połącz",
+  "disconnect": "Rozłącz",
   "yes": "Tak",
   "no": "Nie",
 
@@ -229,5 +229,20 @@
   "batteryLevel": "🔋{percentage}%",
   "viaNameId": "przez {name} (0x{id})",
   "viaName": "przez {name}",
-  "viaId": "przez 0x{id}"
+  "viaId": "przez 0x{id}",
+  "devicesTab": "Urządzenia",
+  "searchLogs": "Szukaj w logach",
+  "searchLogsHint": "Szukaj w czasie, poziomie, tagach lub wiadomości",
+  "logsTitle": "Logi",
+  "tag": "Tag",
+  "level": "Poziom",
+  "valueEmptyPresence": "Wartość (pusta = tylko obecność dla dokładnego)",
+  "regexTip": "Wskazówka: regex używa składni Dart i domyślnie nie rozróżnia wielkości liter",
+  "selectLevels": "Wybierz poziomy",
+  "unspecified": "(nieokreślony)",
+  "connectFailedError": "Połączenie nieudane: {error}",
+  "apply": "Zastosuj",
+  "coordinates": "Współrzędne",
+  "searchEvents": "Szukaj zdarzeń",
+  "searchInSummaryOrTags": "Szukaj w podsumowaniu lub tagach"
 }

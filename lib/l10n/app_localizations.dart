@@ -1315,6 +1315,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'via 0x{id}'**
   String viaId(Object id);
+
+  /// No description provided for @devicesTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Devices'**
+  String get devicesTab;
+
+  /// No description provided for @searchLogs.
+  ///
+  /// In en, this message translates to:
+  /// **'Search logs'**
+  String get searchLogs;
+
+  /// No description provided for @searchLogsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search in time, level, tags or message'**
+  String get searchLogsHint;
+
+  /// No description provided for @logsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Logs'**
+  String get logsTitle;
+
+  /// No description provided for @tag.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag'**
+  String get tag;
+
+  /// No description provided for @level.
+  ///
+  /// In en, this message translates to:
+  /// **'Level'**
+  String get level;
+
+  /// No description provided for @valueEmptyPresence.
+  ///
+  /// In en, this message translates to:
+  /// **'Value (empty = presence only for exact)'**
+  String get valueEmptyPresence;
+
+  /// No description provided for @regexTip.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip: regex uses Dart syntax and is case-insensitive by default'**
+  String get regexTip;
+
+  /// No description provided for @selectLevels.
+  ///
+  /// In en, this message translates to:
+  /// **'Select levels'**
+  String get selectLevels;
+
+  /// No description provided for @unspecified.
+  ///
+  /// In en, this message translates to:
+  /// **'(unspecified)'**
+  String get unspecified;
+
+  /// No description provided for @connectFailedError.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect failed: {error}'**
+  String connectFailedError(Object error);
 }
 
 class _AppLocalizationsDelegate

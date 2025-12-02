@@ -73,7 +73,7 @@ class _DeviceTileState extends State<DeviceTile> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Connect failed: $e')),
+          SnackBar(content: Text(AppLocalizations.of(context).connectFailedError(e.toString()))),
         );
       }
     } finally {
@@ -149,7 +149,7 @@ class _DeviceTileState extends State<DeviceTile> {
                     ),
                   if (_connecting) const SizedBox(width: 8),
                   Tooltip(
-                    message: _connected ? 'Disconnect' : 'Connect',
+                    message: _connected ? t.disconnect : t.connect,
                     child: FilledButton.tonalIcon(
                       onPressed: _connecting ? null : (_connected ? _disconnect : _connect),
                       icon: Icon(_connected ? Icons.link_off : Icons.link),

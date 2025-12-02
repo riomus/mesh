@@ -196,6 +196,7 @@ class MeshtasticBleClient {
   Future<void> _drainFromRadioUntilEmpty() async {
     final fr = _fromRadio!;
     while (true) {
+      _log('Draining FromRadio ...');
       final value = await fr.read();
       if (value.isEmpty) {
         _log('FromRadio empty -> stop draining');
@@ -203,9 +204,11 @@ class MeshtasticBleClient {
       }
       try {
         final msg = mesh.FromRadio.fromBuffer(value);
+        _log('FromRadio received: $msg');
         // Emit structured event only (no legacy FromRadio stream)
         try {
           final event = MeshtasticMappers.fromFromRadio(msg);
+          _log('FromRadio mapped to event: $event');
           _eventsController.add(event);
           // Also publish into the global DeviceCommunicationEventService so
           // app-wide widgets (like EventsListWidget) can display events.

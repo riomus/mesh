@@ -127,6 +127,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
             'firmwareEdition': e.myInfo.firmwareEdition,
             'nodedbCount': e.myInfo.nodedbCount,
             'pioEnv': e.myInfo.pioEnv,
+            'deviceId': e.myInfo.deviceId?.length,
           }),
         );
       case NodeInfoEvent e:
@@ -148,6 +149,19 @@ class _MeshtasticEventDetails extends StatelessWidget {
                 'user.shortName': e.nodeInfo.user?.shortName,
                 'position.lat': e.nodeInfo.position?.latitudeI,
                 'position.lon': e.nodeInfo.position?.longitudeI,
+                'snr': e.nodeInfo.snr,
+                'lastHeard': e.nodeInfo.lastHeard,
+                'channel': e.nodeInfo.channel,
+                'viaMqtt': e.nodeInfo.viaMqtt,
+                'hopsAway': e.nodeInfo.hopsAway,
+                'isFavorite': e.nodeInfo.isFavorite,
+                'isIgnored': e.nodeInfo.isIgnored,
+                'isKeyManuallyVerified': e.nodeInfo.isKeyManuallyVerified,
+                'batt': e.nodeInfo.deviceMetrics?.batteryLevel,
+                'volt': e.nodeInfo.deviceMetrics?.voltage,
+                'chUtil': e.nodeInfo.deviceMetrics?.channelUtilization,
+                'airUtil': e.nodeInfo.deviceMetrics?.airUtilTx,
+                'uptime': e.nodeInfo.deviceMetrics?.uptimeSeconds,
               }),
             ),
           ],
@@ -180,9 +194,20 @@ class _MeshtasticEventDetails extends StatelessWidget {
         return _Section(
           emoji: '📡',
           title: AppLocalizations.of(context).channel,
-          child: _kvTable({
-            'index': e.channel.index,
-          }),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _kvTable({
+                'index': e.channel.index,
+                'role': e.channel.role,
+              }),
+              if (e.channel.settings != null) ...[
+                const SizedBox(height: 8),
+                _Subheader(AppLocalizations.of(context).settingsButtonLabel),
+                _channelSettingsDetails(context, e.channel.settings!),
+              ],
+            ],
+          ),
         );
       case QueueStatusEvent e:
         return _Section(
@@ -205,6 +230,14 @@ class _MeshtasticEventDetails extends StatelessWidget {
             'wifi': e.metadata.hasWifi,
             'bt': e.metadata.hasBluetooth,
             'eth': e.metadata.hasEthernet,
+            'stateVer': e.metadata.deviceStateVersion,
+            'canShutdown': e.metadata.canShutdown,
+            'posFlags': e.metadata.positionFlags,
+            'hasRemoteHw': e.metadata.hasRemoteHardware,
+            'hasPKC': e.metadata.hasPKC,
+            'excluded': e.metadata.excludedModules,
+            'hasFwPlus': e.metadata.hasFwPlus,
+            'hasNodemod': e.metadata.hasNodemod,
           }),
         );
       case MqttClientProxyEvent e:
@@ -270,6 +303,13 @@ class _MeshtasticEventDetails extends StatelessWidget {
         'priority': p.priority,
         'viaMqtt': p.viaMqtt,
         'transport': p.transportMechanism,
+        'hopStart': p.hopStart,
+        'encrypted': p.encrypted?.length,
+        'publicKey': p.publicKey?.length,
+        'pkiEncrypted': p.pkiEncrypted,
+        'nextHop': p.nextHop,
+        'relayNode': p.relayNode,
+        'txAfter': p.txAfter,
       }),
     );
 
@@ -301,6 +341,23 @@ class _MeshtasticEventDetails extends StatelessWidget {
                 'time': pos.position.time,
                 'gpsAcc': pos.position.gpsAccuracy,
                 'sats': pos.position.satsInView,
+                'locSource': pos.position.locationSource,
+                'altSource': pos.position.altitudeSource,
+                'ts': pos.position.timestamp,
+                'tsMillisAdj': pos.position.timestampMillisAdjust,
+                'altHae': pos.position.altitudeHae,
+                'altGeoSep': pos.position.altitudeGeoidalSeparation,
+                'pDOP': pos.position.pDOP,
+                'hDOP': pos.position.hDOP,
+                'vDOP': pos.position.vDOP,
+                'groundSpeed': pos.position.groundSpeed,
+                'groundTrack': pos.position.groundTrack,
+                'fixQuality': pos.position.fixQuality,
+                'fixType': pos.position.fixType,
+                'sensorId': pos.position.sensorId,
+                'nextUpdate': pos.position.nextUpdate,
+                'seqNumber': pos.position.seqNumber,
+                'precisionBits': pos.position.precisionBits,
               }),
             ),
           ],
@@ -319,9 +376,13 @@ class _MeshtasticEventDetails extends StatelessWidget {
               title: AppLocalizations.of(context).waypoint,
               child: _kvTable({
                 'name': w.waypoint.name,
+                'id': w.waypoint.id,
                 'latI': w.waypoint.latitudeI,
                 'lonI': w.waypoint.longitudeI,
                 'expire': w.waypoint.expire,
+                'lockedTo': w.waypoint.lockedTo,
+                'desc': w.waypoint.description,
+                'icon': w.waypoint.icon,
               }),
             ),
           ],
@@ -330,8 +391,15 @@ class _MeshtasticEventDetails extends StatelessWidget {
           emoji: '🪪',
           title: AppLocalizations.of(context).user,
           child: _kvTable({
+            'id': u.user.id,
             'longName': u.user.longName,
             'shortName': u.user.shortName,
+            'mac': u.user.macaddr?.length,
+            'hwModel': u.user.hwModel,
+            'isLicensed': u.user.isLicensed,
+            'role': u.user.role,
+            'pubKey': u.user.publicKey?.length,
+            'isUnmessagable': u.user.isUnmessagable,
           }),
         ),
       RoutingPayloadDto _ => _Section(
@@ -398,7 +466,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
       PaxcounterPayloadDto p => _Section(
           emoji: '👥',
           title: AppLocalizations.of(context).paxcounter,
-          child: _kvTable({'wifi': p.wifi, 'ble': p.ble}),
+          child: _kvTable({'wifi': p.wifi, 'ble': p.ble, 'uptime': p.uptime}),
         ),
       TraceroutePayloadDto tr => _Section(
           emoji: '🔎',
@@ -789,6 +857,29 @@ class _MeshtasticEventDetails extends StatelessWidget {
       }));
     }
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
+  }
+
+
+  Widget _channelSettingsDetails(BuildContext context, ChannelSettingsDto s) {
+    final children = <Widget>[];
+    children.add(_kvTable({
+      'name': s.name,
+      'psk': s.psk != null && s.psk!.isNotEmpty ? '****' : null,
+      'id': s.id,
+      'uplinkEnabled': s.uplinkEnabled,
+      'downlinkEnabled': s.downlinkEnabled,
+      'channelNum': s.channelNum,
+    }));
+
+    if (s.moduleSettings != null) {
+      children.add(_Indent(
+          child: _kvTable({
+        'positionPrecision': s.moduleSettings!.positionPrecision,
+      })));
+    }
+
+    return Column(
+        crossAxisAlignment: CrossAxisAlignment.start, children: children);
   }
 }
 

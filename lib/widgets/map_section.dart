@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as latlng;
 import '../utils/text_sanitize.dart';
+import '../l10n/app_localizations.dart';
 
 /// Simple reusable map section using flutter_map (OpenStreetMap tiles).
 ///
@@ -122,7 +123,7 @@ class _MapSectionState extends State<MapSection> {
                 margin: const EdgeInsets.all(6),
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 color: Colors.white.withValues(alpha: 0.8),
-                child: const Text('© OpenStreetMap contributors', style: TextStyle(fontSize: 10)),
+                child: Text(AppLocalizations.of(context).mapAttribution, style: const TextStyle(fontSize: 10)),
               ),
             ),
             if (widget.showZoomControls)
