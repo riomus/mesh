@@ -135,6 +135,16 @@ class DeviceStatusStore {
   bool isConnected(String deviceId) =>
       _entries[deviceId]?.status?.state == DeviceConnectionState.connected;
 
+  /// Returns the first connected device found, or null if none.
+  BluetoothDevice? get connectedDevice {
+    for (final e in _entries.values) {
+      if (e.status?.state == DeviceConnectionState.connected) {
+        return e.device;
+      }
+    }
+    return null;
+  }
+
   /// Dispose all clients (e.g., on app shutdown).
   Future<void> disposeAll() async {
     for (final e in _entries.values) {

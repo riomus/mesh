@@ -235,17 +235,22 @@ class MeshtasticBleClient {
   /// Send arbitrary `ToRadio` protobuf to the device (Write With Response).
   /// Handles chunking to fit negotiated MTU (payload <= MTU-3).
   Future<void> sendToRadio(mesh.ToRadio message) async {
+    _log('Sending ToRadio message: $message');
     final data = message.writeToBuffer();
     final characteristic = _toRadio!;
 
     final maxChunk = max(20, (_mtu - 3));
+    _log('Total bytes to send: ${data.length}, MTU: $_mtu, Chunk size: $maxChunk');
+
     int offset = 0;
     while (offset < data.length) {
       final end = (offset + maxChunk) > data.length ? data.length : (offset + maxChunk);
       final chunk = data.sublist(offset, end);
+      _log('Sending chunk: $offset to $end (${chunk.length} bytes)');
       await characteristic.write(chunk, withoutResponse: false);
       offset = end;
     }
+    _log('Finished sending ToRadio message');
   }
 
   /// Convenience: send a MeshPacket wrapped in ToRadio

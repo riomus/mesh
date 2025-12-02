@@ -146,8 +146,8 @@ class _ScannerPageState extends State<ScannerPage> {
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Center(
                 child: Tooltip(
-                  message: 'Build: ${VersionInfo.instance!.displayDescribe}'
-                      '${VersionInfo.instance!.buildTimeUtc != null ? '\nBuilt: ${VersionInfo.instance!.buildTimeUtc!.toIso8601String()}' : ''}',
+                  message: '${t.buildPrefix}${VersionInfo.instance!.displayDescribe}'
+                      '${VersionInfo.instance!.buildTimeUtc != null ? '\n${t.builtPrefix}${VersionInfo.instance!.buildTimeUtc!.toIso8601String()}' : ''}',
                   child: Text(
                     VersionInfo.instance!.displayDescribe,
                     style: Theme.of(context).textTheme.labelSmall,

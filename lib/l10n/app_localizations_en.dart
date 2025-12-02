@@ -444,4 +444,234 @@ class AppLocalizationsEn extends AppLocalizations {
   String sendFailed(Object error) {
     return 'Failed to send: $error';
   }
+
+  @override
+  String get buildPrefix => 'Build: ';
+
+  @override
+  String get builtPrefix => 'Built: ';
+
+  @override
+  String agoSeconds(Object seconds) {
+    return '${seconds}s ago';
+  }
+
+  @override
+  String agoMinutes(Object minutes) {
+    return '${minutes}m ago';
+  }
+
+  @override
+  String agoHours(Object hours) {
+    return '${hours}h ago';
+  }
+
+  @override
+  String agoDays(Object days) {
+    return '${days}d ago';
+  }
+
+  @override
+  String get sortAsc => 'ASC';
+
+  @override
+  String get sortDesc => 'DESC';
+
+  @override
+  String get unknownState => 'Unknown';
+
+  @override
+  String get languageSystem => 'System';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get languagePolish => 'Polski';
+
+  @override
+  String get languageFollowSystem => 'Follow system language';
+
+  @override
+  String languageAppLanguage(Object language) {
+    return 'App language: $language';
+  }
+
+  @override
+  String get eventDetails => 'Event details';
+
+  @override
+  String get myInfo => 'MyInfo';
+
+  @override
+  String get config => 'Config';
+
+  @override
+  String get configComplete => 'Config complete';
+
+  @override
+  String get rebooted => 'Rebooted';
+
+  @override
+  String get moduleConfig => 'Module config';
+
+  @override
+  String get channel => 'Channel';
+
+  @override
+  String get queueStatus => 'Queue status';
+
+  @override
+  String get deviceMetadata => 'Device metadata';
+
+  @override
+  String get mqttProxy => 'MQTT proxy';
+
+  @override
+  String get fileInfo => 'File info';
+
+  @override
+  String get clientNotification => 'Client notification';
+
+  @override
+  String get deviceUiConfig => 'Device UI config';
+
+  @override
+  String get logRecord => 'Log record';
+
+  @override
+  String get packet => 'Packet';
+
+  @override
+  String get textPayload => 'Text payload';
+
+  @override
+  String get position => 'Position';
+
+  @override
+  String rawPayloadDetails(Object bytes, Object id, Object name) {
+    return 'Raw payload ($name:$id, $bytes bytes)';
+  }
+
+  @override
+  String get encryptedUnknownPayload => 'Encrypted/unknown payload';
+
+  @override
+  String get configUpdate => 'Config update';
+
+  @override
+  String get configStreamComplete => 'Config stream complete';
+
+  @override
+  String get deviceReportedReboot => 'Device reported reboot';
+
+  @override
+  String get noReboot => 'No reboot';
+
+  @override
+  String get channelUpdate => 'Channel update';
+
+  @override
+  String get routingMessage => 'Routing message';
+
+  @override
+  String get adminMessage => 'Admin message';
+
+  @override
+  String get positionUpdate => 'Position update';
+
+  @override
+  String get userInfo => 'User info';
+
+  @override
+  String remoteHw(Object mask, Object type, Object value) {
+    return 'Remote HW: $type mask=$mask value=$value';
+  }
+
+  @override
+  String storeForwardVariant(Object variant) {
+    return 'Store & Forward ($variant)';
+  }
+
+  @override
+  String telemetryVariant(Object variant) {
+    return 'Telemetry ($variant)';
+  }
+
+  @override
+  String get device => 'Device';
+
+  @override
+  String get serial => 'Serial';
+
+  @override
+  String get rangeTest => 'Range test';
+
+  @override
+  String get externalNotification => 'External notification';
+
+  @override
+  String get audio => 'Audio';
+
+  @override
+  String get cannedMessage => 'Canned message';
+
+  @override
+  String get ambientLighting => 'Ambient lighting';
+
+  @override
+  String get detectionSensor => 'Detection sensor';
+
+  @override
+  String get dtnOverlay => 'DTN overlay';
+
+  @override
+  String get broadcastAssist => 'Broadcast assist';
+
+  @override
+  String get nodeFilter => 'Node filter';
+
+  @override
+  String get nodeHighlight => 'Node highlight';
+
+  @override
+  String get map => 'Map';
+
+  @override
+  String snrDb(Object value) {
+    return 'SNR $value dB';
+  }
+
+  @override
+  String nodeTitle(Object name) {
+    return 'Node $name';
+  }
+
+  @override
+  String nodeTitleId(Object id) {
+    return 'Node ($id)';
+  }
+
+  @override
+  String get nodeInfo => 'NodeInfo';
+
+  @override
+  String batteryLevel(Object percentage) {
+    return '🔋$percentage%';
+  }
+
+  @override
+  String viaNameId(Object id, Object name) {
+    return 'via $name (0x$id)';
+  }
+
+  @override
+  String viaName(Object name) {
+    return 'via $name';
+  }
+
+  @override
+  String viaId(Object id) {
+    return 'via 0x$id';
+  }
 }

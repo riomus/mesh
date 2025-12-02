@@ -7,6 +7,10 @@ import 'package:latlong2/latlong.dart' as latlng;
 import '../services/nodes_service.dart';
 import '../utils/text_sanitize.dart';
 
+import '../services/device_status_store.dart';
+import 'device_chat_page.dart';
+import '../l10n/app_localizations.dart';
+
 /// Detailed view of a single mesh node.
 class NodeDetailsPage extends StatefulWidget {
   final int nodeNum; // Node id as integer
@@ -88,7 +92,31 @@ class _NodeDetailsPageState extends State<NodeDetailsPage> {
     final n = _node;
     return Scaffold(
       appBar: AppBar(
-        title: Text(n != null ? safeText(n.displayName) : 'Node 0x${widget.nodeNum.toRadixString(16)}'),
+        title: Text(n != null ? safeText(n.displayName) : AppLocalizations.of(context).nodeTitleHex(widget.nodeNum.toRadixString(16))),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.chat),
+            tooltip: AppLocalizations.of(context).chat,
+            onPressed: () {
+              final device = DeviceStatusStore.instance.connectedDevice;
+              if (device != null) {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => DeviceChatPage(
+                      device: device,
+                      toNodeId: widget.nodeNum,
+                      chatTitle: n?.displayName ?? AppLocalizations.of(context).nodeTitleHex(widget.nodeNum.toRadixString(16)),
+                    ),
+                  ),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(AppLocalizations.of(context).meshtasticConnectFailed)),
+                );
+              }
+            },
+          ),
+        ],
       ),
       body: n == null
           ? const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()))
@@ -99,23 +127,23 @@ class _NodeDetailsPageState extends State<NodeDetailsPage> {
                   child: ListTile(
                     leading: CircleAvatar(child: Text(safeInitial(n.displayName))),
                     title: Text(safeText(n.displayName)),
-                    subtitle: Text('ID: 0x${n.num!.toRadixString(16)}'),
+                    subtitle: Text(AppLocalizations.of(context).nodeIdHex(n.num!.toRadixString(16))),
                   ),
                 ),
                 Card(
                   child: Column(
                     children: [
-                      _infoTile(Icons.badge, 'Role', n.user?.role),
+                      _infoTile(Icons.badge, AppLocalizations.of(context).role, n.user?.role),
                       const Divider(height: 1),
-                      _infoTile(Icons.alt_route, 'Hops away', n.hopsAway?.toString()),
+                      _infoTile(Icons.alt_route, AppLocalizations.of(context).hopsAway, n.hopsAway?.toString()),
                       const Divider(height: 1),
-                      _infoTile(Icons.network_cell, 'SNR', n.snr?.toStringAsFixed(1)),
+                      _infoTile(Icons.network_cell, AppLocalizations.of(context).snrLabel, n.snr?.toStringAsFixed(1)),
                       const Divider(height: 1),
-                      _infoTile(Icons.cloud, 'via MQTT', n.viaMqtt == true ? 'yes' : (n.viaMqtt == false ? 'no' : null)),
+                      _infoTile(Icons.cloud, AppLocalizations.of(context).viaMqtt, n.viaMqtt == true ? AppLocalizations.of(context).yes : (n.viaMqtt == false ? AppLocalizations.of(context).no : null)),
                       const Divider(height: 1),
-                      _infoTile(Icons.battery_full, 'Battery', _batteryText(n)),
+                      _infoTile(Icons.battery_full, AppLocalizations.of(context).battery, _batteryText(n)),
                       const Divider(height: 1),
-                      _infoTile(Icons.access_time, 'Last seen', n.lastHeard != null ? _formatLastHeard(n.lastHeard!) : null),
+                      _infoTile(Icons.access_time, AppLocalizations.of(context).lastSeenLabel, n.lastHeard != null ? _formatLastHeard(n.lastHeard!) : null),
                     ],
                   ),
                 ),
@@ -123,7 +151,7 @@ class _NodeDetailsPageState extends State<NodeDetailsPage> {
                 Card(
                   child: ListTile(
                     leading: const Icon(Icons.route),
-                    title: const Text('Source device'),
+                    title: Text(AppLocalizations.of(context).sourceDevice),
                     subtitle: Text(_sourceDeviceLine(n)),
                   ),
                 ),
@@ -143,8 +171,8 @@ class _NodeDetailsPageState extends State<NodeDetailsPage> {
   String _batteryText(MeshNodeView n) {
     final lvl = n.deviceMetrics?.batteryLevel;
     if (lvl == null) return '—';
-    if (lvl == 101) return '🔌 charging';
-    return '🔋${lvl}%';
+    if (lvl == 101) return '🔌 ${AppLocalizations.of(context).charging}';
+    return AppLocalizations.of(context).batteryLevel(lvl);
   }
 
   // ===== Location & Map =====
@@ -165,9 +193,9 @@ class _NodeDetailsPageState extends State<NodeDetailsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const ListTile(
+            ListTile(
               leading: Icon(Icons.location_on),
-              title: Text('Location'),
+              title: Text(AppLocalizations.of(context).location),
               subtitle: null,
             ),
             Padding(
@@ -204,11 +232,11 @@ class _NodeDetailsPageState extends State<NodeDetailsPage> {
       );
     }
     // No valid position → show an info card
-    return const Card(
+    return Card(
       child: ListTile(
         leading: Icon(Icons.location_off),
-        title: Text('Location'),
-        subtitle: Text('Location is not available for this node'),
+        title: Text(AppLocalizations.of(context).location),
+        subtitle: Text(AppLocalizations.of(context).locationUnavailable),
       ),
     );
   }
@@ -217,9 +245,9 @@ class _NodeDetailsPageState extends State<NodeDetailsPage> {
     final name = _firstOrNull(n.tags['sourceNodeName']);
     final id = _firstOrNull(n.tags['sourceDeviceId']);
     final short = id != null ? _shortId(id) : null;
-    if (name != null && short != null) return 'via $name (0x$short)';
-    if (name != null) return 'via $name';
-    if (short != null) return 'via 0x$short';
+    if (name != null && short != null) return AppLocalizations.of(context).viaNameId(name, short);
+    if (name != null) return AppLocalizations.of(context).viaName(name);
+    if (short != null) return AppLocalizations.of(context).viaId(short);
     return '—';
   }
 
@@ -237,18 +265,18 @@ class _NodeDetailsPageState extends State<NodeDetailsPage> {
   String _formatLastHeard(int secondsAgo) {
     const twoDays = 2 * 24 * 60 * 60;
     if (secondsAgo < twoDays) {
-      if (secondsAgo < 60) return '${secondsAgo}s ago';
+      if (secondsAgo < 60) return AppLocalizations.of(context).agoSeconds(secondsAgo);
       final minutes = secondsAgo ~/ 60;
-      if (minutes < 60) return '${minutes}m ago';
+      if (minutes < 60) return AppLocalizations.of(context).agoMinutes(minutes);
       final hours = minutes ~/ 60;
-      if (hours < 24) return '${hours}h ago';
+      if (hours < 24) return AppLocalizations.of(context).agoHours(hours);
       final days = hours ~/ 24;
-      return '${days}d ago';
+      return AppLocalizations.of(context).agoDays(days);
     }
     final dt = DateTime.now().subtract(Duration(seconds: secondsAgo));
     String two(int n) => n.toString().padLeft(2, '0');
     final relDays = secondsAgo ~/ (24 * 60 * 60);
     final dateStr = '${dt.year}-${two(dt.month)}-${two(dt.day)} ${two(dt.hour)}:${two(dt.minute)}:${two(dt.second)}';
-    return '$dateStr (${relDays}d ago)';
+    return '$dateStr (${AppLocalizations.of(context).agoDays(relDays)})';
   }
 }

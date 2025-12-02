@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 
 import '../meshtastic/model/meshtastic_event.dart';
 import '../meshtastic/model/meshtastic_models.dart';
@@ -17,91 +18,91 @@ class MeshtasticEventTile extends StatelessWidget {
       case MyInfoEvent e:
         return _SimpleTile(
           emoji: '🧩',
-          title: 'MyInfo',
+          title: AppLocalizations.of(context).myInfo,
           subtitle: e.myInfo.myNodeNum != null ? 'myNodeNum=${e.myInfo.myNodeNum}' : null,
           color: Colors.indigo,
         );
       case NodeInfoEvent e:
         return _SimpleTile(
           emoji: '🪪',
-          title: _nodeTitle(e.nodeInfo),
+          title: _nodeTitle(context, e.nodeInfo),
           subtitle: e.nodeInfo.num != null ? 'num=${e.nodeInfo.num}' : null,
           color: Colors.deepPurple,
         );
       case ConfigEvent _:
         return _SimpleTile(
           emoji: '⚙️',
-          title: 'Config update',
+          title: AppLocalizations.of(context).configUpdate,
           subtitle: null,
           color: Colors.teal,
         );
       case ConfigCompleteEvent e:
         return _PlainTile(
           emoji: '✅',
-          title: 'Config stream complete',
+          title: AppLocalizations.of(context).configStreamComplete,
           subtitle: 'id=${e.configCompleteId}',
           color: Colors.teal,
         );
       case RebootedEvent e:
         return _PlainTile(
           emoji: e.rebooted ? '🔁' : 'ℹ️',
-          title: 'Rebooted',
-          subtitle: e.rebooted ? 'Device reported reboot' : 'No reboot',
+          title: AppLocalizations.of(context).rebooted,
+          subtitle: e.rebooted ? AppLocalizations.of(context).deviceReportedReboot : AppLocalizations.of(context).noReboot,
           color: Colors.orange,
         );
       case ModuleConfigEvent _:
         return _SimpleTile(
           emoji: '🧩',
-          title: 'Module config',
+          title: AppLocalizations.of(context).moduleConfig,
           subtitle: null,
           color: Colors.blueGrey,
         );
       case ChannelEvent e:
         return _SimpleTile(
           emoji: '📡',
-          title: 'Channel update',
+          title: AppLocalizations.of(context).channelUpdate,
           subtitle: e.channel.index != null ? 'index=${e.channel.index}' : null,
           color: Colors.blue,
         );
       case QueueStatusEvent e:
         return _SimpleTile(
           emoji: '📬',
-          title: 'Queue status',
+          title: AppLocalizations.of(context).queueStatus,
           subtitle: _queuePreview(e.status),
           color: Colors.cyan,
         );
       case DeviceMetadataEvent e:
         return _SimpleTile(
           emoji: '🧰',
-          title: 'Device metadata',
+          title: AppLocalizations.of(context).deviceMetadata,
           subtitle: _deviceMetadataPreview(e.metadata),
           color: Colors.brown,
         );
       case MqttClientProxyEvent _:
         return _SimpleTile(
           emoji: '☁️',
-          title: 'MQTT proxy',
+          title: AppLocalizations.of(context).mqttProxy,
           subtitle: null,
           color: Colors.lightBlue,
         );
       case FileInfoEvent e:
         return _SimpleTile(
           emoji: '📁',
-          title: 'File info',
+          title: AppLocalizations.of(context).fileInfo,
           subtitle: _fileInfoPreview(e.fileInfo),
           color: Colors.amber,
         );
       case ClientNotificationEvent e:
         return _SimpleTile(
           emoji: '🔔',
-          title: 'Client notification',
+          title: AppLocalizations.of(context).clientNotification,
           subtitle: e.notification.message,
           color: Colors.pink,
         );
       case DeviceUiConfigEvent _:
         return _SimpleTile(
           emoji: '🖥️',
-          title: 'Device UI config',
+          title: AppLocalizations.of(context).deviceUiConfig,
           subtitle: null,
           color: Colors.green,
         );
@@ -110,12 +111,12 @@ class MeshtasticEventTile extends StatelessWidget {
     }
   }
 
-  static String _nodeTitle(NodeInfoDto dto) {
+  static String _nodeTitle(BuildContext context, NodeInfoDto dto) {
     final name = dto.user?.longName ?? dto.user?.shortName ?? '';
     final num = dto.num;
     return name.isNotEmpty
-        ? 'Node $name${num != null ? ' ($num)' : ''}'
-        : (num != null ? 'Node ($num)' : 'NodeInfo');
+        ? '${AppLocalizations.of(context).nodeTitle(name)}${num != null ? ' ($num)' : ''}'
+        : (num != null ? AppLocalizations.of(context).nodeTitleId(num) : AppLocalizations.of(context).nodeInfo);
   }
 }
 
@@ -177,20 +178,20 @@ class _PacketTile extends StatelessWidget {
 
     final title = switch (decoded) {
       TextPayloadDto t => _textTitle(t),
-      PositionPayloadDto pos => _posTitle(pos),
-      WaypointPayloadDto w => _waypointTitle(w),
-      UserPayloadDto u => _userTitle(u),
-      RoutingPayloadDto _ => 'Routing message',
-      AdminPayloadDto _ => 'Admin message',
-      RemoteHardwarePayloadDto rh => _remoteHardwareTitle(rh),
-      NeighborInfoPayloadDto ni => _neighborInfoTitle(ni),
-      StoreForwardPayloadDto sf => _storeForwardTitle(sf),
-      TelemetryPayloadDto t => _telemetryTitle(t),
-      PaxcounterPayloadDto p => _paxcounterTitle(p),
-      TraceroutePayloadDto _ => 'Traceroute',
-      KeyVerificationPayloadDto kv => _keyVerificationTitle(kv),
-      RawPayloadDto r => 'Raw payload (${r.portnum.name}:${r.portnum.id}, ${r.bytes.length} bytes)',
-      null => 'Encrypted/unknown payload',
+      PositionPayloadDto pos => _posTitle(context, pos),
+      WaypointPayloadDto w => _waypointTitle(context, w),
+      UserPayloadDto u => _userTitle(context, u),
+      RoutingPayloadDto _ => AppLocalizations.of(context).routingMessage,
+      AdminPayloadDto _ => AppLocalizations.of(context).adminMessage,
+      RemoteHardwarePayloadDto rh => _remoteHardwareTitle(context, rh),
+      NeighborInfoPayloadDto ni => _neighborInfoTitle(context, ni),
+      StoreForwardPayloadDto sf => _storeForwardTitle(context, sf),
+      TelemetryPayloadDto t => _telemetryTitle(context, t),
+      PaxcounterPayloadDto p => _paxcounterTitle(context, p),
+      TraceroutePayloadDto _ => AppLocalizations.of(context).traceroute,
+      KeyVerificationPayloadDto kv => _keyVerificationTitle(context, kv),
+      RawPayloadDto r => AppLocalizations.of(context).rawPayloadDetails(r.portnum.name, r.portnum.id, r.bytes.length),
+      null => AppLocalizations.of(context).encryptedUnknownPayload,
     };
 
     final sub = _packetSubtitle(p);
@@ -200,7 +201,7 @@ class _PacketTile extends StatelessWidget {
       trailing = RssiBar(rssi: p.rxRssi!);
     } else if (p.rxSnr != null) {
       final snr = p.rxSnr!;
-      trailing = Text('SNR ${snr.toStringAsFixed(1)} dB',
+      trailing = Text(AppLocalizations.of(context).snrDb(snr.toStringAsFixed(1)),
           style: Theme.of(context).textTheme.bodySmall);
     } else {
       trailing = const SizedBox.shrink();
@@ -225,7 +226,7 @@ class _PacketTile extends StatelessWidget {
     return '$emoji ${t.text}';
   }
 
-  String _posTitle(PositionPayloadDto pos) {
+  String _posTitle(BuildContext context, PositionPayloadDto pos) {
     final latI = pos.latitudeI;
     final lonI = pos.longitudeI;
     if (latI != null && lonI != null) {
@@ -233,25 +234,25 @@ class _PacketTile extends StatelessWidget {
       final lon = lonI / 1e7;
       return '📍 ${lat.toStringAsFixed(5)}, ${lon.toStringAsFixed(5)}';
     }
-    return '📍 Position update';
+    return '📍 ${AppLocalizations.of(context).positionUpdate}';
   }
 
-  String _waypointTitle(WaypointPayloadDto w) {
+  String _waypointTitle(BuildContext context, WaypointPayloadDto w) {
     final wp = w.waypoint;
     if ((wp.name ?? '').isNotEmpty) {
-      return '📍 Waypoint: ${wp.name}';
+      return '📍 ${AppLocalizations.of(context).waypoint}: ${wp.name}';
     }
     final latI = wp.latitudeI;
     final lonI = wp.longitudeI;
     if (latI != null && lonI != null) {
-      return '📍 Waypoint ${ (latI / 1e7).toStringAsFixed(5) }, ${ (lonI / 1e7).toStringAsFixed(5) }';
+      return '📍 ${AppLocalizations.of(context).waypoint} ${ (latI / 1e7).toStringAsFixed(5) }, ${ (lonI / 1e7).toStringAsFixed(5) }';
     }
-    return '📍 Waypoint';
+    return '📍 ${AppLocalizations.of(context).waypoint}';
   }
 
-  String _userTitle(UserPayloadDto u) {
+  String _userTitle(BuildContext context, UserPayloadDto u) {
     final longName = u.user.longName ?? u.user.shortName ?? '';
-    return longName.isNotEmpty ? '🪪 $longName' : '🪪 User info';
+    return longName.isNotEmpty ? '🪪 $longName' : '🪪 ${AppLocalizations.of(context).userInfo}';
   }
 
   String _packetSubtitle(MeshPacketDto p) {
@@ -263,40 +264,40 @@ class _PacketTile extends StatelessWidget {
     return parts.join('  ');
   }
 
-  String _remoteHardwareTitle(RemoteHardwarePayloadDto rh) {
-    final type = rh.type ?? 'unknown';
-    return '🔧 Remote HW: $type mask=${rh.gpioMask ?? 0} value=${rh.gpioValue ?? 0}';
+  String _remoteHardwareTitle(BuildContext context, RemoteHardwarePayloadDto rh) {
+    final type = rh.type ?? AppLocalizations.of(context).unknown;
+    return AppLocalizations.of(context).remoteHw(type, rh.gpioMask ?? 0, rh.gpioValue ?? 0);
   }
 
-  String _neighborInfoTitle(NeighborInfoPayloadDto ni) {
+  String _neighborInfoTitle(BuildContext context, NeighborInfoPayloadDto ni) {
     final n = ni.neighbors?.length ?? 0;
     final id = ni.nodeId != null ? 'node=${ni.nodeId} · ' : '';
-    return '🕸️ Neighbor info · ${id}edges=$n';
+    return '🕸️ ${AppLocalizations.of(context).neighborInfo} · ${id}edges=$n';
   }
 
-  String _storeForwardTitle(StoreForwardPayloadDto sf) {
-    final v = sf.variant ?? 'unknown';
-    return '🗄️ Store & Forward ($v)';
+  String _storeForwardTitle(BuildContext context, StoreForwardPayloadDto sf) {
+    final v = sf.variant ?? AppLocalizations.of(context).unknown;
+    return AppLocalizations.of(context).storeForwardVariant(v);
     }
 
-  String _telemetryTitle(TelemetryPayloadDto t) {
-    final v = t.variant ?? 'unknown';
-    return '📊 Telemetry ($v)';
+  String _telemetryTitle(BuildContext context, TelemetryPayloadDto t) {
+    final v = t.variant ?? AppLocalizations.of(context).unknown;
+    return AppLocalizations.of(context).telemetryVariant(v);
   }
 
-  String _paxcounterTitle(PaxcounterPayloadDto p) {
+  String _paxcounterTitle(BuildContext context, PaxcounterPayloadDto p) {
     final w = p.wifi != null ? 'wifi=${p.wifi}' : null;
     final b = p.ble != null ? 'ble=${p.ble}' : null;
     final parts = [w, b].whereType<String>().toList();
     final rest = parts.isNotEmpty ? ' · ${parts.join(' ')}' : '';
-    return '👥 Paxcounter$rest';
+    return '👥 ${AppLocalizations.of(context).paxcounter}$rest';
   }
 
-  String _keyVerificationTitle(KeyVerificationPayloadDto kv) {
+  String _keyVerificationTitle(BuildContext context, KeyVerificationPayloadDto kv) {
     final n = kv.nonce != null ? 'nonce=${kv.nonce}' : null;
     final parts = [n].whereType<String>().toList();
     final rest = parts.isNotEmpty ? ' (${parts.join(' · ')})' : '';
-    return '🔐 Key verification$rest';
+    return '🔐 ${AppLocalizations.of(context).keyVerification}$rest';
   }
 }
 
@@ -383,7 +384,7 @@ class _LogTile extends StatelessWidget {
       ),
       child: ListTile(
         leading: Text(emoji, style: const TextStyle(fontSize: 20)),
-        title: Text(src.isNotEmpty ? src : 'Log'),
+        title: Text(src.isNotEmpty ? src : AppLocalizations.of(context).logRecord),
         subtitle: Text(msg),
         dense: true,
       ),

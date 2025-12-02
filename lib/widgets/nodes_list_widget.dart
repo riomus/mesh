@@ -535,13 +535,13 @@ class _NodesListWidgetState extends State<NodesListWidget>
   String _formatLastHeard(int secondsAgo) {
     const twoDays = 2 * 24 * 60 * 60; // 172800
     if (secondsAgo < twoDays) {
-      if (secondsAgo < 60) return '${secondsAgo}s ago';
+      if (secondsAgo < 60) return AppLocalizations.of(context).agoSeconds(secondsAgo);
       final minutes = secondsAgo ~/ 60;
-      if (minutes < 60) return '${minutes}m ago';
+      if (minutes < 60) return AppLocalizations.of(context).agoMinutes(minutes);
       final hours = minutes ~/ 60;
-      if (hours < 24) return '${hours}h ago';
+      if (hours < 24) return AppLocalizations.of(context).agoHours(hours);
       final days = hours ~/ 24;
-      return '${days}d ago';
+      return AppLocalizations.of(context).agoDays(days);
     }
     final dt = DateTime.now().subtract(Duration(seconds: secondsAgo));
     String two(int n) => n.toString().padLeft(2, '0');
@@ -599,7 +599,7 @@ class _NodesListWidgetState extends State<NodesListWidget>
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text(local[i].asc ? 'ASC' : 'DESC'),
+                                Text(local[i].asc ? AppLocalizations.of(context).sortAsc : AppLocalizations.of(context).sortDesc),
                                 IconButton(
                                   icon: const Icon(Icons.swap_vert),
                                   onPressed: () => setDlg(() => local[i] = local[i].toggle()),
@@ -658,7 +658,7 @@ class _NodesListWidgetState extends State<NodesListWidget>
         return AppLocalizations.of(context).name;
     }
     // Fallback (should be unreachable)
-    return 'Unknown';
+    return AppLocalizations.of(context).unknownState;
   }
   bool _addChipUnique(_NodeChipFilter c) {
     final exists = _chips.any((x) => x.key == c.key && x.value == c.value && x.op == c.op);

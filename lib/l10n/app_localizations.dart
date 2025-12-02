@@ -919,6 +919,402 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to send: {error}'**
   String sendFailed(Object error);
+
+  /// No description provided for @buildPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Build: '**
+  String get buildPrefix;
+
+  /// No description provided for @builtPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Built: '**
+  String get builtPrefix;
+
+  /// No description provided for @agoSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds}s ago'**
+  String agoSeconds(Object seconds);
+
+  /// No description provided for @agoMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes}m ago'**
+  String agoMinutes(Object minutes);
+
+  /// No description provided for @agoHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h ago'**
+  String agoHours(Object hours);
+
+  /// No description provided for @agoDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d ago'**
+  String agoDays(Object days);
+
+  /// No description provided for @sortAsc.
+  ///
+  /// In en, this message translates to:
+  /// **'ASC'**
+  String get sortAsc;
+
+  /// No description provided for @sortDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'DESC'**
+  String get sortDesc;
+
+  /// No description provided for @unknownState.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get unknownState;
+
+  /// No description provided for @languageSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get languageSystem;
+
+  /// No description provided for @languageEnglish.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get languageEnglish;
+
+  /// No description provided for @languagePolish.
+  ///
+  /// In en, this message translates to:
+  /// **'Polski'**
+  String get languagePolish;
+
+  /// No description provided for @languageFollowSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow system language'**
+  String get languageFollowSystem;
+
+  /// No description provided for @languageAppLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'App language: {language}'**
+  String languageAppLanguage(Object language);
+
+  /// No description provided for @eventDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Event details'**
+  String get eventDetails;
+
+  /// No description provided for @myInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'MyInfo'**
+  String get myInfo;
+
+  /// No description provided for @config.
+  ///
+  /// In en, this message translates to:
+  /// **'Config'**
+  String get config;
+
+  /// No description provided for @configComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Config complete'**
+  String get configComplete;
+
+  /// No description provided for @rebooted.
+  ///
+  /// In en, this message translates to:
+  /// **'Rebooted'**
+  String get rebooted;
+
+  /// No description provided for @moduleConfig.
+  ///
+  /// In en, this message translates to:
+  /// **'Module config'**
+  String get moduleConfig;
+
+  /// No description provided for @channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel'**
+  String get channel;
+
+  /// No description provided for @queueStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Queue status'**
+  String get queueStatus;
+
+  /// No description provided for @deviceMetadata.
+  ///
+  /// In en, this message translates to:
+  /// **'Device metadata'**
+  String get deviceMetadata;
+
+  /// No description provided for @mqttProxy.
+  ///
+  /// In en, this message translates to:
+  /// **'MQTT proxy'**
+  String get mqttProxy;
+
+  /// No description provided for @fileInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'File info'**
+  String get fileInfo;
+
+  /// No description provided for @clientNotification.
+  ///
+  /// In en, this message translates to:
+  /// **'Client notification'**
+  String get clientNotification;
+
+  /// No description provided for @deviceUiConfig.
+  ///
+  /// In en, this message translates to:
+  /// **'Device UI config'**
+  String get deviceUiConfig;
+
+  /// No description provided for @logRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Log record'**
+  String get logRecord;
+
+  /// No description provided for @packet.
+  ///
+  /// In en, this message translates to:
+  /// **'Packet'**
+  String get packet;
+
+  /// No description provided for @textPayload.
+  ///
+  /// In en, this message translates to:
+  /// **'Text payload'**
+  String get textPayload;
+
+  /// No description provided for @position.
+  ///
+  /// In en, this message translates to:
+  /// **'Position'**
+  String get position;
+
+  /// No description provided for @rawPayloadDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Raw payload ({name}:{id}, {bytes} bytes)'**
+  String rawPayloadDetails(Object bytes, Object id, Object name);
+
+  /// No description provided for @encryptedUnknownPayload.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypted/unknown payload'**
+  String get encryptedUnknownPayload;
+
+  /// No description provided for @configUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Config update'**
+  String get configUpdate;
+
+  /// No description provided for @configStreamComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Config stream complete'**
+  String get configStreamComplete;
+
+  /// No description provided for @deviceReportedReboot.
+  ///
+  /// In en, this message translates to:
+  /// **'Device reported reboot'**
+  String get deviceReportedReboot;
+
+  /// No description provided for @noReboot.
+  ///
+  /// In en, this message translates to:
+  /// **'No reboot'**
+  String get noReboot;
+
+  /// No description provided for @channelUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel update'**
+  String get channelUpdate;
+
+  /// No description provided for @routingMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Routing message'**
+  String get routingMessage;
+
+  /// No description provided for @adminMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin message'**
+  String get adminMessage;
+
+  /// No description provided for @positionUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Position update'**
+  String get positionUpdate;
+
+  /// No description provided for @userInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'User info'**
+  String get userInfo;
+
+  /// No description provided for @remoteHw.
+  ///
+  /// In en, this message translates to:
+  /// **'Remote HW: {type} mask={mask} value={value}'**
+  String remoteHw(Object mask, Object type, Object value);
+
+  /// No description provided for @storeForwardVariant.
+  ///
+  /// In en, this message translates to:
+  /// **'Store & Forward ({variant})'**
+  String storeForwardVariant(Object variant);
+
+  /// No description provided for @telemetryVariant.
+  ///
+  /// In en, this message translates to:
+  /// **'Telemetry ({variant})'**
+  String telemetryVariant(Object variant);
+
+  /// No description provided for @device.
+  ///
+  /// In en, this message translates to:
+  /// **'Device'**
+  String get device;
+
+  /// No description provided for @serial.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial'**
+  String get serial;
+
+  /// No description provided for @rangeTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Range test'**
+  String get rangeTest;
+
+  /// No description provided for @externalNotification.
+  ///
+  /// In en, this message translates to:
+  /// **'External notification'**
+  String get externalNotification;
+
+  /// No description provided for @audio.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio'**
+  String get audio;
+
+  /// No description provided for @cannedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Canned message'**
+  String get cannedMessage;
+
+  /// No description provided for @ambientLighting.
+  ///
+  /// In en, this message translates to:
+  /// **'Ambient lighting'**
+  String get ambientLighting;
+
+  /// No description provided for @detectionSensor.
+  ///
+  /// In en, this message translates to:
+  /// **'Detection sensor'**
+  String get detectionSensor;
+
+  /// No description provided for @dtnOverlay.
+  ///
+  /// In en, this message translates to:
+  /// **'DTN overlay'**
+  String get dtnOverlay;
+
+  /// No description provided for @broadcastAssist.
+  ///
+  /// In en, this message translates to:
+  /// **'Broadcast assist'**
+  String get broadcastAssist;
+
+  /// No description provided for @nodeFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Node filter'**
+  String get nodeFilter;
+
+  /// No description provided for @nodeHighlight.
+  ///
+  /// In en, this message translates to:
+  /// **'Node highlight'**
+  String get nodeHighlight;
+
+  /// No description provided for @map.
+  ///
+  /// In en, this message translates to:
+  /// **'Map'**
+  String get map;
+
+  /// No description provided for @snrDb.
+  ///
+  /// In en, this message translates to:
+  /// **'SNR {value} dB'**
+  String snrDb(Object value);
+
+  /// No description provided for @nodeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Node {name}'**
+  String nodeTitle(Object name);
+
+  /// No description provided for @nodeTitleId.
+  ///
+  /// In en, this message translates to:
+  /// **'Node ({id})'**
+  String nodeTitleId(Object id);
+
+  /// No description provided for @nodeInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'NodeInfo'**
+  String get nodeInfo;
+
+  /// No description provided for @batteryLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'🔋{percentage}%'**
+  String batteryLevel(Object percentage);
+
+  /// No description provided for @viaNameId.
+  ///
+  /// In en, this message translates to:
+  /// **'via {name} (0x{id})'**
+  String viaNameId(Object id, Object name);
+
+  /// No description provided for @viaName.
+  ///
+  /// In en, this message translates to:
+  /// **'via {name}'**
+  String viaName(Object name);
+
+  /// No description provided for @viaId.
+  ///
+  /// In en, this message translates to:
+  /// **'via 0x{id}'**
+  String viaId(Object id);
 }
 
 class _AppLocalizationsDelegate

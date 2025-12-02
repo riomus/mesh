@@ -381,7 +381,7 @@ class AppLocalizationsPl extends AppLocalizations {
   String get shareEvents => 'Udostępnij zdarzenia (JSON)';
 
   @override
-  String get eventsExport => 'Events export';
+  String get eventsExport => 'Eksport zdarzeń';
 
   @override
   String get shareLogs => 'Udostępnij logi (JSON)';
@@ -416,7 +416,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String nodeTitleHex(Object hex) {
-    return 'Node 0x$hex';
+    return 'Węzeł 0x$hex';
   }
 
   @override
@@ -443,5 +443,235 @@ class AppLocalizationsPl extends AppLocalizations {
   @override
   String sendFailed(Object error) {
     return 'Nie udało się wysłać: $error';
+  }
+
+  @override
+  String get buildPrefix => 'Wersja: ';
+
+  @override
+  String get builtPrefix => 'Zbudowano: ';
+
+  @override
+  String agoSeconds(Object seconds) {
+    return '${seconds}s temu';
+  }
+
+  @override
+  String agoMinutes(Object minutes) {
+    return '${minutes}m temu';
+  }
+
+  @override
+  String agoHours(Object hours) {
+    return '${hours}g temu';
+  }
+
+  @override
+  String agoDays(Object days) {
+    return '${days}d temu';
+  }
+
+  @override
+  String get sortAsc => 'ROS';
+
+  @override
+  String get sortDesc => 'MAL';
+
+  @override
+  String get unknownState => 'Nieznany';
+
+  @override
+  String get languageSystem => 'Systemowy';
+
+  @override
+  String get languageEnglish => 'Angielski';
+
+  @override
+  String get languagePolish => 'Polski';
+
+  @override
+  String get languageFollowSystem => 'Zgodnie z systemem';
+
+  @override
+  String languageAppLanguage(Object language) {
+    return 'Język aplikacji: $language';
+  }
+
+  @override
+  String get eventDetails => 'Szczegóły zdarzenia';
+
+  @override
+  String get myInfo => 'MyInfo';
+
+  @override
+  String get config => 'Konfiguracja';
+
+  @override
+  String get configComplete => 'Konfiguracja zakończona';
+
+  @override
+  String get rebooted => 'Zrestartowano';
+
+  @override
+  String get moduleConfig => 'Konfiguracja modułu';
+
+  @override
+  String get channel => 'Kanał';
+
+  @override
+  String get queueStatus => 'Stan kolejki';
+
+  @override
+  String get deviceMetadata => 'Metadane urządzenia';
+
+  @override
+  String get mqttProxy => 'Proxy MQTT';
+
+  @override
+  String get fileInfo => 'Informacje o pliku';
+
+  @override
+  String get clientNotification => 'Powiadomienie klienta';
+
+  @override
+  String get deviceUiConfig => 'Konfiguracja UI urządzenia';
+
+  @override
+  String get logRecord => 'Wpis logu';
+
+  @override
+  String get packet => 'Pakiet';
+
+  @override
+  String get textPayload => 'Ładunek tekstowy';
+
+  @override
+  String get position => 'Pozycja';
+
+  @override
+  String rawPayloadDetails(Object bytes, Object id, Object name) {
+    return 'Surowy ładunek ($name:$id, $bytes bajtów)';
+  }
+
+  @override
+  String get encryptedUnknownPayload => 'Zaszyfrowany/nieznany ładunek';
+
+  @override
+  String get configUpdate => 'Aktualizacja konfiguracji';
+
+  @override
+  String get configStreamComplete => 'Strumień konfiguracji zakończony';
+
+  @override
+  String get deviceReportedReboot => 'Urządzenie zgłosiło restart';
+
+  @override
+  String get noReboot => 'Brak restartu';
+
+  @override
+  String get channelUpdate => 'Aktualizacja kanału';
+
+  @override
+  String get routingMessage => 'Wiadomość routingu';
+
+  @override
+  String get adminMessage => 'Wiadomość admina';
+
+  @override
+  String get positionUpdate => 'Aktualizacja pozycji';
+
+  @override
+  String get userInfo => 'Informacje o użytkowniku';
+
+  @override
+  String remoteHw(Object mask, Object type, Object value) {
+    return 'Zdalny sprzęt: $type maska=$mask wartość=$value';
+  }
+
+  @override
+  String storeForwardVariant(Object variant) {
+    return 'Przechowaj i przekaż ($variant)';
+  }
+
+  @override
+  String telemetryVariant(Object variant) {
+    return 'Telemetria ($variant)';
+  }
+
+  @override
+  String get device => 'Urządzenie';
+
+  @override
+  String get serial => 'Port szeregowy';
+
+  @override
+  String get rangeTest => 'Test zasięgu';
+
+  @override
+  String get externalNotification => 'Powiadomienie zewnętrzne';
+
+  @override
+  String get audio => 'Audio';
+
+  @override
+  String get cannedMessage => 'Wiadomość szablonowa';
+
+  @override
+  String get ambientLighting => 'Oświetlenie otoczenia';
+
+  @override
+  String get detectionSensor => 'Czujnik wykrywania';
+
+  @override
+  String get dtnOverlay => 'Nakładka DTN';
+
+  @override
+  String get broadcastAssist => 'Asystent rozgłaszania';
+
+  @override
+  String get nodeFilter => 'Filtr węzłów';
+
+  @override
+  String get nodeHighlight => 'Podświetlenie węzłów';
+
+  @override
+  String get map => 'Mapa';
+
+  @override
+  String snrDb(Object value) {
+    return 'SNR $value dB';
+  }
+
+  @override
+  String nodeTitle(Object name) {
+    return 'Węzeł $name';
+  }
+
+  @override
+  String nodeTitleId(Object id) {
+    return 'Węzeł ($id)';
+  }
+
+  @override
+  String get nodeInfo => 'NodeInfo';
+
+  @override
+  String batteryLevel(Object percentage) {
+    return '🔋$percentage%';
+  }
+
+  @override
+  String viaNameId(Object id, Object name) {
+    return 'przez $name (0x$id)';
+  }
+
+  @override
+  String viaName(Object name) {
+    return 'przez $name';
+  }
+
+  @override
+  String viaId(Object id) {
+    return 'przez 0x$id';
   }
 }

@@ -55,7 +55,7 @@ class SettingsPage extends StatelessWidget {
                     children: [
                       for (final loc in options)
                         ChoiceChip(
-                          label: Text(_localeLabel(loc)),
+                          label: Text(_localeLabel(context, loc)),
                           selected: _equalsLocale(loc, initialLocale),
                           onSelected: (selected) {
                             if (!selected) return;
@@ -66,7 +66,7 @@ class SettingsPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    _localeDescription(initialLocale),
+                    _localeDescription(context, initialLocale),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
@@ -85,21 +85,21 @@ bool _equalsLocale(Locale? a, Locale? b) {
   return a.languageCode == b.languageCode && (a.countryCode ?? '') == (b.countryCode ?? '');
 }
 
-String _localeLabel(Locale? locale) {
-  if (locale == null) return 'System';
+String _localeLabel(BuildContext context, Locale? locale) {
+  if (locale == null) return AppLocalizations.of(context).languageSystem;
   switch (locale.languageCode) {
     case 'en':
-      return 'English';
+      return AppLocalizations.of(context).languageEnglish;
     case 'pl':
-      return 'Polski';
+      return AppLocalizations.of(context).languagePolish;
     default:
       return locale.toLanguageTag();
   }
 }
 
-String _localeDescription(Locale? locale) {
+String _localeDescription(BuildContext context, Locale? locale) {
   if (locale == null) {
-    return 'Follow system language';
+    return AppLocalizations.of(context).languageFollowSystem;
   }
-  return 'App language: ${_localeLabel(locale)}';
+  return AppLocalizations.of(context).languageAppLanguage(_localeLabel(context, locale));
 }

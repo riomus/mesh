@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 
 import '../services/device_communication_event_service.dart';
 import '../widgets/meshtastic_event_tiles.dart';
@@ -15,7 +16,7 @@ class EventDetailsPage extends StatelessWidget {
     final payload = event.payload;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Event details')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context).eventDetails)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(12),
         child: Column(
@@ -34,19 +35,19 @@ class EventDetailsPage extends StatelessWidget {
               ),
             _Section(
               emoji: '⏱️',
-              title: 'Timestamp',
+              title: AppLocalizations.of(context).timestamp,
               child: Text(event.timestamp.toLocal().toString()),
             ),
             if (event.summary != null && event.summary!.isNotEmpty)
               _Section(
                 emoji: '📝',
-                title: 'Summary',
+                title: AppLocalizations.of(context).summary,
                 child: Text(event.summary!),
               ),
             if (event.tags.isNotEmpty)
               _Section(
                 emoji: '🏷️',
-                title: 'Tags',
+                title: AppLocalizations.of(context).tags,
                 child: Wrap(
                   spacing: 6,
                   runSpacing: 6,
@@ -65,7 +66,7 @@ class EventDetailsPage extends StatelessWidget {
             else if (payload != null)
               _Section(
                 emoji: '📦',
-                title: 'Payload',
+                title: AppLocalizations.of(context).payload,
                 child: Text(payload.runtimeType.toString()),
               ),
           ],
@@ -114,11 +115,11 @@ class _MeshtasticEventDetails extends StatelessWidget {
   Widget build(BuildContext context) {
     switch (event) {
       case MeshPacketEvent e:
-        return _meshPacket(e);
+        return _meshPacket(context, e);
       case MyInfoEvent e:
         return _Section(
           emoji: '🧩',
-          title: 'MyInfo',
+          title: AppLocalizations.of(context).myInfo,
           child: _kvTable({
             'myNodeNum': e.myInfo.myNodeNum,
             'rebootCount': e.myInfo.rebootCount,
@@ -140,7 +141,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
               ),
             _Section(
               emoji: '🪪',
-              title: 'NodeInfo',
+              title: AppLocalizations.of(context).nodeInfo,
               child: _kvTable({
                 'num': e.nodeInfo.num,
                 'user.longName': e.nodeInfo.user?.longName,
@@ -154,31 +155,31 @@ class _MeshtasticEventDetails extends StatelessWidget {
       case ConfigEvent e:
         return _Section(
           emoji: '⚙️',
-          title: 'Config',
-          child: _configDetails(e.config),
+          title: AppLocalizations.of(context).config,
+          child: _configDetails(context, e.config),
         );
       case ConfigCompleteEvent e:
         return _Section(
           emoji: '✅',
-          title: 'Config complete',
+          title: AppLocalizations.of(context).configComplete,
           child: _kvTable({'id': e.configCompleteId}),
         );
       case RebootedEvent e:
         return _Section(
           emoji: '🔁',
-          title: 'Rebooted',
+          title: AppLocalizations.of(context).rebooted,
           child: _kvTable({'rebooted': e.rebooted}),
         );
       case ModuleConfigEvent e:
         return _Section(
           emoji: '🧩',
-          title: 'Module config',
-          child: _moduleConfigDetails(e.moduleConfig),
+          title: AppLocalizations.of(context).moduleConfig,
+          child: _moduleConfigDetails(context, e.moduleConfig),
         );
       case ChannelEvent e:
         return _Section(
           emoji: '📡',
-          title: 'Channel',
+          title: AppLocalizations.of(context).channel,
           child: _kvTable({
             'index': e.channel.index,
           }),
@@ -186,7 +187,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
       case QueueStatusEvent e:
         return _Section(
           emoji: '📬',
-          title: 'Queue status',
+          title: AppLocalizations.of(context).queueStatus,
           child: _kvTable({
             'size': e.status.free,
             'maxlen': e.status.maxlen,
@@ -196,7 +197,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
       case DeviceMetadataEvent e:
         return _Section(
           emoji: '🧰',
-          title: 'Device metadata',
+          title: AppLocalizations.of(context).deviceMetadata,
           child: _kvTable({
             'fw': e.metadata.firmwareVersion,
             'hw': e.metadata.hwModel,
@@ -209,7 +210,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
       case MqttClientProxyEvent e:
         return _Section(
           emoji: '☁️',
-          title: 'MQTT proxy',
+          title: AppLocalizations.of(context).mqttProxy,
           child: _kvTable({
             'topic': e.message.topic,
             'retained': e.message.retained,
@@ -220,7 +221,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
       case FileInfoEvent e:
         return _Section(
           emoji: '📁',
-          title: 'File info',
+          title: AppLocalizations.of(context).fileInfo,
           child: _kvTable({
             'name': e.fileInfo.fileName,
             'sizeBytes': e.fileInfo.sizeBytes,
@@ -229,19 +230,19 @@ class _MeshtasticEventDetails extends StatelessWidget {
       case ClientNotificationEvent e:
         return _Section(
           emoji: '🔔',
-          title: 'Client notification',
+          title: AppLocalizations.of(context).clientNotification,
           child: _kvTable({'message': e.notification.message}),
         );
       case DeviceUiConfigEvent e:
         return _Section(
           emoji: '🖥️',
-          title: 'Device UI config',
-          child: _deviceUiConfigDetails(e.uiConfig),
+          title: AppLocalizations.of(context).deviceUiConfig,
+          child: _deviceUiConfigDetails(context, e.uiConfig),
         );
       case LogRecordEvent e:
         return _Section(
           emoji: '🪵',
-          title: 'Log record',
+          title: AppLocalizations.of(context).logRecord,
           child: _kvTable({
             'source': e.logRecord.source,
             'level': e.logRecord.level,
@@ -251,11 +252,11 @@ class _MeshtasticEventDetails extends StatelessWidget {
     }
   }
 
-  Widget _meshPacket(MeshPacketEvent e) {
+  Widget _meshPacket(BuildContext context, MeshPacketEvent e) {
     final p = e.packet;
     final header = _Section(
       emoji: '📦',
-      title: 'Packet',
+      title: AppLocalizations.of(context).packet,
       child: _kvTable({
         'from': p.from,
         'to': p.to,
@@ -278,7 +279,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
     final decodedSection = switch (decoded) {
       TextPayloadDto t => _Section(
           emoji: '💬',
-          title: 'Text payload',
+          title: AppLocalizations.of(context).textPayload,
           child: _kvTable({'text': t.text, 'emoji': t.emoji}),
         ),
       PositionPayloadDto pos => Column(
@@ -288,11 +289,11 @@ class _MeshtasticEventDetails extends StatelessWidget {
               MapSection(
                 latitude: latFromI(pos.latitudeI)!,
                 longitude: lonFromI(pos.longitudeI)!,
-                label: 'Position',
+                label: AppLocalizations.of(context).position,
               ),
             _Section(
               emoji: '📍',
-              title: 'Position',
+              title: AppLocalizations.of(context).position,
               child: _kvTable({
                 'latI': pos.latitudeI,
                 'lonI': pos.longitudeI,
@@ -315,7 +316,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
               ),
             _Section(
               emoji: '📍',
-              title: 'Waypoint',
+              title: AppLocalizations.of(context).waypoint,
               child: _kvTable({
                 'name': w.waypoint.name,
                 'latI': w.waypoint.latitudeI,
@@ -327,7 +328,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
         ),
       UserPayloadDto u => _Section(
           emoji: '🪪',
-          title: 'User',
+          title: AppLocalizations.of(context).user,
           child: _kvTable({
             'longName': u.user.longName,
             'shortName': u.user.shortName,
@@ -335,17 +336,17 @@ class _MeshtasticEventDetails extends StatelessWidget {
         ),
       RoutingPayloadDto _ => _Section(
           emoji: '🧭',
-          title: 'Routing',
-          child: const Text('Routing payload'),
+          title: AppLocalizations.of(context).routing,
+          child: Text(AppLocalizations.of(context).routingPayload),
         ),
       AdminPayloadDto a => _Section(
           emoji: '🛠️',
-          title: 'Admin',
+          title: AppLocalizations.of(context).admin,
           child: Text(a.toString()),
         ),
       RemoteHardwarePayloadDto rh => _Section(
           emoji: '🔧',
-          title: 'Remote hardware',
+          title: AppLocalizations.of(context).remoteHardware,
           child: _kvTable({
             'type': rh.type,
             'gpioMask': rh.gpioMask,
@@ -354,7 +355,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
         ),
       NeighborInfoPayloadDto ni => _Section(
           emoji: '🕸️',
-          title: 'Neighbor info',
+          title: AppLocalizations.of(context).neighborInfo,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -365,7 +366,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
               }),
               if (ni.neighbors != null && ni.neighbors!.isNotEmpty) ...[
                 const SizedBox(height: 8),
-                Text('Neighbors', style: const TextStyle(fontWeight: FontWeight.w600)),
+                Text(AppLocalizations.of(context).neighbors, style: const TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 4),
                 Column(
                   children: ni.neighbors!
@@ -386,22 +387,22 @@ class _MeshtasticEventDetails extends StatelessWidget {
         ),
       StoreForwardPayloadDto sf => _Section(
           emoji: '🗄️',
-          title: 'Store & Forward',
+          title: AppLocalizations.of(context).storeForward,
           child: _kvTable({'variant': sf.variant}),
         ),
       TelemetryPayloadDto t => _Section(
           emoji: '📊',
-          title: 'Telemetry',
+          title: AppLocalizations.of(context).telemetry,
           child: _kvTable({'variant': t.variant}),
         ),
       PaxcounterPayloadDto p => _Section(
           emoji: '👥',
-          title: 'Paxcounter',
+          title: AppLocalizations.of(context).paxcounter,
           child: _kvTable({'wifi': p.wifi, 'ble': p.ble}),
         ),
       TraceroutePayloadDto tr => _Section(
           emoji: '🔎',
-          title: 'Traceroute',
+          title: AppLocalizations.of(context).traceroute,
           child: _kvTable({
             'routeLen': tr.route?.length,
             'hops': tr.route?.map((e) => e.toString()).join(' -> '),
@@ -412,12 +413,12 @@ class _MeshtasticEventDetails extends StatelessWidget {
         ),
       KeyVerificationPayloadDto kv => _Section(
           emoji: '🔐',
-          title: 'Key verification',
+          title: AppLocalizations.of(context).keyVerification,
           child: _kvTable({'nonce': kv.nonce, 'hash1': kv.hash1?.length, 'hash2': kv.hash2?.length}),
         ),
       RawPayloadDto r => _Section(
           emoji: '📦',
-          title: 'Raw payload',
+          title: AppLocalizations.of(context).rawPayload,
           child: _kvTable({'port': '${r.portnum.name}:${r.portnum.id}', 'bytes': r.bytes.length}),
         ),
     };
@@ -454,11 +455,11 @@ class _MeshtasticEventDetails extends StatelessWidget {
 
   // --- Structured renderers for nested DTOs ---
 
-  Widget _configDetails(ConfigDto cfg) {
+  Widget _configDetails(BuildContext context, ConfigDto cfg) {
     final children = <Widget>[];
     if (cfg.device != null) {
       final d = cfg.device!;
-      children.add(_Subheader('Device'));
+      children.add(_Subheader(AppLocalizations.of(context).device));
       children.add(_kvTable({
         'role': d.role,
         'serialEnabled': d.serialEnabled,
@@ -477,7 +478,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
     if (cfg.position != null) {
       final p = cfg.position!;
       children.add(const SizedBox(height: 8));
-      children.add(_Subheader('Position'));
+      children.add(_Subheader(AppLocalizations.of(context).position));
       children.add(_kvTable({
         'positionBroadcastSecs': p.positionBroadcastSecs,
         'positionBroadcastSmartEnabled': p.positionBroadcastSmartEnabled,
@@ -498,11 +499,11 @@ class _MeshtasticEventDetails extends StatelessWidget {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
   }
 
-  Widget _moduleConfigDetails(ModuleConfigDto m) {
+  Widget _moduleConfigDetails(BuildContext context, ModuleConfigDto m) {
     final children = <Widget>[];
     if (m.mqtt != null) {
       final x = m.mqtt!;
-      children.add(_Subheader('MQTT'));
+      children.add(_Subheader(AppLocalizations.of(context).mqttProxy)); // Reuse mqttProxy key or add mqtt
       children.add(_kvTable({
         'enabled': x.enabled,
         'address': x.address,
@@ -526,7 +527,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
     }
     if (m.telemetry != null) {
       final x = m.telemetry!;
-      children.add(_Subheader('Telemetry'));
+      children.add(_Subheader(AppLocalizations.of(context).telemetry));
       children.add(_kvTable({
         'deviceUpdateInterval': x.deviceUpdateInterval,
         'environmentUpdateInterval': x.environmentUpdateInterval,
@@ -546,7 +547,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
     }
     if (m.serial != null) {
       final x = m.serial!;
-      children.add(_Subheader('Serial'));
+      children.add(_Subheader(AppLocalizations.of(context).serial));
       children.add(_kvTable({
         'enabled': x.enabled,
         'echo': x.echo,
@@ -560,7 +561,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
     }
     if (m.storeForward != null) {
       final x = m.storeForward!;
-      children.add(_Subheader('Store & Forward'));
+      children.add(_Subheader(AppLocalizations.of(context).storeForward));
       children.add(_kvTable({
         'enabled': x.enabled,
         'heartbeat': x.heartbeat,
@@ -573,7 +574,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
     }
     if (m.rangeTest != null) {
       final x = m.rangeTest!;
-      children.add(_Subheader('Range test'));
+      children.add(_Subheader(AppLocalizations.of(context).rangeTest));
       children.add(_kvTable({
         'enabled': x.enabled,
         'sender': x.sender,
@@ -583,7 +584,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
     }
     if (m.externalNotification != null) {
       final x = m.externalNotification!;
-      children.add(_Subheader('External notification'));
+      children.add(_Subheader(AppLocalizations.of(context).externalNotification));
       children.add(_kvTable({
         'enabled': x.enabled,
         'outputMs': x.outputMs,
@@ -604,7 +605,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
     }
     if (m.audio != null) {
       final x = m.audio!;
-      children.add(_Subheader('Audio'));
+      children.add(_Subheader(AppLocalizations.of(context).audio));
       children.add(_kvTable({
         'codec2Enabled': x.codec2Enabled,
         'pttPin': x.pttPin,
@@ -617,7 +618,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
     }
     if (m.neighborInfo != null) {
       final x = m.neighborInfo!;
-      children.add(_Subheader('Neighbor info'));
+      children.add(_Subheader(AppLocalizations.of(context).neighborInfo));
       children.add(_kvTable({
         'enabled': x.enabled,
         'updateInterval': x.updateInterval,
@@ -626,7 +627,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
     }
     if (m.remoteHardware != null) {
       final x = m.remoteHardware!;
-      children.add(_Subheader('Remote hardware'));
+      children.add(_Subheader(AppLocalizations.of(context).remoteHardware));
       children.add(_kvTable({
         'enabled': x.enabled,
         'allowUndefinedPinAccess': x.allowUndefinedPinAccess,
@@ -652,7 +653,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
     }
     if (m.paxcounter != null) {
       final x = m.paxcounter!;
-      children.add(_Subheader('Paxcounter'));
+      children.add(_Subheader(AppLocalizations.of(context).paxcounter));
       children.add(_kvTable({
         'enabled': x.enabled,
         'paxcounterUpdateInterval': x.paxcounterUpdateInterval,
@@ -662,7 +663,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
     }
     if (m.cannedMessage != null) {
       final x = m.cannedMessage!;
-      children.add(_Subheader('Canned message'));
+      children.add(_Subheader(AppLocalizations.of(context).cannedMessage));
       children.add(_kvTable({
         'rotary1Enabled': x.rotary1Enabled,
         'inputbrokerPinA': x.inputbrokerPinA,
@@ -679,7 +680,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
     }
     if (m.ambientLighting != null) {
       final x = m.ambientLighting!;
-      children.add(_Subheader('Ambient lighting'));
+      children.add(_Subheader(AppLocalizations.of(context).ambientLighting));
       children.add(_kvTable({
         'ledState': x.ledState,
         'current': x.current,
@@ -690,7 +691,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
     }
     if (m.detectionSensor != null) {
       final x = m.detectionSensor!;
-      children.add(_Subheader('Detection sensor'));
+      children.add(_Subheader(AppLocalizations.of(context).detectionSensor));
       children.add(_kvTable({
         'enabled': x.enabled,
         'minimumBroadcastSecs': x.minimumBroadcastSecs,
@@ -704,7 +705,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
     }
     if (m.dtnOverlay != null) {
       final x = m.dtnOverlay!;
-      children.add(_Subheader('DTN overlay'));
+      children.add(_Subheader(AppLocalizations.of(context).dtnOverlay));
       children.add(_kvTable({
         'enabled': x.enabled,
         'ttlMinutes': x.ttlMinutes,
@@ -721,7 +722,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
     }
     if (m.broadcastAssist != null) {
       final x = m.broadcastAssist!;
-      children.add(_Subheader('Broadcast assist'));
+      children.add(_Subheader(AppLocalizations.of(context).broadcastAssist));
       children.add(_kvTable({
         'enabled': x.enabled,
         'degreeThreshold': x.degreeThreshold,
@@ -737,7 +738,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
   }
 
-  Widget _deviceUiConfigDetails(DeviceUiConfigDto u) {
+  Widget _deviceUiConfigDetails(BuildContext context, DeviceUiConfigDto u) {
     final children = <Widget>[];
     children.add(_kvTable({
       'version': u.version,
@@ -760,7 +761,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
     if (u.nodeFilter != null) {
       final f = u.nodeFilter!;
       children.add(const SizedBox(height: 8));
-      children.add(_Subheader('Node filter'));
+      children.add(_Subheader(AppLocalizations.of(context).nodeFilter));
       children.add(_kvTable({
         'filterEnabled': f.filterEnabled,
         'minSnr': f.minSnr,
@@ -770,7 +771,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
     if (u.nodeHighlight != null) {
       final h = u.nodeHighlight!;
       children.add(const SizedBox(height: 8));
-      children.add(_Subheader('Node highlight'));
+      children.add(_Subheader(AppLocalizations.of(context).nodeHighlight));
       children.add(_kvTable({
         'highlightEnabled': h.highlightEnabled,
         'minSnr': h.minSnr,
@@ -779,7 +780,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
     if (u.mapData != null) {
       final m = u.mapData!;
       children.add(const SizedBox(height: 8));
-      children.add(_Subheader('Map'));
+      children.add(_Subheader(AppLocalizations.of(context).map));
       children.add(_kvTable({
         'zoom': m.zoom,
         'centerLatI': m.centerLatI,

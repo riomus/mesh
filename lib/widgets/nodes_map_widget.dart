@@ -123,6 +123,24 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
     );
   }
 
+  String _formatLastHeard(BuildContext context, int secondsAgo) {
+    const twoDays = 2 * 24 * 60 * 60; // 172800
+    if (secondsAgo < twoDays) {
+      if (secondsAgo < 60) return AppLocalizations.of(context).agoSeconds(secondsAgo);
+      final minutes = secondsAgo ~/ 60;
+      if (minutes < 60) return AppLocalizations.of(context).agoMinutes(minutes);
+      final hours = minutes ~/ 60;
+      if (hours < 24) return AppLocalizations.of(context).agoHours(hours);
+      final days = hours ~/ 24;
+      return AppLocalizations.of(context).agoDays(days);
+    }
+    final dt = DateTime.now().subtract(Duration(seconds: secondsAgo));
+    String two(int n) => n.toString().padLeft(2, '0');
+    final relDays = secondsAgo ~/ (24 * 60 * 60);
+    final dateStr = '${dt.year}-${two(dt.month)}-${two(dt.day)} ${two(dt.hour)}:${two(dt.minute)}:${two(dt.second)}';
+    return '$dateStr (${AppLocalizations.of(context).agoDays(relDays)})';
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -165,7 +183,7 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
               parts.add(Text('${AppLocalizations.of(ctx).battery}: ${lvl}%'));
             }
           }
-          if (n.lastHeard != null) parts.add(Text('${AppLocalizations.of(ctx).lastSeen}: ${_formatLastHeard(n.lastHeard!)}'));
+          if (n.lastHeard != null) parts.add(Text('${AppLocalizations.of(ctx).lastSeen}: ${_formatLastHeard(ctx, n.lastHeard!)}'));
           parts.add(Text('${AppLocalizations.of(ctx).coordinates}: ${lat.toStringAsFixed(6)}, ${lon.toStringAsFixed(6)}'));
 
           return Padding(
@@ -368,24 +386,4 @@ class _EmptyMapState extends StatelessWidget {
   }
 }
 
-// Human friendly formatting for lastHeard (age in seconds from device):
-// - if < 2 days: show relative (h/m/s) "ago"
-// - else: show full local date/time (YYYY-MM-DD HH:mm:ss) and in parentheses how long ago
-String _formatLastHeard(int secondsAgo) {
-  const twoDays = 2 * 24 * 60 * 60; // 172800
-  if (secondsAgo < twoDays) {
-    if (secondsAgo < 60) return '${secondsAgo}s ago';
-    final minutes = secondsAgo ~/ 60;
-    if (minutes < 60) return '${minutes}m ago';
-    final hours = minutes ~/ 60;
-    if (hours < 24) return '${hours}h ago';
-    final days = hours ~/ 24;
-    return '${days}d ago';
-  }
-  final dt = DateTime.now().subtract(Duration(seconds: secondsAgo));
-  String two(int n) => n.toString().padLeft(2, '0');
-  // For >= 2 days also show a compact relative in parentheses, e.g. "(3d ago)"
-  final relDays = secondsAgo ~/ (24 * 60 * 60);
-  final dateStr = '${dt.year}-${two(dt.month)}-${two(dt.day)} ${two(dt.hour)}:${two(dt.minute)}:${two(dt.second)}';
-  return '$dateStr (${relDays}d ago)';
-}
+

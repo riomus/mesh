@@ -8,7 +8,7 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import '../generated/meshtastic/meshtastic/mesh.pb.dart' as mesh;
 import '../generated/meshtastic/meshtastic/portnums.pbenum.dart' as port;
 import '../meshtastic/model/meshtastic_event.dart';
-import '../meshtastic/model/meshtastic_mappers.dart';
+
 import '../meshtastic/model/meshtastic_models.dart';
 
 import '../services/device_communication_event_service.dart';
@@ -19,8 +19,9 @@ import '../l10n/app_localizations.dart';
 
 class ChatWidget extends StatefulWidget {
   final BluetoothDevice device;
+  final int? toNodeId;
 
-  const ChatWidget({super.key, required this.device});
+  const ChatWidget({super.key, required this.device, this.toNodeId});
 
   @override
   State<ChatWidget> createState() => _ChatWidgetState();
@@ -75,12 +76,26 @@ class _ChatWidgetState extends State<ChatWidget> {
         final meshPayload = event.payload as MeshtasticDeviceEventPayload;
         if (meshPayload.event is MeshPacketEvent) {
           final packetEvent = meshPayload.event as MeshPacketEvent;
+          
+          // Filter if we are in a direct chat
+          if (widget.toNodeId != null) {
+            final p = packetEvent.packet;
+            final fromTarget = p.from == widget.toNodeId;
+            final toTarget = p.to == widget.toNodeId;
+            if (!fromTarget && !toTarget) return;
+          }
+
           if (packetEvent.decoded is TextPayloadDto) {
             final textPayload = packetEvent.decoded as TextPayloadDto;
             setState(() {
               _messages.add(ChatMessage(
                 text: textPayload.text,
-                isMe: false, // Assuming incoming for now
+                isMe: packetEvent.packet.from == 0, // We don't easily know our own ID here without looking it up, but 0 is usually not valid for remote. 
+                // Better heuristic: if we sent it, we added it optimistically. 
+                // But if it comes back from the mesh (echo), we might duplicate.
+                // For now, let's assume incoming messages are not from us unless we can verify source.
+                // Actually, `isMe` in the UI is just for alignment.
+                // If we receive a packet, it's usually from someone else.
                 timestamp: event.timestamp,
               ));
             });
@@ -119,6 +134,9 @@ class _ChatWidgetState extends State<ChatWidget> {
       
       // Construct MeshPacket
       final packet = mesh.MeshPacket();
+      if (widget.toNodeId != null) {
+        packet.to = widget.toNodeId!;
+      }
       packet.decoded = mesh.Data();
       packet.decoded.portnum = port.PortNum.TEXT_MESSAGE_APP;
       packet.decoded.payload = Uint8List.fromList(text.codeUnits); 
