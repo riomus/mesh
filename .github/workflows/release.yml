@@ -242,9 +242,10 @@ jobs:
     needs: [version, web, android, ios, macos]
     steps:
       - name: Download Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           path: dist
+          merge-multiple: true
 
       - name: Checkout (for changelog)
         uses: actions/checkout@v4
