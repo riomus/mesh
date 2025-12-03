@@ -274,5 +274,6 @@ jobs:
             dist/**/**/*.apk
             dist/**/**/*.aab
             dist/**/**/*.ipa
+            dist/**/**/*.xcarchive
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
