@@ -73,7 +73,7 @@ jobs:
           zip -r ../web-${{ needs.version.outputs.tag_name }}.zip .
 
       - name: Upload Artifact (web)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: web-${{ needs.version.outputs.tag_name }}
           path: build/web-*.zip
@@ -123,7 +123,7 @@ jobs:
         run: flutter build appbundle --release --build-name "${{ needs.version.outputs.name }}" --build-number "${{ needs.version.outputs.number }}"
 
       - name: Upload Artifact (android)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: android-${{ needs.version.outputs.tag_name }}
           path: |
@@ -172,7 +172,7 @@ jobs:
         run: flutter build ipa --no-codesign --build-name "${{ needs.version.outputs.name }}" --build-number "${{ needs.version.outputs.number }}"
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ios-${{ needs.version.outputs.tag_name }}
           path: |
@@ -231,7 +231,7 @@ jobs:
           fi
 
       - name: Upload Artifact (macos)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: macos-${{ needs.version.outputs.tag_name }}
           path: build/macos-*.zip
@@ -241,11 +241,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: [version, web, android, ios, macos]
     steps:
-      - name: Download Artifacts
-        uses: actions/download-artifact@v5
-        with:
-          path: dist
-          merge-multiple: true
 
       - name: Checkout (for changelog)
         uses: actions/checkout@v4
@@ -253,6 +248,11 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
           submodules: recursive
+      - name: Download Artifacts
+        uses: actions/download-artifact@v5
+        with:
+          path: dist
+          merge-multiple: true
 
       - name: Generate changelog from commits since last tag
         run: |
@@ -260,7 +260,7 @@ jobs:
           DESCRIBE="${{ needs.version.outputs.describe }}" \
           bash scripts/changelog.sh
       - name: Upload Changelog artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: changelog-${{ needs.version.outputs.tag_name }}
           path: CHANGELOG_RELEASE.md
@@ -273,5 +273,6 @@ jobs:
           body_path: CHANGELOG_RELEASE.md
           files: |
             dist/**
+            build/**
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
