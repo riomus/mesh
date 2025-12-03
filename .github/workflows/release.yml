@@ -252,7 +252,6 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           path: dist
-          merge-multiple: true
 
       - name: Generate changelog from commits since last tag
         run: |
@@ -273,6 +272,5 @@ jobs:
           body_path: CHANGELOG_RELEASE.md
           files: |
             dist/**
-            build/**
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -37,10 +37,13 @@
   - Add sub-tab with a map view of all nodes that have location
   - Update nodes to also contain source node name
   - Update nodes filtering to be also possible by node name 
-- [ ] Create chatting widget that will allow to send messages to devices and display them in the list
+- [x] Create chatting widget that will allow to send messages to devices and display them in the list
   - Chat view should be scrollable and has a input component at the bottom
   - Input should accept rich text - with emojis
   - Messages should be displayed in chronological order
   - Input should have a send button
   - Input should allow a size limit - by computing message size in bytes and comparing it to the limit
   - Current size should be shown and color of it should be updated based on the limit (green, yellow, red)
+- [ ] On node connection - remember it so next time we can connect to it without a need to look for it on the list 
+- [ ] All the app data like chats, node lists - should be kept in the app db - use drift 2.29.0 for it
+- [ ] Investigate /Users/romanbartusiak/git/meshtastic-python for IP based communication - abstract away meshtastic communication logic and allow to use it for both IP/BLE/USB
