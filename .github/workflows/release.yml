@@ -176,6 +176,11 @@ jobs:
         with:
           name: ios-${{ needs.version.outputs.tag_name }}
           path: build/ios/ipa/*.ipa
+      - name: Upload XCArchive Artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: ios-${{ needs.version.outputs.tag_name }}-archive
+          path: build/ios/archive/*.xcarchive
 
   macos:
     name: Build macOS (unsigned .app zip)
