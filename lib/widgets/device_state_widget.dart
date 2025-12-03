@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/device_state.dart';
 import '../meshtastic/model/meshtastic_models.dart';
+import '../l10n/app_localizations.dart';
 
 class DeviceStateWidget extends StatelessWidget {
   final DeviceState state;
@@ -14,41 +15,49 @@ class DeviceStateWidget extends StatelessWidget {
       children: [
         // Device Configs - show all types
         _buildConfigSection(
+          context,
           'Device Config',
           state.config?.device,
           (d) => _buildDeviceConfig(d),
         ),
         _buildConfigSection(
+          context,
           'Position Config',
           state.config?.position,
           (p) => _buildPositionConfig(p),
         ),
         _buildConfigSection(
+          context,
           'Power Config',
           state.config?.power,
           (p) => _buildPowerConfig(p),
         ),
         _buildConfigSection(
+          context,
           'Network Config',
           state.config?.network,
           (n) => _buildNetworkConfig(n),
         ),
         _buildConfigSection(
+          context,
           'Display Config',
           state.config?.display,
           (d) => _buildDisplayConfig(d),
         ),
         _buildConfigSection(
+          context,
           'LoRa Config',
           state.config?.lora,
           (l) => _buildLoraConfig(l),
         ),
         _buildConfigSection(
+          context,
           'Bluetooth Config',
           state.config?.bluetooth,
           (b) => _buildBluetoothConfig(b),
         ),
         _buildConfigSection(
+          context,
           'Security Config',
           state.config?.security,
           (s) => _buildSecurityConfig(s),
@@ -56,91 +65,109 @@ class DeviceStateWidget extends StatelessWidget {
 
         // Module Configs - show all types
         _buildConfigSection(
+          context,
           'MQTT Config',
           state.moduleConfig?.mqtt,
           (m) => _buildMqttConfig(m),
         ),
         _buildConfigSection(
+          context,
           'Telemetry Config',
           state.moduleConfig?.telemetry,
           (t) => _buildTelemetryConfig(t),
         ),
         _buildConfigSection(
+          context,
           'Serial Config',
           state.moduleConfig?.serial,
           (s) => _buildSerialConfig(s),
         ),
         _buildConfigSection(
+          context,
           'Store & Forward Config',
           state.moduleConfig?.storeForward,
           (sf) => _buildStoreForwardConfig(sf),
         ),
         _buildConfigSection(
+          context,
           'Range Test Config',
           state.moduleConfig?.rangeTest,
           (rt) => _buildRangeTestConfig(rt),
         ),
         _buildConfigSection(
+          context,
           'External Notification Config',
           state.moduleConfig?.externalNotification,
           (en) => _buildExternalNotificationConfig(en),
         ),
         _buildConfigSection(
+          context,
           'Audio Config',
           state.moduleConfig?.audio,
           (a) => _buildAudioConfig(a),
         ),
         _buildConfigSection(
+          context,
           'Neighbor Info Config',
           state.moduleConfig?.neighborInfo,
           (ni) => _buildNeighborInfoConfig(ni),
         ),
         _buildConfigSection(
+          context,
           'Remote Hardware Config',
           state.moduleConfig?.remoteHardware,
           (rh) => _buildRemoteHardwareConfig(rh),
         ),
         _buildConfigSection(
+          context,
           'Paxcounter Config',
           state.moduleConfig?.paxcounter,
           (pc) => _buildPaxcounterConfig(pc),
         ),
         _buildConfigSection(
+          context,
           'Canned Message Config',
           state.moduleConfig?.cannedMessage,
           (cm) => _buildCannedMessageConfig(cm),
         ),
         _buildConfigSection(
+          context,
           'Ambient Lighting Config',
           state.moduleConfig?.ambientLighting,
           (al) => _buildAmbientLightingConfig(al),
         ),
         _buildConfigSection(
+          context,
           'Detection Sensor Config',
           state.moduleConfig?.detectionSensor,
           (ds) => _buildDetectionSensorConfig(ds),
         ),
         _buildConfigSection(
+          context,
           'DTN Overlay Config',
           state.moduleConfig?.dtnOverlay,
           (dtn) => _buildDtnOverlayConfig(dtn),
         ),
         _buildConfigSection(
+          context,
           'Broadcast Assist Config',
           state.moduleConfig?.broadcastAssist,
           (ba) => _buildBroadcastAssistConfig(ba),
         ),
         _buildConfigSection(
+          context,
           'Node Mod Config',
           state.moduleConfig?.nodeMod,
           (nm) => _buildNodeModConfig(nm),
         ),
         _buildConfigSection(
+          context,
           'Node Mod Admin Config',
           state.moduleConfig?.nodeModAdmin,
           (nma) => _buildNodeModAdminConfig(nma),
         ),
         _buildConfigSection(
+          context,
           'Idle Game Config',
           state.moduleConfig?.idleGame,
           (ig) => _buildIdleGameConfig(ig),
@@ -153,18 +180,28 @@ class DeviceStateWidget extends StatelessWidget {
             children: state.channels
                 .map(
                   (c) => ListTile(
-                    title: Text(c.settings?.name ?? 'Channel ${c.index}'),
-                    subtitle: Text('Role: ${c.role}'),
+                    title: Text(() {
+                      final name = c.settings?.name;
+                      if (name != null && name.isNotEmpty) return name;
+                      return c.index == 0 ? 'Default' : 'Channel ${c.index}';
+                    }()),
+                    subtitle: Text(
+                      AppLocalizations.of(
+                        context,
+                      ).roleWithRole(c.role ?? "UNKNOWN"),
+                    ),
                   ),
                 )
                 .toList(),
           ),
         if (state.nodes.isNotEmpty)
           _Section(
-            title: 'Nodes (${state.nodes.length})',
+            title: AppLocalizations.of(
+              context,
+            ).nodesWithCount(state.nodes.length),
             children: [
               ListTile(
-                title: Text('Known nodes'),
+                title: Text(AppLocalizations.of(context).knownNodes),
                 subtitle: Text(
                   state.nodes.map((n) => n.user?.shortName ?? n.num).join(', '),
                 ),
@@ -177,6 +214,7 @@ class DeviceStateWidget extends StatelessWidget {
 
   /// Helper to build config section with fallback for missing configs
   Widget _buildConfigSection<T>(
+    BuildContext context,
     String title,
     T? config,
     List<Widget> Function(T) builder,
@@ -186,10 +224,12 @@ class DeviceStateWidget extends StatelessWidget {
       children: config != null
           ? builder(config)
           : [
-              const ListTile(
+              ListTile(
                 dense: true,
-                title: Text('Not configured'),
-                subtitle: Text('No configuration data received'),
+                title: Text(AppLocalizations.of(context).notConfigured),
+                subtitle: Text(
+                  AppLocalizations.of(context).noConfigurationData,
+                ),
               ),
             ],
     );
@@ -417,7 +457,10 @@ class DeviceStateWidget extends StatelessWidget {
       _kv('Allow Undefined Pin Access', rh.allowUndefinedPinAccess),
       if (rh.availablePins != null)
         ...rh.availablePins!.map(
-          (p) => _kv('Pin ${p.gpioPin} (${p.name})', p.type),
+          (p) => _kv(
+            'Pin ${p.gpioPin} ${p.name != null ? "(${p.name})" : ""}',
+            p.type,
+          ),
         ),
     ];
   }

@@ -6,6 +6,7 @@ import 'pages/logs_page.dart';
 import 'pages/events_page.dart';
 import 'pages/nodes_page.dart';
 import 'services/device_state_service.dart';
+import 'services/notification_service.dart';
 
 import 'l10n/app_localizations.dart';
 
@@ -28,6 +29,7 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     _loadSettings();
     DeviceStateService.instance.init();
+    NotificationService.instance.init();
   }
 
   Future<void> _loadSettings() async {

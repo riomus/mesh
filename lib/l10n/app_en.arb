@@ -256,5 +256,23 @@
   "idleGame": "Idle game",
   "deviceState": "Device State",
   "noDeviceState": "No device state",
-  "connectToViewState": "Connect to the device to view its state"
+  "connectToViewState": "Connect to the device to view its state",
+  "notifications": "Notifications",
+  "enableNotifications": "Enable notifications",
+
+  "roleWithRole": "Role: {role}",
+  "knownNodes": "Known nodes",
+  "notConfigured": "Not configured",
+  "noConfigurationData": "No configuration data received",
+  "nodesWithCount": "Nodes ({count})",
+  "messageDetails": "Message Details",
+  "statusWithStatus": "Status: {status}",
+  "packetIdWithId": "Packet ID: {id}",
+  "messageInfo": "Message Info",
+  "sessionKeyRequested": "Session key requested",
+  "stateMissing": "State Missing",
+  "idWithId": "id={id}",
+  "xmodem": "XModem",
+  "xmodemStatus": "seq={seq} control={control}",
+  "idTitle": "ID"
 }

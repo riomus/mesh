@@ -67,6 +67,31 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
     super.initState();
     _initDeviceLogStream();
     _subscribeStatus();
+    _checkAndRefreshConfig();
+  }
+
+  Future<void> _checkAndRefreshConfig() async {
+    final id = widget.device.remoteId.str;
+    final isConnected = DeviceStatusStore.instance.isConnected(id);
+    final hasState = DeviceStateService.instance.getState(id) != null;
+
+    if (isConnected && !hasState) {
+      LoggingService.instance.push(
+        tags: {'deviceId': id, 'class': 'DeviceDetailsPage'},
+        level: 'info',
+        message: 'Connected but no state, auto-refreshing config...',
+      );
+      try {
+        final client = await DeviceStatusStore.instance.connect(widget.device);
+        await client.requestConfig();
+      } catch (e) {
+        LoggingService.instance.push(
+          tags: {'deviceId': id, 'class': 'DeviceDetailsPage'},
+          level: 'warn',
+          message: 'Failed to auto-refresh config: $e',
+        );
+      }
+    }
   }
 
   void _initDeviceLogStream() {
@@ -192,8 +217,10 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                       onPressed: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (context) =>
-                                DeviceChatPage(device: widget.device),
+                            builder: (context) => DeviceChatPage(
+                              device: widget.device,
+                              channelIndex: 0, // Default to primary channel
+                            ),
                           ),
                         );
                       },
@@ -312,10 +339,16 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
               return _Section(
                 title: AppLocalizations.of(context).channels,
                 children: channels.map((c) {
-                  // Use channel name if available, otherwise show "Channel [index]"
-                  final channelTitle = c.settings?.name?.isNotEmpty == true
-                      ? c.settings!.name!
-                      : '${AppLocalizations.of(context).channel} ${c.index}';
+                  // Use channel name if available, otherwise show "Default" for index 0 or "Channel [index]"
+                  String channelTitle = c.settings?.name ?? '';
+                  if (channelTitle.isEmpty) {
+                    if (c.index == 0) {
+                      channelTitle = 'Default';
+                    } else {
+                      channelTitle =
+                          '${AppLocalizations.of(context).channel} ${c.index}';
+                    }
+                  }
 
                   return ListTile(
                     leading: const Icon(Icons.tag),
@@ -350,7 +383,34 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
             ),
             builder: (context, snapshot) {
               final state = snapshot.data;
-              if (state == null) {
+              if (state == null && _connected) {
+                // Connected but no state? Try to request it if we haven't recently.
+                // Or just show a manual refresh button.
+                // Auto-refresh if we haven't tried recently (simple debounce could be added here,
+                // but for now relying on user interaction or simple one-shot).
+                // Actually, let's just show the button but also trigger a fetch if it's been a while?
+                // For now, just the button is safer to avoid loops.
+                return _Section(
+                  title: AppLocalizations.of(context).deviceState,
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.warning_amber),
+                      title: Text(AppLocalizations.of(context).stateMissing),
+                      subtitle: Text(
+                        AppLocalizations.of(context).connectToViewState,
+                      ),
+                      trailing: IconButton.filledTonal(
+                        icon: const Icon(Icons.refresh),
+                        onPressed: () async {
+                          final client = await DeviceStatusStore.instance
+                              .connect(widget.device);
+                          await client.requestConfig();
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              } else if (state == null) {
                 return _Section(
                   title: AppLocalizations.of(context).deviceState,
                   children: [
@@ -518,6 +578,13 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
         _connecting = s.state == DeviceConnectionState.connecting;
         _connected = s.state == DeviceConnectionState.connected;
         _rssi = s.rssi ?? _rssi; // keep last known if null
+        if (_connected) {
+          // If we just connected (or are connected), check if we need to refresh state
+          // We delay slightly to let the service process any pending events
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (mounted) _checkAndRefreshConfig();
+          });
+        }
       });
       if (s.state == DeviceConnectionState.error && s.error != null) {
         ScaffoldMessenger.of(context).showSnackBar(

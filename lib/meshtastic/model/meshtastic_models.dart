@@ -160,7 +160,9 @@ class UserPayloadDto extends DecodedPayloadDto {
 }
 
 class RoutingPayloadDto extends DecodedPayloadDto {
-  const RoutingPayloadDto(); // details can be added later as needed
+  final String? variant;
+  final String? errorReason;
+  const RoutingPayloadDto({this.variant, this.errorReason});
 }
 
 class AdminPayloadDto extends DecodedPayloadDto {

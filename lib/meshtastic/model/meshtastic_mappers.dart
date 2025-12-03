@@ -879,7 +879,7 @@ class MeshtasticMappers {
 
   static ChannelDto _toChannelDto(channel.Channel c) {
     return ChannelDto(
-      index: c.hasIndex() ? c.index : null,
+      index: c.hasIndex() ? c.index : 0,
       role: c.hasRole() ? c.role.name : null,
       settings: c.hasSettings() ? _toChannelSettingsDto(c.settings) : null,
     );
@@ -965,8 +965,11 @@ class MeshtasticMappers {
       case port.PortNum.ROUTING_APP:
         try {
           // Parse to validate bytes shape; we don't expose fields yet
-          mesh.Routing.fromBuffer(bytes);
-          return const RoutingPayloadDto();
+          final r = mesh.Routing.fromBuffer(bytes);
+          return RoutingPayloadDto(
+            variant: r.whichVariant().name,
+            errorReason: r.hasErrorReason() ? r.errorReason.name : null,
+          );
         } catch (_) {
           return RawPayloadDto(portInternal, bytes);
         }

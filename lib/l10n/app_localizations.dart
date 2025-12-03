@@ -1465,6 +1465,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Connect to the device to view its state'**
   String get connectToViewState;
+
+  /// No description provided for @notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifications;
+
+  /// No description provided for @enableNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable notifications'**
+  String get enableNotifications;
+
+  /// No description provided for @roleWithRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Role: {role}'**
+  String roleWithRole(Object role);
+
+  /// No description provided for @knownNodes.
+  ///
+  /// In en, this message translates to:
+  /// **'Known nodes'**
+  String get knownNodes;
+
+  /// No description provided for @notConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'Not configured'**
+  String get notConfigured;
+
+  /// No description provided for @noConfigurationData.
+  ///
+  /// In en, this message translates to:
+  /// **'No configuration data received'**
+  String get noConfigurationData;
+
+  /// No description provided for @nodesWithCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Nodes ({count})'**
+  String nodesWithCount(Object count);
+
+  /// No description provided for @messageDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Message Details'**
+  String get messageDetails;
+
+  /// No description provided for @statusWithStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status: {status}'**
+  String statusWithStatus(Object status);
+
+  /// No description provided for @packetIdWithId.
+  ///
+  /// In en, this message translates to:
+  /// **'Packet ID: {id}'**
+  String packetIdWithId(Object id);
+
+  /// No description provided for @messageInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Message Info'**
+  String get messageInfo;
+
+  /// No description provided for @sessionKeyRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Session key requested'**
+  String get sessionKeyRequested;
+
+  /// No description provided for @stateMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'State Missing'**
+  String get stateMissing;
+
+  /// No description provided for @idWithId.
+  ///
+  /// In en, this message translates to:
+  /// **'id={id}'**
+  String idWithId(Object id);
+
+  /// No description provided for @xmodem.
+  ///
+  /// In en, this message translates to:
+  /// **'XModem'**
+  String get xmodem;
+
+  /// No description provided for @xmodemStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'seq={seq} control={control}'**
+  String xmodemStatus(Object control, Object seq);
+
+  /// No description provided for @idTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'ID'**
+  String get idTitle;
 }
 
 class _AppLocalizationsDelegate

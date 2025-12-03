@@ -34,7 +34,7 @@ class EventDetailsPage extends StatelessWidget {
             if (payload case MeshtasticDeviceEventPayload m)
               _Section(
                 emoji: '🆔',
-                title: 'ID',
+                title: AppLocalizations.of(context).idTitle,
                 child: Text(m.event.id?.toString() ?? '—'),
               ),
             _Section(
@@ -738,7 +738,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
     if (cfg.sessionkey != null) {
       children.add(const SizedBox(height: 8));
       children.add(_Subheader(AppLocalizations.of(context).sessionKey));
-      children.add(const Text('Session key requested'));
+      children.add(Text(AppLocalizations.of(context).sessionKeyRequested));
     }
     if (children.isEmpty) return const Text('—');
     return Column(

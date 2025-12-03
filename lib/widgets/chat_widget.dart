@@ -1,28 +1,23 @@
 import 'dart:async';
-import 'dart:typed_data';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
-import '../meshtastic/model/meshtastic_event.dart';
-
-import '../meshtastic/model/meshtastic_models.dart';
-
-import '../services/device_communication_event_service.dart';
-import '../services/message_sender.dart';
+import '../models/chat_models.dart';
+import '../services/message_routing_service.dart';
 import '../utils/text_sanitize.dart';
+import '../services/device_state_service.dart';
+import '../services/device_status_store.dart';
+import '../pages/device_details_page.dart';
 
 import '../l10n/app_localizations.dart';
 
 class ChatWidget extends StatefulWidget {
-  final MessageSender messageSender;
-  final String deviceId;
-  final int? toNodeId;
+  final String roomId;
 
-  const ChatWidget({
-    super.key,
-    required this.messageSender,
-    required this.deviceId,
-    this.toNodeId,
-  });
+  const ChatWidget({super.key, required this.roomId});
 
   @override
   State<ChatWidget> createState() => _ChatWidgetState();
@@ -31,8 +26,10 @@ class ChatWidget extends StatefulWidget {
 class _ChatWidgetState extends State<ChatWidget> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final List<ChatMessage> _messages = [];
-  StreamSubscription<DeviceEvent>? _eventSub;
+  final FocusNode _focusNode = FocusNode();
+  List<ChatMessage> _messages = [];
+  StreamSubscription<List<ChatMessage>>? _messageSub;
+  bool _showEmoji = false;
 
   // Max payload size for Meshtastic is roughly 230 bytes depending on headers,
   // but let's be safe with a lower limit for text.
@@ -43,7 +40,27 @@ class _ChatWidgetState extends State<ChatWidget> {
   void initState() {
     super.initState();
     _textController.addListener(_updateByteCount);
-    _subscribeToEvents();
+    _loadInitialMessages();
+    _subscribeToMessages();
+
+    // Hide emoji picker when keyboard shows up
+    _focusNode.addListener(() {
+      if (_focusNode.hasFocus) {
+        setState(() {
+          _showEmoji = false;
+        });
+      }
+    });
+  }
+
+  void _loadInitialMessages() {
+    setState(() {
+      _messages = MessageRoutingService.instance.getInitialMessages(
+        widget.roomId,
+      );
+    });
+    // Scroll to bottom after frame
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
   }
 
   @override
@@ -51,7 +68,8 @@ class _ChatWidgetState extends State<ChatWidget> {
     _textController.removeListener(_updateByteCount);
     _textController.dispose();
     _scrollController.dispose();
-    _eventSub?.cancel();
+    _focusNode.dispose();
+    _messageSub?.cancel();
     super.dispose();
   }
 
@@ -69,52 +87,15 @@ class _ChatWidgetState extends State<ChatWidget> {
     });
   }
 
-  void _subscribeToEvents() {
-    _eventSub = DeviceCommunicationEventService.instance.listenAll().listen((
-      event,
-    ) {
-      // Check if event is for this device
-      final deviceIds = event.tags['deviceId'];
-      if (deviceIds == null || !deviceIds.contains(widget.deviceId)) {
-        return;
-      }
-
-      if (event.payload is MeshtasticDeviceEventPayload) {
-        final meshPayload = event.payload as MeshtasticDeviceEventPayload;
-        if (meshPayload.event is MeshPacketEvent) {
-          final packetEvent = meshPayload.event as MeshPacketEvent;
-
-          // Filter if we are in a direct chat
-          if (widget.toNodeId != null) {
-            final p = packetEvent.packet;
-            final fromTarget = p.from == widget.toNodeId;
-            final toTarget = p.to == widget.toNodeId;
-            if (!fromTarget && !toTarget) return;
-          }
-
-          if (packetEvent.decoded is TextPayloadDto) {
-            final textPayload = packetEvent.decoded as TextPayloadDto;
-            setState(() {
-              _messages.add(
-                ChatMessage(
-                  text: textPayload.text,
-                  isMe:
-                      packetEvent.packet.from ==
-                      0, // We don't easily know our own ID here without looking it up, but 0 is usually not valid for remote.
-                  // Better heuristic: if we sent it, we added it optimistically.
-                  // But if it comes back from the mesh (echo), we might duplicate.
-                  // For now, let's assume incoming messages are not from us unless we can verify source.
-                  // Actually, `isMe` in the UI is just for alignment.
-                  // If we receive a packet, it's usually from someone else.
-                  timestamp: event.timestamp,
-                ),
-              );
-            });
-            _scrollToBottom();
-          }
-        }
-      }
-    });
+  void _subscribeToMessages() {
+    _messageSub = MessageRoutingService.instance
+        .getMessagesForRoom(widget.roomId)
+        .listen((messages) {
+          setState(() {
+            _messages = messages;
+          });
+          _scrollToBottom();
+        });
   }
 
   void _scrollToBottom() {
@@ -141,17 +122,9 @@ class _ChatWidgetState extends State<ChatWidget> {
     }
 
     try {
-      // Send
-      await widget.messageSender.sendMessage(text);
-
-      // Optimistic update
-      setState(() {
-        _messages.add(
-          ChatMessage(text: text, isMe: true, timestamp: DateTime.now()),
-        );
-        _textController.clear();
-      });
-      _scrollToBottom();
+      await MessageRoutingService.instance.sendMessage(widget.roomId, text);
+      _textController.clear();
+      // Scroll to bottom handled by stream update
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -169,6 +142,33 @@ class _ChatWidgetState extends State<ChatWidget> {
     if (_currentBytes < _maxBytes * 0.75) return Colors.green;
     if (_currentBytes < _maxBytes * 0.90) return Colors.yellow;
     return Colors.red;
+  }
+
+  void _onBackspacePressed() {
+    final text = _textController.text;
+    final selection = _textController.selection;
+    final cursorPosition = selection.baseOffset < 0
+        ? text.length
+        : selection.baseOffset;
+
+    if (cursorPosition == 0) return;
+
+    final newText = text.replaceRange(cursorPosition - 1, cursorPosition, '');
+    _textController.value = TextEditingValue(
+      text: newText,
+      selection: TextSelection.collapsed(offset: cursorPosition - 1),
+    );
+  }
+
+  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.enter) {
+      if (HardwareKeyboard.instance.isShiftPressed) {
+        return KeyEventResult.ignored; // Let it insert newline
+      }
+      _sendMessage();
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
   }
 
   @override
@@ -202,11 +202,31 @@ class _ChatWidgetState extends State<ChatWidget> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      if (!msg.isMe && msg.authorNodeId != null) ...[
+                        _buildAuthorWidget(context, msg),
+                        const SizedBox(height: 4),
+                      ],
                       Text(safeText(msg.text)),
                       const SizedBox(height: 2),
-                      Text(
-                        '${msg.timestamp.hour}:${msg.timestamp.minute.toString().padLeft(2, '0')}',
-                        style: Theme.of(context).textTheme.labelSmall,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '${msg.timestamp.hour}:${msg.timestamp.minute.toString().padLeft(2, '0')}',
+                            style: Theme.of(context).textTheme.labelSmall,
+                          ),
+                          if (msg.isMe) ...[
+                            const SizedBox(width: 4),
+                            _buildStatusIndicator(msg.status),
+                            IconButton(
+                              icon: const Icon(Icons.info_outline, size: 16),
+                              onPressed: () => _showPacketDetails(msg),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              tooltip: AppLocalizations.of(context).messageInfo,
+                            ),
+                          ],
+                        ],
                       ),
                     ],
                   ),
@@ -220,15 +240,42 @@ class _ChatWidgetState extends State<ChatWidget> {
           padding: const EdgeInsets.all(8.0),
           child: Row(
             children: [
+              IconButton(
+                onPressed: () {
+                  setState(() {
+                    _showEmoji = !_showEmoji;
+                    if (_showEmoji) {
+                      _focusNode.unfocus();
+                    } else {
+                      _focusNode.requestFocus();
+                    }
+                  });
+                },
+                icon: Icon(
+                  _showEmoji ? Icons.keyboard : Icons.emoji_emotions_outlined,
+                  color: _showEmoji ? Theme.of(context).primaryColor : null,
+                ),
+              ),
+              const SizedBox(width: 8),
               Expanded(
-                child: TextField(
-                  controller: _textController,
-                  maxLines: null,
-                  decoration: InputDecoration(
-                    hintText: AppLocalizations.of(context).typeMessage,
-                    border: const OutlineInputBorder(),
-                    counterText: '$_currentBytes/$_maxBytes',
-                    counterStyle: TextStyle(color: _counterColor),
+                child: Focus(
+                  onKeyEvent: _handleKeyEvent,
+                  child: TextField(
+                    controller: _textController,
+                    focusNode: _focusNode,
+                    maxLines: null,
+                    textInputAction: TextInputAction.send,
+                    onSubmitted: (_) => _sendMessage(),
+                    decoration: InputDecoration(
+                      hintText: AppLocalizations.of(context).typeMessage,
+                      border: const OutlineInputBorder(),
+                      counterText: '$_currentBytes/$_maxBytes',
+                      counterStyle: TextStyle(color: _counterColor),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -240,19 +287,218 @@ class _ChatWidgetState extends State<ChatWidget> {
             ],
           ),
         ),
+        if (_showEmoji)
+          SizedBox(
+            height: 250,
+            child: EmojiPicker(
+              textEditingController: _textController,
+              onEmojiSelected: (category, emoji) {
+                // Do nothing here, as textEditingController handles insertion
+              },
+              onBackspacePressed: _onBackspacePressed,
+              config: Config(
+                height: 250,
+                checkPlatformCompatibility: true,
+                viewOrderConfig: const ViewOrderConfig(),
+                emojiViewConfig: EmojiViewConfig(
+                  // Define the columns for the emoji picker
+                  columns: 7,
+                  emojiSizeMax: 32 * (Platform.isIOS ? 1.30 : 1.0),
+                  backgroundColor: Theme.of(context).colorScheme.surface,
+                ),
+                skinToneConfig: const SkinToneConfig(),
+                categoryViewConfig: CategoryViewConfig(
+                  backgroundColor: Theme.of(context).colorScheme.surface,
+                  dividerColor: Theme.of(context).dividerColor,
+                  indicatorColor: Theme.of(context).colorScheme.primary,
+                  iconColorSelected: Theme.of(context).colorScheme.primary,
+                  iconColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                bottomActionBarConfig: BottomActionBarConfig(
+                  backgroundColor: Theme.of(context).colorScheme.surface,
+                  buttonColor: Theme.of(context).colorScheme.surface,
+                  buttonIconColor: Theme.of(
+                    context,
+                  ).colorScheme.onSurfaceVariant,
+                ),
+                searchViewConfig: SearchViewConfig(
+                  backgroundColor: Theme.of(context).colorScheme.surface,
+                  buttonIconColor: Theme.of(
+                    context,
+                  ).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }
-}
 
-class ChatMessage {
-  final String text;
-  final bool isMe;
-  final DateTime timestamp;
+  Widget _buildStatusIndicator(MessageStatus status) {
+    String tooltip;
+    String text;
+    Color color;
 
-  ChatMessage({
-    required this.text,
-    required this.isMe,
-    required this.timestamp,
-  });
+    switch (status) {
+      case MessageStatus.sending:
+        tooltip = 'Sending to radio...';
+        text = '⏳'; // Hourglass
+        color = Colors.yellow;
+        break;
+      case MessageStatus.sent:
+        tooltip = 'Sent to radio';
+        text = '📡'; // Satellite antenna
+        color = Colors.yellow;
+        break;
+      case MessageStatus.acked:
+        tooltip = 'Acknowledged by receiver';
+        text = '✅'; // Check mark
+        color = Colors.green;
+        break;
+      case MessageStatus.ackedByRelay:
+        tooltip = 'Acknowledged by relay node';
+        text = '🔄'; // Recycling/forward symbol
+        color = Colors.blue;
+        break;
+      case MessageStatus.failed:
+        tooltip = 'Not acknowledged (Timeout)';
+        text = '⚠️'; // Warning
+        color = Colors.orange;
+        break;
+      case MessageStatus.received:
+        tooltip = 'Received';
+        text = '';
+        color = Colors.transparent;
+        break;
+    }
+
+    if (text.isEmpty) return const SizedBox.shrink();
+
+    return Tooltip(
+      message: tooltip,
+      child: Text(text, style: TextStyle(fontSize: 12, color: color)),
+    );
+  }
+
+  void _showPacketDetails(ChatMessage message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(AppLocalizations.of(context).messageDetails),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                AppLocalizations.of(
+                  context,
+                ).statusWithStatus(message.status.name),
+              ),
+              const SizedBox(height: 8),
+              if (message.packetId != null)
+                Text(
+                  AppLocalizations.of(
+                    context,
+                  ).packetIdWithId(message.packetId!),
+                ),
+              if (message.packetDetails != null) ...[
+                const SizedBox(height: 8),
+                const Text(
+                  'Packet Info:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                ...message.packetDetails!.entries.map(
+                  (e) => Text('${e.key}: ${e.value}'),
+                ),
+              ],
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(AppLocalizations.of(context).close),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAuthorWidget(BuildContext context, ChatMessage message) {
+    if (message.deviceId == null || message.authorNodeId == null) {
+      return Text(
+        'Node ${message.authorNodeId ?? "Unknown"}',
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          fontWeight: FontWeight.bold,
+          color: Theme.of(context).colorScheme.secondary,
+        ),
+      );
+    }
+
+    // Try to get author name from device state
+    final deviceState = DeviceStateService.instance.getState(message.deviceId!);
+    String authorName = 'Node ${message.authorNodeId}';
+
+    if (deviceState != null && deviceState.nodes.isNotEmpty) {
+      // Find the specific node that sent this message
+      final nodeIndex = deviceState.nodes.indexWhere(
+        (n) => n.num == message.authorNodeId,
+      );
+
+      if (nodeIndex != -1) {
+        final node = deviceState.nodes[nodeIndex];
+        // Prefer long name, then short name, then fall back to node ID
+        authorName =
+            node.user?.longName ??
+            node.user?.shortName ??
+            'Node ${message.authorNodeId}';
+      }
+    }
+
+    // Find if the author is actually a connected device (not just a remote node)
+    // by checking if the author node ID matches any device's myNodeNum
+    final connectedDevices = DeviceStatusStore.instance.connectedDevices;
+    BluetoothDevice? authorDevice;
+
+    for (final device in connectedDevices) {
+      final deviceState = DeviceStateService.instance.getState(
+        device.remoteId.str,
+      );
+      if (deviceState?.myNodeInfo?.myNodeNum == message.authorNodeId) {
+        authorDevice = device;
+        break;
+      }
+    }
+
+    if (authorDevice != null) {
+      // Author is a connected device - make it clickable
+      return GestureDetector(
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => DeviceDetailsPage(device: authorDevice!),
+            ),
+          );
+        },
+        child: Text(
+          authorName,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.primary,
+            decoration: TextDecoration.underline,
+          ),
+        ),
+      );
+    } else {
+      // Author is a remote node, not a connected device - show as non-clickable
+      return Text(
+        authorName,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          fontWeight: FontWeight.bold,
+          color: Theme.of(context).colorScheme.secondary,
+        ),
+      );
+    }
+  }
 }

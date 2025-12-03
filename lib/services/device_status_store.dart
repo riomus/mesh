@@ -76,6 +76,7 @@ class DeviceStatusStore {
     }
 
     entry._update(DeviceConnectionState.connecting);
+    _connectedDevicesController.add(connectedDevices);
     final completer = Completer<MeshtasticBleClient>();
     entry.connecting = completer.future;
     try {
@@ -120,12 +121,23 @@ class DeviceStatusStore {
       return client;
     } catch (e) {
       entry._update(DeviceConnectionState.error, error: e);
+      entry._scheduleErrorRemoval();
+      _connectedDevicesController.add(connectedDevices);
       _log(id, 'Connect failed: $e', level: 'error');
       completer.completeError(e);
       rethrow;
     } finally {
       entry.connecting = null;
     }
+  }
+
+  /// Connect to a device by its ID if it is already known to the store.
+  Future<MeshtasticBleClient?> connectToId(String deviceId) async {
+    final entry = _entries[deviceId];
+    if (entry != null) {
+      return connect(entry.device);
+    }
+    return null;
   }
 
   /// Disconnect the device and dispose its client. Keeps the entry so status
@@ -182,10 +194,15 @@ class DeviceStatusStore {
     return devices.isNotEmpty ? devices.first : null;
   }
 
-  /// Returns all connected devices.
+  /// Returns all connected or connecting devices.
   List<BluetoothDevice> get connectedDevices {
     return _entries.values
-        .where((e) => e.status?.state == DeviceConnectionState.connected)
+        .where(
+          (e) =>
+              e.status?.state == DeviceConnectionState.connected ||
+              e.status?.state == DeviceConnectionState.connecting ||
+              e.status?.state == DeviceConnectionState.error,
+        )
         .map((e) => e.device)
         .toList();
   }
@@ -199,6 +216,7 @@ class DeviceStatusStore {
       try {
         await e.client?.dispose();
       } catch (_) {}
+      e._cancelErrorRemoval();
       await e.controller.close();
     }
     _entries.clear();
@@ -225,6 +243,7 @@ class _Entry {
   StreamSubscription<BluetoothConnectionState>? connStateSub;
   // Subscription to client's RSSI stream
   StreamSubscription<int>? _clientRssiSub;
+  Timer? _errorRemovalTimer;
 
   _Entry(this.device)
     : deviceId = device.remoteId.str,
@@ -238,6 +257,11 @@ class _Entry {
       status = null;
 
   void _update(DeviceConnectionState state, {Object? error, int? rssi}) {
+    // If we are moving out of error state, cancel any pending removal
+    if (state != DeviceConnectionState.error) {
+      _cancelErrorRemoval();
+    }
+
     final s = DeviceStatus(
       deviceId: deviceId,
       state: state,
@@ -246,6 +270,23 @@ class _Entry {
     );
     status = s;
     controller.add(s);
+  }
+
+  void _scheduleErrorRemoval() {
+    _cancelErrorRemoval();
+    _errorRemovalTimer = Timer(const Duration(seconds: 5), () {
+      if (status?.state == DeviceConnectionState.error) {
+        _update(DeviceConnectionState.disconnected);
+        DeviceStatusStore.instance._connectedDevicesController.add(
+          DeviceStatusStore.instance.connectedDevices,
+        );
+      }
+    });
+  }
+
+  void _cancelErrorRemoval() {
+    _errorRemovalTimer?.cancel();
+    _errorRemovalTimer = null;
   }
 
   void _listenConnectionState() {

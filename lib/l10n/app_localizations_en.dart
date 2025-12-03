@@ -752,4 +752,67 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get connectToViewState => 'Connect to the device to view its state';
+
+  @override
+  String get notifications => 'Notifications';
+
+  @override
+  String get enableNotifications => 'Enable notifications';
+
+  @override
+  String roleWithRole(Object role) {
+    return 'Role: $role';
+  }
+
+  @override
+  String get knownNodes => 'Known nodes';
+
+  @override
+  String get notConfigured => 'Not configured';
+
+  @override
+  String get noConfigurationData => 'No configuration data received';
+
+  @override
+  String nodesWithCount(Object count) {
+    return 'Nodes ($count)';
+  }
+
+  @override
+  String get messageDetails => 'Message Details';
+
+  @override
+  String statusWithStatus(Object status) {
+    return 'Status: $status';
+  }
+
+  @override
+  String packetIdWithId(Object id) {
+    return 'Packet ID: $id';
+  }
+
+  @override
+  String get messageInfo => 'Message Info';
+
+  @override
+  String get sessionKeyRequested => 'Session key requested';
+
+  @override
+  String get stateMissing => 'State Missing';
+
+  @override
+  String idWithId(Object id) {
+    return 'id=$id';
+  }
+
+  @override
+  String get xmodem => 'XModem';
+
+  @override
+  String xmodemStatus(Object control, Object seq) {
+    return 'seq=$seq control=$control';
+  }
+
+  @override
+  String get idTitle => 'ID';
 }

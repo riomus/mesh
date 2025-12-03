@@ -5,10 +5,7 @@ import '../widgets/chat_widget.dart';
 import '../widgets/mesh_app_bar.dart';
 import '../utils/text_sanitize.dart';
 
-import '../services/ble_meshtastic_device.dart';
-import '../services/message_sender.dart';
-import '../services/device_message_sender.dart';
-import '../services/channel_message_sender.dart';
+import '../services/message_routing_service.dart';
 
 class DeviceChatPage extends StatelessWidget {
   final BluetoothDevice device;
@@ -30,28 +27,28 @@ class DeviceChatPage extends StatelessWidget {
         chatTitle ??
         '${AppLocalizations.of(context).chat} - ${safeText(device.platformName.isNotEmpty ? device.platformName : device.remoteId.str)}';
 
-    final chattingDevice = BleMeshtasticDevice(device);
-    final MessageSender messageSender;
-
-    if (channelIndex != null) {
-      messageSender = ChannelMessageSender(
-        device: chattingDevice,
-        channelIndex: channelIndex!,
-      );
-    } else {
-      messageSender = DeviceMessageSender(
-        device: chattingDevice,
-        toNodeId: toNodeId,
-      );
-    }
-
-    return Scaffold(
-      appBar: MeshAppBar(title: Text(title)),
-      body: ChatWidget(
-        messageSender: messageSender,
-        deviceId: device.remoteId.str,
-        toNodeId: toNodeId,
-      ),
+    return FutureBuilder<String>(
+      future: (channelIndex != null || toNodeId == null)
+          ? MessageRoutingService.instance.getChannelChatRoomId(
+              device.remoteId.str,
+              channelIndex ?? 0,
+            )
+          : MessageRoutingService.instance.getDirectChatRoomId(
+              device.remoteId.str,
+              toNodeId!,
+            ),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return Scaffold(
+            appBar: MeshAppBar(title: Text(title)),
+            body: const Center(child: CircularProgressIndicator()),
+          );
+        }
+        return Scaffold(
+          appBar: MeshAppBar(title: Text(title)),
+          body: ChatWidget(roomId: snapshot.data!),
+        );
+      },
     );
   }
 }

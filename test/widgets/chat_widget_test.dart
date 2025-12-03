@@ -29,18 +29,12 @@ void main() {
   testWidgets('ChatWidget renders input and button', (
     WidgetTester tester,
   ) async {
-    final mockSender = MockMessageSender();
     // We need to provide AppLocalizations
     await tester.pumpWidget(
       MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(
-          body: ChatWidget(
-            messageSender: mockSender,
-            deviceId: '00:00:00:00:00:00',
-          ),
-        ),
+        home: Scaffold(body: ChatWidget(roomId: 'test_room')),
       ),
     );
 

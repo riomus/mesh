@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mesh/services/notification_service.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/mesh_app_bar.dart';
 
@@ -73,6 +74,33 @@ class SettingsPage extends StatelessWidget {
               ),
             ),
           ),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.notifications),
+                      const SizedBox(width: 8),
+                      Text(
+                        t.notifications,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      NotificationService.instance.requestPermissions();
+                    },
+                    child: Text(t.enableNotifications),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -82,7 +110,8 @@ class SettingsPage extends StatelessWidget {
 bool _equalsLocale(Locale? a, Locale? b) {
   if (identical(a, b)) return true;
   if (a == null || b == null) return a == b; // both null → true, else false
-  return a.languageCode == b.languageCode && (a.countryCode ?? '') == (b.countryCode ?? '');
+  return a.languageCode == b.languageCode &&
+      (a.countryCode ?? '') == (b.countryCode ?? '');
 }
 
 String _localeLabel(BuildContext context, Locale? locale) {
@@ -101,5 +130,7 @@ String _localeDescription(BuildContext context, Locale? locale) {
   if (locale == null) {
     return AppLocalizations.of(context).languageFollowSystem;
   }
-  return AppLocalizations.of(context).languageAppLanguage(_localeLabel(context, locale));
+  return AppLocalizations.of(
+    context,
+  ).languageAppLanguage(_localeLabel(context, locale));
 }

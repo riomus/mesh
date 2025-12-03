@@ -21,9 +21,18 @@ class DeviceStateService {
   /// Start listening to [DeviceCommunicationEventService].
   void init() {
     _subscription?.cancel();
-    _subscription = DeviceCommunicationEventService.instance.listenAll().listen(
-      _handleEvent,
-    );
+    _subscription = DeviceCommunicationEventService.instance
+        .listenWithReplay()
+        .listen(
+          _handleEvent,
+          onError: (e, s) {
+            LoggingService.instance.push(
+              tags: {'class': 'DeviceStateService'},
+              level: 'error',
+              message: 'Error in DeviceStateService subscription: $e',
+            );
+          },
+        );
   }
 
   void dispose() {
@@ -41,120 +50,133 @@ class DeviceStateService {
 
   /// Stream of state updates for a specific device, starting with the current state.
   Stream<DeviceState> streamWithCurrent(String deviceId) {
-    final current = _states[deviceId];
-    final stream = _controller.stream.where((s) => s.deviceId == deviceId);
-    if (current != null) {
-      // Create a broadcast stream that emits current then follows the broadcast stream
-      final controller = StreamController<DeviceState>.broadcast();
+    // Create a broadcast stream that emits current then follows the broadcast stream
+    StreamController<DeviceState>? controller;
+    StreamSubscription<DeviceState>? subscription;
 
-      // Emit current state immediately
-      controller.add(current);
+    controller = StreamController<DeviceState>.broadcast(
+      onListen: () {
+        // 1. Subscribe to source stream first to ensure we don't miss updates
+        // occurring while we are emitting the current state.
+        subscription = _controller.stream
+            .where((s) => s.deviceId == deviceId)
+            .listen(
+              (data) => controller?.add(data),
+              onError: (e) => controller?.addError(e),
+              onDone: () => controller?.close(),
+            );
 
-      // Then forward all future updates
-      final subscription = stream.listen(
-        controller.add,
-        onError: controller.addError,
-        onDone: controller.close,
-      );
+        // 2. Emit current state immediately
+        final current = _states[deviceId];
+        if (current != null) {
+          controller?.add(current);
+        }
+      },
+      onCancel: () {
+        subscription?.cancel();
+      },
+    );
 
-      // Clean up subscription when all listeners cancel
-      controller.onCancel = () {
-        subscription.cancel();
-      };
-
-      return controller.stream;
-    }
-    return stream;
+    return controller.stream;
   }
 
   void _handleEvent(DeviceEvent event) {
-    if (event.payload is! MeshtasticDeviceEventPayload) return;
+    try {
+      if (event.payload is! MeshtasticDeviceEventPayload) return;
 
-    final deviceId = event.tags['deviceId']?.firstOrNull;
-    if (deviceId == null) return;
+      final deviceId = event.tags['deviceId']?.firstOrNull;
+      if (deviceId == null) return;
 
-    final meshEvent = (event.payload as MeshtasticDeviceEventPayload).event;
+      final meshEvent = (event.payload as MeshtasticDeviceEventPayload).event;
 
-    var state = _states[deviceId] ?? DeviceState(deviceId: deviceId);
-    var changed = false;
+      var state = _states[deviceId] ?? DeviceState(deviceId: deviceId);
+      var changed = false;
 
-    if (meshEvent is ConfigEvent) {
-      final newConfig = meshEvent.config;
-      // Only update if the new config has actual data, or if we don't have a config yet
-      if (_hasConfigData(newConfig)) {
-        LoggingService.instance.push(
-          tags: {'deviceId': deviceId, 'class': 'DeviceStateService'},
-          level: 'info',
-          message: 'Updating ConfigEvent: $newConfig',
-        );
-        // If we have existing config, merge with it; otherwise use the new config directly
-        final updatedConfig = state.config != null
-            ? state.config!.copyWith(newConfig)
-            : newConfig;
-        state = state.copyWith(config: updatedConfig);
+      if (meshEvent is ConfigEvent) {
+        final newConfig = meshEvent.config;
+        // Only update if the new config has actual data, or if we don't have a config yet
+        if (_hasConfigData(newConfig)) {
+          LoggingService.instance.push(
+            tags: {'deviceId': deviceId, 'class': 'DeviceStateService'},
+            level: 'info',
+            message: 'Updating ConfigEvent: $newConfig',
+          );
+          // If we have existing config, merge with it; otherwise use the new config directly
+          final updatedConfig = state.config != null
+              ? state.config!.copyWith(newConfig)
+              : newConfig;
+          state = state.copyWith(config: updatedConfig);
+          changed = true;
+        } else {
+          LoggingService.instance.push(
+            tags: {'deviceId': deviceId, 'class': 'DeviceStateService'},
+            level: 'debug',
+            message: 'Skipping empty ConfigEvent (keeping existing config)',
+          );
+        }
+      } else if (meshEvent is ModuleConfigEvent) {
+        final newModuleConfig = meshEvent.moduleConfig;
+        // Only update if the new module config has actual data
+        if (_hasModuleConfigData(newModuleConfig)) {
+          LoggingService.instance.push(
+            tags: {'deviceId': deviceId, 'class': 'DeviceStateService'},
+            level: 'info',
+            message: 'Updating ModuleConfigEvent: $newModuleConfig',
+          );
+          // If we have existing module config, merge with it; otherwise use the new config directly
+          final updatedModuleConfig = state.moduleConfig != null
+              ? state.moduleConfig!.copyWith(newModuleConfig)
+              : newModuleConfig;
+          state = state.copyWith(moduleConfig: updatedModuleConfig);
+          changed = true;
+        } else {
+          LoggingService.instance.push(
+            tags: {'deviceId': deviceId, 'class': 'DeviceStateService'},
+            level: 'debug',
+            message:
+                'Skipping empty ModuleConfigEvent (keeping existing config)',
+          );
+        }
+      } else if (meshEvent is ChannelEvent) {
+        final newChannel = meshEvent.channel;
+        final channels = List<ChannelDto>.from(state.channels);
+        final index = channels.indexWhere((c) => c.index == newChannel.index);
+        if (index >= 0) {
+          channels[index] = newChannel;
+        } else {
+          channels.add(newChannel);
+        }
+        state = state.copyWith(channels: channels);
         changed = true;
-      } else {
-        LoggingService.instance.push(
-          tags: {'deviceId': deviceId, 'class': 'DeviceStateService'},
-          level: 'debug',
-          message: 'Skipping empty ConfigEvent (keeping existing config)',
-        );
-      }
-    } else if (meshEvent is ModuleConfigEvent) {
-      final newModuleConfig = meshEvent.moduleConfig;
-      // Only update if the new module config has actual data
-      if (_hasModuleConfigData(newModuleConfig)) {
-        LoggingService.instance.push(
-          tags: {'deviceId': deviceId, 'class': 'DeviceStateService'},
-          level: 'info',
-          message: 'Updating ModuleConfigEvent: $newModuleConfig',
-        );
-        // If we have existing module config, merge with it; otherwise use the new config directly
-        final updatedModuleConfig = state.moduleConfig != null
-            ? state.moduleConfig!.copyWith(newModuleConfig)
-            : newModuleConfig;
-        state = state.copyWith(moduleConfig: updatedModuleConfig);
+      } else if (meshEvent is NodeInfoEvent) {
+        final newNode = meshEvent.nodeInfo;
+        final nodes = List<NodeInfoDto>.from(state.nodes);
+        final index = nodes.indexWhere((n) => n.num == newNode.num);
+        if (index >= 0) {
+          nodes[index] = newNode;
+        } else {
+          nodes.add(newNode);
+        }
+        state = state.copyWith(nodes: nodes);
         changed = true;
-      } else {
-        LoggingService.instance.push(
-          tags: {'deviceId': deviceId, 'class': 'DeviceStateService'},
-          level: 'debug',
-          message: 'Skipping empty ModuleConfigEvent (keeping existing config)',
-        );
+      } else if (meshEvent is MyInfoEvent) {
+        state = state.copyWith(myNodeInfo: meshEvent.myInfo);
+        changed = true;
+      } else if (meshEvent is DeviceMetadataEvent) {
+        state = state.copyWith(metadata: meshEvent.metadata);
+        changed = true;
       }
-    } else if (meshEvent is ChannelEvent) {
-      final newChannel = meshEvent.channel;
-      final channels = List<ChannelDto>.from(state.channels);
-      final index = channels.indexWhere((c) => c.index == newChannel.index);
-      if (index >= 0) {
-        channels[index] = newChannel;
-      } else {
-        channels.add(newChannel);
-      }
-      state = state.copyWith(channels: channels);
-      changed = true;
-    } else if (meshEvent is NodeInfoEvent) {
-      final newNode = meshEvent.nodeInfo;
-      final nodes = List<NodeInfoDto>.from(state.nodes);
-      final index = nodes.indexWhere((n) => n.num == newNode.num);
-      if (index >= 0) {
-        nodes[index] = newNode;
-      } else {
-        nodes.add(newNode);
-      }
-      state = state.copyWith(nodes: nodes);
-      changed = true;
-    } else if (meshEvent is MyInfoEvent) {
-      state = state.copyWith(myNodeInfo: meshEvent.myInfo);
-      changed = true;
-    } else if (meshEvent is DeviceMetadataEvent) {
-      state = state.copyWith(metadata: meshEvent.metadata);
-      changed = true;
-    }
 
-    if (changed) {
-      _states[deviceId] = state;
-      _controller.add(state);
+      if (changed) {
+        _states[deviceId] = state;
+        _controller.add(state);
+      }
+    } catch (e) {
+      LoggingService.instance.push(
+        tags: {'class': 'DeviceStateService'},
+        level: 'error',
+        message: 'Error handling event in DeviceStateService: $e',
+      );
     }
   }
 

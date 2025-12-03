@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -102,7 +101,7 @@ class MeshtasticBleClient {
     }
 
     await _discoverAndBindCharacteristics();
-    await _startInitialDownload();
+    await requestConfig();
 
     // Start listening for connection state changes for logging/cleanup
     _connStateSub?.cancel();
@@ -167,7 +166,7 @@ class MeshtasticBleClient {
     _log('Discovery done');
   }
 
-  Future<void> _startInitialDownload() async {
+  Future<void> requestConfig() async {
     _log('Sending startConfig (wantConfigId=0)');
     final start = mesh.ToRadio(wantConfigId: 0);
     await sendToRadio(start);
@@ -248,21 +247,12 @@ class MeshtasticBleClient {
     final data = message.writeToBuffer();
     final characteristic = _toRadio!;
 
-    final maxChunk = max(20, (_mtu - 3));
-    _log(
-      'Total bytes to send: ${data.length}, MTU: $_mtu, Chunk size: $maxChunk',
-    );
+    _log('Total bytes to send: ${data.length}');
 
-    int offset = 0;
-    while (offset < data.length) {
-      final end = (offset + maxChunk) > data.length
-          ? data.length
-          : (offset + maxChunk);
-      final chunk = data.sublist(offset, end);
-      _log('Sending chunk: $offset to $end (${chunk.length} bytes)');
-      await characteristic.write(chunk, withoutResponse: false);
-      offset = end;
-    }
+    // Python implementation does not chunk manually.
+    // We send the entire buffer and let the OS/stack handle fragmentation if needed.
+    await characteristic.write(data, withoutResponse: false);
+
     _log('Finished sending ToRadio message');
   }
 

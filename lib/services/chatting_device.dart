@@ -10,5 +10,5 @@ abstract class ChattingDevice {
   /// [text] is the message content.
   /// [toId] is the optional destination node ID (if applicable).
   /// [channelIndex] is the optional channel index to send on.
-  Future<void> sendMessage(String text, int? toId, {int? channelIndex});
+  Future<int> sendMessage(String text, int? toId, {int? channelIndex});
 }

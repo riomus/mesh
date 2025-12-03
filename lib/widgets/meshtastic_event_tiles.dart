@@ -115,8 +115,10 @@ class MeshtasticEventTile extends StatelessWidget {
       case XModemEvent e:
         return _SimpleTile(
           emoji: '💾',
-          title: 'XModem',
-          subtitle: 'seq=${e.xmodem.seq} control=${e.xmodem.control}',
+          title: AppLocalizations.of(context).xmodem,
+          subtitle: AppLocalizations.of(
+            context,
+          ).xmodemStatus(e.xmodem.seq.toString(), e.xmodem.control.toString()),
           color: Colors.blueGrey,
         );
     }
