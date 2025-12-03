@@ -175,8 +175,7 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: ios-${{ needs.version.outputs.tag_name }}
-          path: |
-            build/ios/archive/*.xcarchive
+          path: build/ios/ipa/*.ipa
 
   macos:
     name: Build macOS (unsigned .app zip)
@@ -271,6 +270,10 @@ jobs:
           name: ${{ needs.version.outputs.tag_name }}
           body_path: CHANGELOG_RELEASE.md
           files: |
-            dist/**
+            dist/web-*/*.zip
+            dist/android-*/*.apk
+            dist/android-*/*.aab
+            dist/ios-*/*.ipa
+            dist/macos-*/*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
