@@ -1288,7 +1288,7 @@ EnvironmentMetricsDto _toEnvironmentMetricsDto(telem.EnvironmentMetrics e) {
     whiteLux: e.hasWhiteLux() ? e.whiteLux : null,
     irLux: e.hasIrLux() ? e.irLux : null,
     uvLux: e.hasUvLux() ? e.uvLux : null,
-    windDirection: e.hasWindDirection() ? e.windDirection : null,
+    windDirection: e.hasWindDirection() ? e.windDirection.toDouble() : null,
     windSpeed: e.hasWindSpeed() ? e.windSpeed : null,
     weight: e.hasWeight() ? e.weight : null,
     windGust: e.hasWindGust() ? e.windGust : null,

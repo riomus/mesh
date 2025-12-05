@@ -372,8 +372,8 @@ class PowerMetricsDto {
 
 class LocalStatsDto {
   final int? uptimeSeconds;
-  final int? channelUtilization;
-  final int? airUtilTx;
+  final double? channelUtilization;
+  final double? airUtilTx;
   final int? numPacketsTx;
   final int? numPacketsRx;
   final int? numPacketsRxBad;
