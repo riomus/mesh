@@ -207,28 +207,55 @@ class TracerouteService {
     TraceroutePayloadDto traceroute,
   ) {
     // Try to find the matching trace request
-    // We match by target node (packet.from) and timing
+    // For traceroute responses, packet.from is NOT the target node - it's the responding node
+    // (often the local node for 0-hop traces). We need to match differently.
     TraceRequest? matchingRequest;
     String? matchingRequestId;
 
     print(
-      '[TracerouteService] Looking for matching trace for packet from node ${packet.from}',
+      '[TracerouteService] Looking for matching trace for packet from node ${packet.from}, to: ${packet.to}',
     );
     print(
       '[TracerouteService] Pending traces target nodes: ${_pendingTraces.values.map((r) => r.targetNodeId).toList()}',
     );
 
-    for (final entry in _pendingTraces.entries) {
-      final request = entry.value;
-      print(
-        '[TracerouteService] Checking trace ${entry.key}: target=${request.targetNodeId}, status=${request.status}',
-      );
-      if (request.targetNodeId == packet.from &&
-          request.status == TraceStatus.pending) {
-        matchingRequest = request;
-        matchingRequestId = entry.key;
-        print('[TracerouteService] MATCHED trace request: $matchingRequestId');
-        break;
+    // Strategy 1: If packet has an ID, try to match by packet ID
+    if (packet.id != null) {
+      for (final entry in _pendingTraces.entries) {
+        final request = entry.value;
+        if (request.packetId == packet.id &&
+            request.status == TraceStatus.pending) {
+          matchingRequest = request;
+          matchingRequestId = entry.key;
+          print(
+            '[TracerouteService] MATCHED by packet ID: $matchingRequestId (packetId=${packet.id})',
+          );
+          break;
+        }
+      }
+    }
+
+    // Strategy 2: If no match yet, find the most recent pending trace
+    // This works for 0-hop traces where the response comes from a different node
+    if (matchingRequest == null && _pendingTraces.isNotEmpty) {
+      // Get the most recently sent pending trace
+      final sortedTraces = _pendingTraces.entries.toList()
+        ..sort((a, b) => b.value.sentTime.compareTo(a.value.sentTime));
+
+      for (final entry in sortedTraces) {
+        final request = entry.value;
+        if (request.status == TraceStatus.pending) {
+          // Check if this trace was sent recently (within last 10 seconds)
+          final timeSinceSent = DateTime.now().difference(request.sentTime);
+          if (timeSinceSent.inSeconds <= 10) {
+            matchingRequest = request;
+            matchingRequestId = entry.key;
+            print(
+              '[TracerouteService] MATCHED by recent pending trace: $matchingRequestId (target=${request.targetNodeId})',
+            );
+            break;
+          }
+        }
       }
     }
 
@@ -266,7 +293,7 @@ class TracerouteService {
       '[TracerouteService] Processing trace response: $hopCount hops, hasRoute=$hasRoute, hasRouteBack=$hasRouteBack',
     );
 
-    final event = TraceEvent(
+    final routeReplyEvent = TraceEvent(
       timestamp: now,
       type: 'route_reply',
       description: hopCount == 0
@@ -282,9 +309,21 @@ class TracerouteService {
       },
     );
 
-    final updatedEvents = List<TraceEvent>.from(result.events)..add(event);
+    // Add completion event
+    final completionEvent = TraceEvent(
+      timestamp: now,
+      type: 'completed',
+      description: hopCount == 0
+          ? 'Trace completed: node is directly connected'
+          : 'Trace completed successfully with $hopCount hops',
+    );
 
-    // Update the trace result with the route information
+    // Create all events at once
+    final updatedEvents = List<TraceEvent>.from(result.events)
+      ..add(routeReplyEvent)
+      ..add(completionEvent);
+
+    // Update the trace result with the route information - do this ONCE
     final updatedResult = result.copyWith(
       route: traceroute.route ?? result.route,
       snrTowards: traceroute.snrTowards ?? result.snrTowards,
@@ -303,19 +342,6 @@ class TracerouteService {
       status: TraceStatus.completed,
     );
     _pendingTraces[matchingRequestId] = updatedRequest;
-
-    // Add completion event
-    final completionEvent = TraceEvent(
-      timestamp: now,
-      type: 'completed',
-      description: hopCount == 0
-          ? 'Trace completed: node is directly connected'
-          : 'Trace completed successfully with $hopCount hops',
-    );
-
-    _traceHistory[matchingRequestId] = updatedResult.copyWith(
-      events: List<TraceEvent>.from(updatedEvents)..add(completionEvent),
-    );
 
     print('[TracerouteService] Trace $matchingRequestId marked as completed');
 
@@ -354,8 +380,25 @@ class TracerouteService {
 
         final updatedEvents = List<TraceEvent>.from(result.events)..add(event);
 
+        // If this is a successful ACK (not an error), add the acknowledging node
+        // to the list of theoretical participants
+        var updatedAckNodeIds = result.ackNodeIds;
+        if (!hasError && packet.from != null) {
+          final ackNodeId = packet.from!;
+          // Only add if not already in the list and not the target node itself
+          if (!result.ackNodeIds.contains(ackNodeId) &&
+              ackNodeId != result.targetNodeId) {
+            updatedAckNodeIds = List<int>.from(result.ackNodeIds)
+              ..add(ackNodeId);
+            print(
+              '[TracerouteService] Added ACK node $ackNodeId to trace ${entry.key}',
+            );
+          }
+        }
+
         final updatedResult = result.copyWith(
           events: updatedEvents,
+          ackNodeIds: updatedAckNodeIds,
           status: hasError ? TraceStatus.failed : result.status,
           lastUpdated: now,
         );

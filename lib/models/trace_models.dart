@@ -95,6 +95,11 @@ class TraceResult {
   /// SNR values (in dB, scaled by 4) for the return route
   final List<int>? snrBack;
 
+  /// Node IDs that acknowledged the trace request but did not provide route info.
+  /// These are "theoretical participants" that can be visualized on the map
+  /// with dashed lines to show they received/acknowledged the request.
+  final List<int> ackNodeIds;
+
   /// All events associated with this trace
   final List<TraceEvent> events;
 
@@ -112,6 +117,7 @@ class TraceResult {
     this.snrTowards,
     this.routeBack,
     this.snrBack,
+    this.ackNodeIds = const [],
     required this.events,
     required this.status,
     required this.lastUpdated,
@@ -138,6 +144,7 @@ class TraceResult {
     List<int>? snrTowards,
     List<int>? routeBack,
     List<int>? snrBack,
+    List<int>? ackNodeIds,
     List<TraceEvent>? events,
     TraceStatus? status,
     DateTime? lastUpdated,
@@ -150,6 +157,7 @@ class TraceResult {
       snrTowards: snrTowards ?? this.snrTowards,
       routeBack: routeBack ?? this.routeBack,
       snrBack: snrBack ?? this.snrBack,
+      ackNodeIds: ackNodeIds ?? this.ackNodeIds,
       events: events ?? this.events,
       status: status ?? this.status,
       lastUpdated: lastUpdated ?? this.lastUpdated,

@@ -7,6 +7,7 @@ import '../services/traceroute_service.dart';
 import '../services/nodes_service.dart';
 import '../services/device_status_store.dart';
 import '../l10n/app_localizations.dart';
+import 'nodes_page.dart';
 
 /// Page to display all traceroute history and initiate new traces.
 class TracesPage extends StatefulWidget {
@@ -69,6 +70,7 @@ class _TracesPageState extends State<TracesPage> {
               },
             ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'traces_fab',
         onPressed: () => _showNodePicker(context),
         icon: const Icon(Icons.route),
         label: Text(AppLocalizations.of(context).startTrace),
@@ -330,14 +332,18 @@ class _TraceCardState extends State<_TraceCard> {
           ),
           const SizedBox(height: 4),
           ...trace.events.map((event) => _buildEventTile(context, event)),
-          if (trace.hasRoute) ...[
+          if (trace.status == TraceStatus.completed ||
+              trace.status == TraceStatus.failed) ...[
             const SizedBox(height: 12),
             ElevatedButton.icon(
               onPressed: () {
-                // TODO: Navigate to map and show this trace
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(AppLocalizations.of(context).traceShowOnMap),
+                // Navigate to Nodes page, map tab, with this trace highlighted
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => NodesPage(
+                      highlightedTrace: trace,
+                      initialTabIndex: 1, // Start on map tab
+                    ),
                   ),
                 );
               },
