@@ -272,7 +272,7 @@ class MessageRoutingService {
                 ),
               ],
             );
-            _addMessage(roomId, message);
+            print('DEBUG: Adding message to room $roomId: ${message.text}');
             _addMessage(roomId, message);
 
             // Resolve names for notification
@@ -460,6 +460,7 @@ class MessageRoutingService {
       _messages[roomId] = [];
     }
     _messages[roomId]!.add(message);
+    print('DEBUG: Message added to list. Count: ${_messages[roomId]!.length}');
     _emitMessages(roomId);
 
     // Update last message in room

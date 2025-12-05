@@ -6,6 +6,8 @@ import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:latlong2/latlong.dart' as latlng;
 
 import '../services/nodes_service.dart';
+import '../services/device_status_store.dart';
+import '../services/traceroute_service.dart';
 import '../utils/text_sanitize.dart';
 import '../pages/node_details_page.dart';
 import '../l10n/app_localizations.dart';
@@ -31,13 +33,35 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
   final _svc = NodesService.instance;
   late final MapController _controller = MapController();
 
+  @override
+  bool get wantKeepAlive => true;
+
   List<MeshNodeView> _nodes = const <MeshNodeView>[];
   StreamSubscription<List<MeshNodeView>>? _sub;
+  StreamSubscription<List<TraceResult>>? _traceSub;
+  TraceResult? _activeTrace;
   bool _didAutoFit = false;
 
   @override
   void initState() {
     super.initState();
+    _activeTrace = widget.highlightedTrace;
+
+    // Listen for trace updates to keep the map live
+    if (widget.highlightedTrace != null) {
+      _traceSub = TracerouteService.instance.listenAllTraces().listen((traces) {
+        if (!mounted || _activeTrace == null) return;
+        final updated = traces.firstWhereOrNull(
+          (t) => t.requestId == _activeTrace!.requestId,
+        );
+        if (updated != null && updated != _activeTrace) {
+          setState(() {
+            _activeTrace = updated;
+          });
+        }
+      });
+    }
+
     // Prefill from current snapshot so we don't flash an empty map when
     // nodes are already known (e.g., coming from the List tab)
     final snap = _svc.snapshot;
@@ -75,18 +99,31 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
   }
 
   @override
+  void didUpdateWidget(NodesMapWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.highlightedTrace != oldWidget.highlightedTrace) {
+      setState(() {
+        _activeTrace = widget.highlightedTrace;
+      });
+      // Re-subscribe if needed (simplified: just keep existing sub or recreate if strictly needed,
+      // but usually the ID stays same for the same trace view. If switching traces, we might want to reset.)
+    }
+  }
+
+  @override
   void dispose() {
     _sub?.cancel();
+    _traceSub?.cancel();
     super.dispose();
   }
 
   Iterable<(MeshNodeView node, double lat, double lon)> get _nodePoints sync* {
     // If we have a highlighted trace and showAllNodes is false, filter to only those nodes
     final traceNodeIds = <int>{};
-    if (widget.highlightedTrace != null && !widget.showAllNodes) {
-      final trace = widget.highlightedTrace!;
+    if (_activeTrace != null && !widget.showAllNodes) {
+      final trace = _activeTrace!;
 
-      // Add target node
+      // Add target node (always show target for trace context)
       traceNodeIds.add(trace.targetNodeId);
 
       // Add nodes in route (forward path)
@@ -97,6 +134,15 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
       // Add nodes in routeBack (return path)
       if (trace.routeBack != null) {
         traceNodeIds.addAll(trace.routeBack!);
+      }
+
+      // Add acknowledging nodes (theoretical participants)
+      traceNodeIds.addAll(trace.ackNodeIds);
+
+      // Add local node (start of trace)
+      final sourceNodeId = _getSourceNodeId(trace);
+      if (sourceNodeId != null) {
+        traceNodeIds.add(sourceNodeId);
       }
 
       // Add nodes that sent ACKs or other events (from trace events)
@@ -129,6 +175,114 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
         }
       }
     }
+  }
+
+  Color _getTraceStatusColor(TraceStatus status) {
+    switch (status) {
+      case TraceStatus.completed:
+        return Colors.green;
+      case TraceStatus.failed:
+        return Colors.red;
+      case TraceStatus.timeout:
+        return Colors.orange;
+      default:
+        return Colors.purple;
+    }
+  }
+
+  int? _getSourceNodeId(TraceResult trace) {
+    if (trace.deviceId != null) {
+      debugPrint('_getSourceNodeId: trace.deviceId=${trace.deviceId}');
+
+      // Check if the trace device ID matches a currently connected device
+      // If so, we can assume the local node ID is the source
+      // This check MUST be first because sometimes the target node might have the same user ID
+      // as the connected device (e.g. if it's the phone itself or misconfigured),
+      // and we want to ensure we identify the LOCAL node as the source.
+      final connectedIds = DeviceStatusStore.instance.connectedDeviceIds;
+      debugPrint('_getSourceNodeId: connectedIds=$connectedIds');
+
+      if (connectedIds.contains(trace.deviceId)) {
+        final localId = NodesService.instance.localNodeId;
+        debugPrint(
+          '_getSourceNodeId: Match found in connectedIds. localId=$localId',
+        );
+        if (localId != null) {
+          return localId;
+        }
+      }
+
+      // Try matching by user ID (most reliable)
+      final sourceNodeByUser = _nodes.firstWhereOrNull(
+        (n) => n.user?.id == trace.deviceId,
+      );
+      if (sourceNodeByUser?.num != null) {
+        debugPrint(
+          '_getSourceNodeId: Match found by user ID. nodeNum=${sourceNodeByUser!.num}',
+        );
+        return sourceNodeByUser!.num;
+      }
+
+      // Try matching by parsing device ID (e.g. !12345678 -> 0x12345678)
+      if (trace.deviceId != null && trace.deviceId!.startsWith('!')) {
+        final hex = trace.deviceId!.substring(1);
+        final num = int.tryParse(hex, radix: 16);
+        if (num != null) {
+          // Verify this node exists in our list
+          final node = _nodes.firstWhereOrNull((n) => n.num == num);
+          if (node != null) {
+            debugPrint(
+              '_getSourceNodeId: Match found by parsed ID. nodeNum=${node.num}',
+            );
+            return node.num;
+          }
+        }
+      }
+
+      // Try matching by tag (legacy/fallback)
+      final sourceNodeByTag = _nodes.firstWhereOrNull(
+        (n) => n.tags['sourceDeviceId']?.contains(trace.deviceId!) ?? false,
+      );
+      if (sourceNodeByTag?.num != null) {
+        debugPrint(
+          '_getSourceNodeId: Match found by tag. nodeNum=${sourceNodeByTag!.num}',
+        );
+        return sourceNodeByTag!.num;
+      }
+    }
+    // Fallback to local node if deviceId is null or not found
+    // (Assuming trace was initiated locally if we can't find the remote source)
+    final localId = NodesService.instance.localNodeId;
+    debugPrint('_getSourceNodeId: Fallback to localId=$localId');
+    return localId;
+  }
+
+  // Helper to find node position
+  (double, double)? _getPos(int nodeId) {
+    final node = _nodes.firstWhereOrNull((n) => n.num == nodeId);
+    if (node == null) {
+      if (_activeTrace != null && nodeId == _activeTrace!.targetNodeId) {
+        debugPrint(
+          '_getPos: Target Node $nodeId NOT FOUND in _nodes list (count: ${_nodes.length})',
+        );
+        // Print some available nodes to see what we have
+        if (_nodes.isNotEmpty) {
+          debugPrint(
+            'Available nodes sample: ${_nodes.take(3).map((n) => n.num).toList()}',
+          );
+        }
+      }
+      return null;
+    }
+    if (node.position?.latitudeI == null || node.position?.longitudeI == null) {
+      if (_activeTrace != null && nodeId == _activeTrace!.targetNodeId) {
+        debugPrint(
+          '_getPos: Target Node $nodeId FOUND but has NO POSITION data (lat=${node.position?.latitudeI}, lon=${node.position?.longitudeI})',
+        );
+      }
+      return null;
+    }
+    return (node.position!.latitudeI! / 1e7, node.position!.longitudeI! / 1e7);
   }
 
   void _fitBounds() {
@@ -227,6 +381,73 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
     Color colorFor(MeshNodeView n) {
       final key = (n.num ?? n.displayName.hashCode) & 0x7fffffff;
       return palette[key % palette.length];
+    }
+
+    String _getNodeDebugLabel(int? nodeNum, int? sourceNodeId) {
+      if (_activeTrace == null || nodeNum == null) return '';
+      if (nodeNum == _activeTrace!.targetNodeId) return ' [Target]';
+      if (nodeNum == sourceNodeId) return ' [Source]';
+      if (_activeTrace!.ackNodeIds.contains(nodeNum)) return ' [Ack]';
+      return '';
+    }
+
+    Widget _getNodeIcon(MeshNodeView node, int? sourceNodeId) {
+      if (_activeTrace == null) {
+        return Icon(Icons.location_pin, size: 36, color: colorFor(node));
+      }
+
+      if (node.num == _activeTrace!.targetNodeId) {
+        return const Icon(Icons.flag, size: 36, color: Colors.red);
+      }
+
+      if (node.num == sourceNodeId) {
+        return Icon(
+          Icons.play_circle_fill,
+          size: 36,
+          color: _getTraceStatusColor(_activeTrace!.status),
+        );
+      }
+
+      if (_activeTrace!.ackNodeIds.contains(node.num) &&
+          !(_activeTrace!.route?.contains(node.num) ?? false) &&
+          !(_activeTrace!.routeBack?.contains(node.num) ?? false)) {
+        return Icon(Icons.recycling, size: 36, color: colorFor(node));
+      }
+
+      return Icon(Icons.location_pin, size: 36, color: colorFor(node));
+    }
+
+    final sourceNodeId = _activeTrace != null
+        ? _getSourceNodeId(_activeTrace!)
+        : null;
+
+    if (_activeTrace != null) {
+      debugPrint('--- Trace Visualization Debug ---');
+      debugPrint('Trace ID: ${_activeTrace!.requestId}');
+      debugPrint('Status: ${_activeTrace!.status}');
+      debugPrint('Source Node ID: $sourceNodeId');
+      debugPrint('Target Node ID: ${_activeTrace!.targetNodeId}');
+      debugPrint('Ack Node IDs: ${_activeTrace!.ackNodeIds}');
+      debugPrint('Route: ${_activeTrace!.route}');
+      debugPrint('-------------------------------');
+
+      // Check if target has position
+      final targetPos = _getPos(_activeTrace!.targetNodeId);
+      if (targetPos == null && _activeTrace!.status != TraceStatus.completed) {
+        // Schedule a warning if we are trying to visualize a trace but target has no location
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Target node ${_activeTrace!.targetNodeId} has no location data. Trace line cannot be drawn.',
+              ),
+              duration: const Duration(seconds: 3),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        });
+      }
     }
 
     void showNodeSheet(MeshNodeView n, double lat, double lon) {
@@ -364,14 +585,45 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
           width: 44,
           height: 44,
           child: Tooltip(
-            message: safeText(p.$1.displayName),
+            message:
+                '${safeText(p.$1.displayName)}${_getNodeDebugLabel(p.$1.num, sourceNodeId)}',
             child: InkWell(
               onTap: () => showNodeSheet(p.$1, p.$2, p.$3),
-              child: Icon(Icons.location_pin, size: 36, color: colorFor(p.$1)),
+              child: _getNodeIcon(p.$1, sourceNodeId),
             ),
           ),
         ),
     ];
+
+    // If source node is known but not in the list (e.g. local node without full info),
+    // try to render it using effective distance reference if available.
+    if (_activeTrace != null && sourceNodeId != null) {
+      final isSourceRendered = points.any((p) => p.$1.num == sourceNodeId);
+      if (!isSourceRendered) {
+        final eff = _svc.effectiveDistanceReference;
+        if (eff != null) {
+          markers.add(
+            Marker(
+              point: latlng.LatLng(eff.$1, eff.$2),
+              width: 44,
+              height: 44,
+              child: Tooltip(
+                message: 'Start (Local)',
+                child: Icon(
+                  Icons.play_circle_fill,
+                  size: 36,
+                  color: _getTraceStatusColor(_activeTrace!.status),
+                ),
+              ),
+            ),
+          );
+        }
+      }
+    }
+
+    final edgeMarkers = _activeTrace != null
+        ? _buildTraceEdgeMarkers(_activeTrace!)
+        : <Marker>[];
 
     final eff = _svc.effectiveDistanceReference;
 
@@ -428,6 +680,11 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
                           'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                       userAgentPackageName: 'ai.bartusiak.mesh.app',
                     ),
+                    // Render trace polylines if we have a highlighted trace
+                    if (_activeTrace != null)
+                      _buildTracePolylineLayer(_activeTrace!),
+                    // Trace edge markers (tooltips) - render before nodes so nodes are on top
+                    MarkerLayer(markers: edgeMarkers),
                     // Cluster markers that are close to each other for better readability
                     MarkerClusterLayerWidget(
                       options: MarkerClusterLayerOptions(
@@ -453,9 +710,6 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
                         },
                       ),
                     ),
-                    // Render trace polylines if we have a highlighted trace
-                    if (widget.highlightedTrace != null)
-                      _buildTracePolylineLayer(widget.highlightedTrace!),
                     MapZoomControls(
                       controller: _controller,
                       padding: const EdgeInsets.only(right: 16, bottom: 16),
@@ -467,56 +721,247 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
     );
   }
 
+  /// Build markers for trace edges to show tooltips
+  List<Marker> _buildTraceEdgeMarkers(TraceResult trace) {
+    final markers = <Marker>[];
+
+    // Find local node (start of trace)
+    final sourceNodeId = _getSourceNodeId(trace);
+
+    final localPos =
+        (sourceNodeId != null ? _getPos(sourceNodeId) : null) ??
+        NodesService.instance.effectiveDistanceReference;
+
+    if (localPos != null) {
+      var currentPos = localPos;
+
+      // Markers for Route (Forward)
+      if (trace.route != null) {
+        for (final nodeId in trace.route!) {
+          final nextPos = _getPos(nodeId);
+          if (nextPos != null) {
+            final midLat = (currentPos.$1 + nextPos.$1) / 2;
+            final midLon = (currentPos.$2 + nextPos.$2) / 2;
+            markers.add(
+              Marker(
+                point: latlng.LatLng(midLat, midLon),
+                width: 20,
+                height: 20,
+                child: Tooltip(
+                  message: 'Trace',
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.5),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.blue, width: 1),
+                    ),
+                    child: const Icon(
+                      Icons.info_outline,
+                      size: 12,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ),
+              ),
+            );
+            currentPos = nextPos;
+          }
+        }
+      }
+
+      // If completed, ensure we connect to target
+      if (trace.status == TraceStatus.completed) {
+        final targetPos = _getPos(trace.targetNodeId);
+        if (targetPos != null) {
+          if ((currentPos.$1 - targetPos.$1).abs() > 1e-7 ||
+              (currentPos.$2 - targetPos.$2).abs() > 1e-7) {
+            final midLat = (currentPos.$1 + targetPos.$1) / 2;
+            final midLon = (currentPos.$2 + targetPos.$2) / 2;
+            markers.add(
+              Marker(
+                point: latlng.LatLng(midLat, midLon),
+                width: 20,
+                height: 20,
+                child: Tooltip(
+                  message: 'Trace',
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.5),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.blue, width: 1),
+                    ),
+                    child: const Icon(
+                      Icons.info_outline,
+                      size: 12,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }
+        }
+      }
+
+      // Markers for acknowledging nodes
+      for (final ackNodeId in trace.ackNodeIds) {
+        final ackPos = _getPos(ackNodeId);
+        if (ackPos != null) {
+          final midLat = (localPos.$1 + ackPos.$1) / 2;
+          final midLon = (localPos.$2 + ackPos.$2) / 2;
+          markers.add(
+            Marker(
+              point: latlng.LatLng(midLat, midLon),
+              width: 20,
+              height: 20,
+              child: Tooltip(
+                message: 'Ack',
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.5),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.orange, width: 1),
+                  ),
+                  child: const Icon(
+                    Icons.info_outline,
+                    size: 12,
+                    color: Colors.orange,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
+      }
+    }
+
+    return markers;
+  }
+
   /// Build a polyline layer to visualize a trace on the map
   PolylineLayer _buildTracePolylineLayer(TraceResult trace) {
     final polylines = <Polyline>[];
 
-    // For 0-hop traces (directly connected), draw a line from local node to target
-    // For multi-hop traces, draw lines through the route
+    final sourceNodeId = _getSourceNodeId(trace);
 
-    if (!trace.hasRoute && !trace.hasRouteBack) {
-      // 0-hop trace: Find local node and target node positions
-      // The trace's target is the directly connected node
-      final targetNode = _nodes.firstWhereOrNull(
-        (n) => n.num == trace.targetNodeId,
-      );
+    final localPos =
+        (sourceNodeId != null ? _getPos(sourceNodeId) : null) ??
+        NodesService.instance.effectiveDistanceReference;
 
-      // Find the local node (could be the device's own node)
-      // For simplicity, we'll try to find any node with position that's not the target
-      final localNode = _nodes.firstWhereOrNull(
-        (n) =>
-            n.num != trace.targetNodeId &&
-            n.position?.latitudeI != null &&
-            n.position?.longitudeI != null,
-      );
+    // Debug logs
+    debugPrint(
+      'Polyline Debug: sourceNodeId=$sourceNodeId, localPos=$localPos, status=${trace.status}',
+    );
+    final targetPosDebug = _getPos(trace.targetNodeId);
+    debugPrint(
+      'Polyline Debug: targetNodeId=${trace.targetNodeId}, targetPos=$targetPosDebug',
+    );
+    if (localPos == null) {
+      debugPrint('Polyline Debug: localPos is NULL');
+    }
 
-      if (targetNode?.position != null && localNode?.position != null) {
-        final targetLat = targetNode!.position!.latitudeI! / 1e7;
-        final targetLon = targetNode.position!.longitudeI! / 1e7;
-        final localLat = localNode!.position!.latitudeI! / 1e7;
-        final localLon = localNode.position!.longitudeI! / 1e7;
-
-        // Draw a green line for completed 0-hop trace
-        polylines.add(
-          Polyline(
-            points: [
-              latlng.LatLng(localLat, localLon),
-              latlng.LatLng(targetLat, targetLon),
-            ],
-            strokeWidth: 3.0,
-            color: trace.status == TraceStatus.completed
-                ? Colors.green.withOpacity(0.7)
-                : Colors.orange.withOpacity(0.7),
-          ),
+    if (localPos != null) {
+      // Debug 0-hop
+      if ((trace.route == null || trace.route!.isEmpty) &&
+          trace.status == TraceStatus.completed) {
+        debugPrint(
+          'Polyline Debug: 0-hop trace detected. Source=$sourceNodeId, Target=${trace.targetNodeId}, Distance=${(localPos.$1 - (targetPosDebug?.$1 ?? 0)).abs() + (localPos.$2 - (targetPosDebug?.$2 ?? 0)).abs()}',
         );
+      }
+
+      final color = trace.status == TraceStatus.completed
+          ? Colors.green.withOpacity(0.7)
+          : trace.status == TraceStatus.failed
+          ? Colors.red.withOpacity(0.7)
+          : Colors.orange.withOpacity(0.7);
+
+      var currentPos = localPos;
+
+      // Draw Route (Forward)
+      if (trace.route != null) {
+        for (final nodeId in trace.route!) {
+          final nextPos = _getPos(nodeId);
+          if (nextPos != null) {
+            polylines.add(
+              Polyline(
+                points: [
+                  latlng.LatLng(currentPos.$1, currentPos.$2),
+                  latlng.LatLng(nextPos.$1, nextPos.$2),
+                ],
+                strokeWidth: 3.0,
+                color: color,
+              ),
+            );
+            currentPos = nextPos;
+          }
+        }
+      }
+
+      // If completed, ensure we connect to target
+      if (trace.status == TraceStatus.completed) {
+        final targetPos = _getPos(trace.targetNodeId);
+        if (targetPos != null) {
+          // Avoid drawing zero-length line if we are already there
+          if ((currentPos.$1 - targetPos.$1).abs() > 1e-7 ||
+              (currentPos.$2 - targetPos.$2).abs() > 1e-7) {
+            polylines.add(
+              Polyline(
+                points: [
+                  latlng.LatLng(currentPos.$1, currentPos.$2),
+                  latlng.LatLng(targetPos.$1, targetPos.$2),
+                ],
+                strokeWidth: 3.0,
+                color: color,
+              ),
+            );
+          }
+        }
+      } else if (trace.status == TraceStatus.timeout ||
+          trace.status == TraceStatus.failed ||
+          trace.status == TraceStatus.pending) {
+        // For failed/timeout/pending traces, draw a dashed line to the target to show the attempt
+        final targetPos = _getPos(trace.targetNodeId);
+        if (targetPos != null) {
+          final dashColor = trace.status == TraceStatus.pending
+              ? Colors.orange.withOpacity(0.6)
+              : Colors.red.withOpacity(0.7);
+
+          polylines.add(
+            Polyline(
+              points: [
+                latlng.LatLng(currentPos.$1, currentPos.$2),
+                latlng.LatLng(targetPos.$1, targetPos.$2),
+              ],
+              strokeWidth: 2.0,
+              color: dashColor,
+              pattern: StrokePattern.dashed(segments: const [5.0, 5.0]),
+            ),
+          );
+        }
+      }
+
+      // Draw dashed lines to acknowledging nodes (theoretical participants)
+      for (final ackNodeId in trace.ackNodeIds) {
+        if (ackNodeId == sourceNodeId) continue;
+        final ackPos = _getPos(ackNodeId);
+        if (ackPos != null) {
+          polylines.add(
+            Polyline(
+              points: [
+                latlng.LatLng(localPos.$1, localPos.$2),
+                latlng.LatLng(ackPos.$1, ackPos.$2),
+              ],
+              strokeWidth: 2.0,
+              color: Colors.orange.withOpacity(0.6),
+              pattern: const StrokePattern.dotted(),
+            ),
+          );
+        }
       }
     }
 
     return PolylineLayer(polylines: polylines);
   }
-
-  @override
-  bool get wantKeepAlive => true;
 }
 
 extension _IterableExtension<T> on Iterable<T> {

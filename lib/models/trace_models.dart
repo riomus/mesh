@@ -109,6 +109,9 @@ class TraceResult {
   /// When the trace was last updated
   final DateTime lastUpdated;
 
+  /// Device ID that sent this trace
+  final String? deviceId;
+
   const TraceResult({
     required this.requestId,
     required this.targetNodeId,
@@ -121,6 +124,7 @@ class TraceResult {
     required this.events,
     required this.status,
     required this.lastUpdated,
+    this.deviceId,
   });
 
   /// Number of hops in the forward route
@@ -148,6 +152,7 @@ class TraceResult {
     List<TraceEvent>? events,
     TraceStatus? status,
     DateTime? lastUpdated,
+    String? deviceId,
   }) {
     return TraceResult(
       requestId: requestId ?? this.requestId,
@@ -161,6 +166,7 @@ class TraceResult {
       events: events ?? this.events,
       status: status ?? this.status,
       lastUpdated: lastUpdated ?? this.lastUpdated,
+      deviceId: deviceId ?? this.deviceId,
     );
   }
 

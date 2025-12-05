@@ -212,6 +212,12 @@ class NodesService {
             _emit();
           }
         }
+      } else if (evt is MyInfoEvent) {
+        final myInfo = evt.myInfo;
+        if (myInfo.myNodeNum != null) {
+          _lastReporterNodeNum = myInfo.myNodeNum;
+          _emit();
+        }
       }
     }
   }
@@ -234,6 +240,9 @@ class NodesService {
   PositionDto? get sourcePosition => _lastReporterNodeNum != null
       ? _nodes[_lastReporterNodeNum!]?.position
       : null;
+
+  /// Returns the node ID of the connected device (local node).
+  NodeNum? get localNodeId => _lastReporterNodeNum;
 
   /// Sets a custom reference point (lat, lon in degrees) used for distance sorting.
   /// Pass nulls to clear and fall back to source device position when available.

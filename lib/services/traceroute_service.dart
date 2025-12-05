@@ -134,6 +134,7 @@ class TracerouteService {
       ],
       status: TraceStatus.pending,
       lastUpdated: now,
+      deviceId: deviceId,
     );
 
     _traceHistory[requestId] = result;
@@ -357,6 +358,10 @@ class TracerouteService {
   void _handleRoutingAck(MeshPacketDto packet, RoutingPayloadDto routing) {
     if (routing.requestId == null || routing.requestId == 0) return;
 
+    print(
+      '[TracerouteService] Processing routing packet: from=${packet.from}, requestId=${routing.requestId}, error=${routing.errorReason}',
+    );
+
     final now = DateTime.now();
 
     // Find trace request with matching packet ID
@@ -385,6 +390,7 @@ class TracerouteService {
         var updatedAckNodeIds = result.ackNodeIds;
         if (!hasError && packet.from != null) {
           final ackNodeId = packet.from!;
+
           // Only add if not already in the list and not the target node itself
           if (!result.ackNodeIds.contains(ackNodeId) &&
               ackNodeId != result.targetNodeId) {

@@ -332,25 +332,22 @@ class _TraceCardState extends State<_TraceCard> {
           ),
           const SizedBox(height: 4),
           ...trace.events.map((event) => _buildEventTile(context, event)),
-          if (trace.status == TraceStatus.completed ||
-              trace.status == TraceStatus.failed) ...[
-            const SizedBox(height: 12),
-            ElevatedButton.icon(
-              onPressed: () {
-                // Navigate to Nodes page, map tab, with this trace highlighted
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => NodesPage(
-                      highlightedTrace: trace,
-                      initialTabIndex: 1, // Start on map tab
-                    ),
+          const SizedBox(height: 12),
+          ElevatedButton.icon(
+            onPressed: () {
+              // Navigate to Nodes page, map tab, with this trace highlighted
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => NodesPage(
+                    highlightedTrace: trace,
+                    initialTabIndex: 1, // Start on map tab
                   ),
-                );
-              },
-              icon: const Icon(Icons.map),
-              label: Text(AppLocalizations.of(context).traceShowOnMap),
-            ),
-          ],
+                ),
+              );
+            },
+            icon: const Icon(Icons.map),
+            label: Text(AppLocalizations.of(context).traceShowOnMap),
+          ),
         ],
       ),
     );
