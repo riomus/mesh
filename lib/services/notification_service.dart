@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:mesh/services/local_notification_provider.dart'
     if (dart.library.html) 'package:mesh/services/local_notification_provider_stub.dart';
@@ -31,6 +32,13 @@ class NotificationService {
 
   Future<void> requestPermissions() async {
     await _provider.requestPermissions();
+  }
+
+  final _onNotificationTap = StreamController<String>.broadcast();
+  Stream<String> get onNotificationTap => _onNotificationTap.stream;
+
+  void handleNotificationTap(String payload) {
+    _onNotificationTap.add(payload);
   }
 
   Future<void> showNotification(

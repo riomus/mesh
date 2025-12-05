@@ -18,6 +18,7 @@ import 'device_chat_page.dart';
 import '../services/device_state_service.dart';
 import '../widgets/device_state_widget.dart';
 import '../models/device_state.dart';
+import '../widgets/telemetry_widget.dart';
 
 class DeviceDetailsPage extends StatefulWidget {
   final BluetoothDevice device;
@@ -140,393 +141,423 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
         themeMode: widget.themeMode,
         onOpenSettings: widget.onOpenSettings,
       ),
-      body: ListView(
-        children: [
-          const SizedBox(height: 8),
-          // General section
-          _Section(
-            title: AppLocalizations.of(context).general,
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: ListView(
             children: [
-              ListTile(
-                leading: const Icon(Icons.bluetooth),
-                title: Text(AppLocalizations.of(context).identifier),
-                subtitle: Text(device.remoteId.str),
-              ),
-              ListTile(
-                leading: const Icon(Icons.badge),
-                title: Text(AppLocalizations.of(context).platformName),
-                subtitle: Text(
-                  device.platformName.isNotEmpty
-                      ? device.platformName
-                      : AppLocalizations.of(context).emptyState,
-                ),
-              ),
-              ListTile(
-                leading: const Icon(Icons.network_cell),
-                title: Text(AppLocalizations.of(context).signalRssi),
-                subtitle: Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: RssiBar(rssi: (_rssi ?? widget.scanResult?.rssi ?? 0)),
-                ),
-                trailing: Text(
-                  '${_rssi ?? widget.scanResult?.rssi ?? '-'} dBm',
-                ),
-              ),
-            ],
-          ),
-          // Meshtastic section
-          _Section(
-            title: AppLocalizations.of(context).meshtasticLabel,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.memory),
-                title: Text(AppLocalizations.of(context).serviceAvailable),
-                subtitle: Text(
-                  hasMeshtasticService
-                      ? AppLocalizations.of(context).yes
-                      : AppLocalizations.of(context).no,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                child: Row(
-                  children: [
-                    ElevatedButton.icon(
-                      icon: Icon(_connected ? Icons.link_off : Icons.link),
-                      label: Text(
-                        _connected
-                            ? AppLocalizations.of(context).disconnect
-                            : AppLocalizations.of(context).connect,
-                      ),
-                      // Allow connect even if Meshtastic service is not advertised.
-                      // We will attempt to connect and fail gracefully with an error message if
-                      // the required service/characteristics are not discovered.
-                      onPressed: () async {
-                        if (_connected || _connecting) {
-                          await _disconnectMeshtastic();
-                        } else {
-                          await _connectMeshtastic();
-                        }
-                      },
-                    ),
-                    const SizedBox(width: 8),
-                    IconButton.filledTonal(
-                      icon: const Icon(Icons.chat),
-                      tooltip: AppLocalizations.of(context).chat,
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => DeviceChatPage(
-                              device: widget.device,
-                              channelIndex: 0, // Default to primary channel
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(width: 12),
-                    if (_connecting)
-                      const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        _connected
-                            ? AppLocalizations.of(context).statusConnected
-                            : _connecting
-                            ? AppLocalizations.of(context).statusConnecting
-                            : AppLocalizations.of(context).statusDisconnected,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Logs (scoped to this device) using shared LogsViewer
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.list_alt),
-                        const SizedBox(width: 8),
-                        Text(
-                          AppLocalizations.of(context).logs,
-                          style: Theme.of(context).textTheme.titleSmall,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: Theme.of(context).dividerColor,
-                        ),
-                      ),
-                      child: LogsViewer(
-                        key: ValueKey('deviceLogs-${device.remoteId.str}'),
-                        maxHeight: 160,
-                        stream: _deviceLogStream,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Live Meshtastic events viewer (reusable EventsListWidget)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          AppLocalizations.of(context).satelliteEmoji,
-                          style: const TextStyle(fontSize: 18),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          AppLocalizations.of(context).liveEvents,
-                          style: Theme.of(context).textTheme.titleSmall,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: Theme.of(context).dividerColor,
-                        ),
-                      ),
-                      height: 260,
-                      child: EventsListWidget(
-                        deviceId: device.remoteId.str,
-                        network: 'meshtastic',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          // Channels Section
-          StreamBuilder<DeviceState>(
-            stream: DeviceStateService.instance.streamWithCurrent(
-              widget.device.remoteId.str,
-            ),
-            builder: (context, snapshot) {
-              final state = snapshot.data;
-              if (state == null || state.channels.isEmpty) {
-                return const SizedBox.shrink();
-              }
-              final channels = state.channels
-                  .where((c) => c.role != null && c.role != 'DISABLED')
-                  .toList();
-
-              if (channels.isEmpty) return const SizedBox.shrink();
-
-              return _Section(
-                title: AppLocalizations.of(context).channels,
-                children: channels.map((c) {
-                  // Use channel name if available, otherwise show "Default" for index 0 or "Channel [index]"
-                  String channelTitle = c.settings?.name ?? '';
-                  if (channelTitle.isEmpty) {
-                    if (c.index == 0) {
-                      channelTitle = 'Default';
-                    } else {
-                      channelTitle =
-                          '${AppLocalizations.of(context).channel} ${c.index}';
-                    }
-                  }
-
-                  return ListTile(
-                    leading: const Icon(Icons.tag),
-                    title: Text(channelTitle),
+              const SizedBox(height: 8),
+              // General section
+              _Section(
+                title: AppLocalizations.of(context).general,
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.bluetooth),
+                    title: Text(AppLocalizations.of(context).identifier),
+                    subtitle: Text(device.remoteId.str),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.badge),
+                    title: Text(AppLocalizations.of(context).platformName),
                     subtitle: Text(
-                      '${AppLocalizations.of(context).channel} ${c.index}',
+                      device.platformName.isNotEmpty
+                          ? device.platformName
+                          : AppLocalizations.of(context).emptyState,
                     ),
-                    trailing: IconButton.filledTonal(
-                      icon: const Icon(Icons.chat),
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => DeviceChatPage(
-                              device: widget.device,
-                              channelIndex: c.index,
-                              chatTitle:
-                                  '$channelTitle (${widget.device.platformName})',
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.network_cell),
+                    title: Text(AppLocalizations.of(context).signalRssi),
+                    subtitle: Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: RssiBar(
+                        rssi: (_rssi ?? widget.scanResult?.rssi ?? 0),
+                      ),
+                    ),
+                    trailing: Text(
+                      '${_rssi ?? widget.scanResult?.rssi ?? '-'} dBm',
+                    ),
+                  ),
+                ],
+              ),
+              // Meshtastic section
+              _Section(
+                title: AppLocalizations.of(context).meshtasticLabel,
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.memory),
+                    title: Text(AppLocalizations.of(context).serviceAvailable),
+                    subtitle: Text(
+                      hasMeshtasticService
+                          ? AppLocalizations.of(context).yes
+                          : AppLocalizations.of(context).no,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    child: Row(
+                      children: [
+                        ElevatedButton.icon(
+                          icon: Icon(_connected ? Icons.link_off : Icons.link),
+                          label: Text(
+                            _connected
+                                ? AppLocalizations.of(context).disconnect
+                                : AppLocalizations.of(context).connect,
+                          ),
+                          // Allow connect even if Meshtastic service is not advertised.
+                          // We will attempt to connect and fail gracefully with an error message if
+                          // the required service/characteristics are not discovered.
+                          onPressed: () async {
+                            if (_connected || _connecting) {
+                              await _disconnectMeshtastic();
+                            } else {
+                              await _connectMeshtastic();
+                            }
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton.filledTonal(
+                          icon: const Icon(Icons.chat),
+                          tooltip: AppLocalizations.of(context).chat,
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => DeviceChatPage(
+                                  deviceId: widget.device.remoteId.str,
+                                  channelIndex: 0, // Default to primary channel
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 12),
+                        if (_connecting)
+                          const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            _connected
+                                ? AppLocalizations.of(context).statusConnected
+                                : _connecting
+                                ? AppLocalizations.of(context).statusConnecting
+                                : AppLocalizations.of(
+                                    context,
+                                  ).statusDisconnected,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Logs (scoped to this device) using shared LogsViewer
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.list_alt),
+                            const SizedBox(width: 8),
+                            Text(
+                              AppLocalizations.of(context).logs,
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: Theme.of(context).dividerColor,
                             ),
                           ),
-                        );
-                      },
+                          child: LogsViewer(
+                            key: ValueKey('deviceLogs-${device.remoteId.str}'),
+                            maxHeight: 160,
+                            stream: _deviceLogStream,
+                          ),
+                        ),
+                      ],
                     ),
+                  ),
+                  // Live Meshtastic events viewer (reusable EventsListWidget)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              AppLocalizations.of(context).satelliteEmoji,
+                              style: const TextStyle(fontSize: 18),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              AppLocalizations.of(context).liveEvents,
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: Theme.of(context).dividerColor,
+                            ),
+                          ),
+                          height: 260,
+                          child: EventsListWidget(
+                            deviceId: device.remoteId.str,
+                            network: 'meshtastic',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              // Channels Section
+              StreamBuilder<DeviceState>(
+                stream: DeviceStateService.instance.streamWithCurrent(
+                  widget.device.remoteId.str,
+                ),
+                builder: (context, snapshot) {
+                  final state = snapshot.data;
+                  if (state == null || state.channels.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  final channels = state.channels
+                      .where((c) => c.role != null && c.role != 'DISABLED')
+                      .toList();
+
+                  if (channels.isEmpty) return const SizedBox.shrink();
+
+                  return _Section(
+                    title: AppLocalizations.of(context).channels,
+                    children: channels.map((c) {
+                      // Use channel name if available, otherwise show "Default" for index 0 or "Channel [index]"
+                      String channelTitle = c.settings?.name ?? '';
+                      if (channelTitle.isEmpty) {
+                        if (c.index == 0) {
+                          channelTitle = 'Default';
+                        } else {
+                          channelTitle =
+                              '${AppLocalizations.of(context).channel} ${c.index}';
+                        }
+                      }
+
+                      return ListTile(
+                        leading: const Icon(Icons.tag),
+                        title: Text(channelTitle),
+                        subtitle: Text(
+                          '${AppLocalizations.of(context).channel} ${c.index}',
+                        ),
+                        trailing: IconButton.filledTonal(
+                          icon: const Icon(Icons.chat),
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => DeviceChatPage(
+                                  deviceId: widget.device.remoteId.str,
+                                  channelIndex: c.index,
+                                  chatTitle:
+                                      '$channelTitle (${widget.device.platformName})',
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    }).toList(),
                   );
-                }).toList(),
-              );
-            },
+                },
+              ),
+              // Device State Section
+              StreamBuilder<DeviceState>(
+                stream: DeviceStateService.instance.streamWithCurrent(
+                  widget.device.remoteId.str,
+                ),
+                builder: (context, snapshot) {
+                  final state = snapshot.data;
+                  if (state == null && _connected) {
+                    // Connected but no state? Try to request it if we haven't recently.
+                    // Or just show a manual refresh button.
+                    // Auto-refresh if we haven't tried recently (simple debounce could be added here,
+                    // but for now relying on user interaction or simple one-shot).
+                    // Actually, let's just show the button but also trigger a fetch if it's been a while?
+                    // For now, just the button is safer to avoid loops.
+                    return _Section(
+                      title: AppLocalizations.of(context).deviceState,
+                      children: [
+                        ListTile(
+                          leading: const Icon(Icons.warning_amber),
+                          title: Text(
+                            AppLocalizations.of(context).stateMissing,
+                          ),
+                          subtitle: Text(
+                            AppLocalizations.of(context).connectToViewState,
+                          ),
+                          trailing: IconButton.filledTonal(
+                            icon: const Icon(Icons.refresh),
+                            onPressed: () async {
+                              final client = await DeviceStatusStore.instance
+                                  .connect(widget.device);
+                              await client.requestConfig();
+                            },
+                          ),
+                        ),
+                      ],
+                    );
+                  } else if (state == null) {
+                    return _Section(
+                      title: AppLocalizations.of(context).deviceState,
+                      children: [
+                        ListTile(
+                          leading: const Icon(Icons.info_outline),
+                          title: Text(
+                            AppLocalizations.of(context).noDeviceState,
+                          ),
+                          subtitle: Text(
+                            AppLocalizations.of(context).connectToViewState,
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                  return Column(
+                    children: [
+                      DeviceStateWidget(state: state),
+                      if (state.myNodeInfo?.myNodeNum != null)
+                        TelemetryWidget(nodeId: state.myNodeInfo!.myNodeNum!),
+                    ],
+                  );
+                },
+              ),
+              // Advertisement section
+              _Section(
+                title: AppLocalizations.of(context).advertisement,
+                children: ad == null
+                    ? [
+                        ListTile(
+                          title: Text(
+                            AppLocalizations.of(context).noneAdvertised,
+                          ),
+                        ),
+                      ]
+                    : [
+                        ListTile(
+                          leading: const Icon(Icons.label),
+                          title: Text(
+                            AppLocalizations.of(context).advertisedName,
+                          ),
+                          subtitle: Text(
+                            ad.advName.isNotEmpty
+                                ? ad.advName
+                                : AppLocalizations.of(context).emptyState,
+                          ),
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.link),
+                          title: Text(AppLocalizations.of(context).connectable),
+                          subtitle: Text(
+                            ad.connectable
+                                ? AppLocalizations.of(context).yes
+                                : AppLocalizations.of(context).no,
+                          ),
+                        ),
+                        // Service UUIDs
+                        if (ad.serviceUuids.isNotEmpty)
+                          _ExpandableMap<List<Guid>>(
+                            icon: Icons.widgets,
+                            title: AppLocalizations.of(
+                              context,
+                            ).serviceUuidsWithCount(ad.serviceUuids.length),
+                            items: {
+                              for (var i = 0; i < ad.serviceUuids.length; i++)
+                                '${AppLocalizations.of(context).service} ${i + 1}':
+                                    [ad.serviceUuids[i]],
+                            },
+                            valueBuilder: (gList) =>
+                                gList.map((g) => g.str).join(', '),
+                          )
+                        else
+                          ListTile(
+                            leading: const Icon(Icons.widgets),
+                            title: Text(
+                              AppLocalizations.of(context).serviceUuids,
+                            ),
+                            subtitle: Text(
+                              AppLocalizations.of(context).noneAdvertised,
+                            ),
+                          ),
+                        // Manufacturer Data
+                        if (ad.manufacturerData.isNotEmpty)
+                          _ExpandableMap<List<int>>(
+                            icon: Icons.factory,
+                            title: AppLocalizations.of(context)
+                                .manufacturerDataWithCount(
+                                  ad.manufacturerData.length,
+                                ),
+                            items: ad.manufacturerData.map(
+                              (k, v) => MapEntry(_manufacturerKey(k), v),
+                            ),
+                            valueBuilder: (bytes) => _hex(bytes),
+                          )
+                        else
+                          ListTile(
+                            leading: const Icon(Icons.factory),
+                            title: Text(
+                              AppLocalizations.of(context).manufacturerData,
+                            ),
+                            subtitle: Text(
+                              AppLocalizations.of(context).noneAdvertised,
+                            ),
+                          ),
+                        // Service Data
+                        if (ad.serviceData.isNotEmpty)
+                          _ExpandableMap<List<int>>(
+                            icon: Icons.storage,
+                            title: AppLocalizations.of(
+                              context,
+                            ).serviceDataWithCount(ad.serviceData.length),
+                            items: ad.serviceData.map(
+                              (k, v) => MapEntry(k.str, v),
+                            ),
+                            valueBuilder: (bytes) => _hex(bytes),
+                          )
+                        else
+                          ListTile(
+                            leading: const Icon(Icons.storage),
+                            title: Text(
+                              AppLocalizations.of(context).serviceData,
+                            ),
+                            subtitle: Text(
+                              AppLocalizations.of(context).noneAdvertised,
+                            ),
+                          ),
+                      ],
+              ),
+              const SizedBox(height: 16),
+            ],
           ),
-          // Device State Section
-          StreamBuilder<DeviceState>(
-            stream: DeviceStateService.instance.streamWithCurrent(
-              widget.device.remoteId.str,
-            ),
-            builder: (context, snapshot) {
-              final state = snapshot.data;
-              if (state == null && _connected) {
-                // Connected but no state? Try to request it if we haven't recently.
-                // Or just show a manual refresh button.
-                // Auto-refresh if we haven't tried recently (simple debounce could be added here,
-                // but for now relying on user interaction or simple one-shot).
-                // Actually, let's just show the button but also trigger a fetch if it's been a while?
-                // For now, just the button is safer to avoid loops.
-                return _Section(
-                  title: AppLocalizations.of(context).deviceState,
-                  children: [
-                    ListTile(
-                      leading: const Icon(Icons.warning_amber),
-                      title: Text(AppLocalizations.of(context).stateMissing),
-                      subtitle: Text(
-                        AppLocalizations.of(context).connectToViewState,
-                      ),
-                      trailing: IconButton.filledTonal(
-                        icon: const Icon(Icons.refresh),
-                        onPressed: () async {
-                          final client = await DeviceStatusStore.instance
-                              .connect(widget.device);
-                          await client.requestConfig();
-                        },
-                      ),
-                    ),
-                  ],
-                );
-              } else if (state == null) {
-                return _Section(
-                  title: AppLocalizations.of(context).deviceState,
-                  children: [
-                    ListTile(
-                      leading: const Icon(Icons.info_outline),
-                      title: Text(AppLocalizations.of(context).noDeviceState),
-                      subtitle: Text(
-                        AppLocalizations.of(context).connectToViewState,
-                      ),
-                    ),
-                  ],
-                );
-              }
-              return DeviceStateWidget(state: state);
-            },
-          ),
-          // Advertisement section
-          _Section(
-            title: AppLocalizations.of(context).advertisement,
-            children: ad == null
-                ? [
-                    ListTile(
-                      title: Text(AppLocalizations.of(context).noneAdvertised),
-                    ),
-                  ]
-                : [
-                    ListTile(
-                      leading: const Icon(Icons.label),
-                      title: Text(AppLocalizations.of(context).advertisedName),
-                      subtitle: Text(
-                        ad.advName.isNotEmpty
-                            ? ad.advName
-                            : AppLocalizations.of(context).emptyState,
-                      ),
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.link),
-                      title: Text(AppLocalizations.of(context).connectable),
-                      subtitle: Text(
-                        ad.connectable
-                            ? AppLocalizations.of(context).yes
-                            : AppLocalizations.of(context).no,
-                      ),
-                    ),
-                    // Service UUIDs
-                    if (ad.serviceUuids.isNotEmpty)
-                      _ExpandableMap<List<Guid>>(
-                        icon: Icons.widgets,
-                        title: AppLocalizations.of(
-                          context,
-                        ).serviceUuidsWithCount(ad.serviceUuids.length),
-                        items: {
-                          for (var i = 0; i < ad.serviceUuids.length; i++)
-                            '${AppLocalizations.of(context).service} ${i + 1}':
-                                [ad.serviceUuids[i]],
-                        },
-                        valueBuilder: (gList) =>
-                            gList.map((g) => g.str).join(', '),
-                      )
-                    else
-                      ListTile(
-                        leading: const Icon(Icons.widgets),
-                        title: Text(AppLocalizations.of(context).serviceUuids),
-                        subtitle: Text(
-                          AppLocalizations.of(context).noneAdvertised,
-                        ),
-                      ),
-                    // Manufacturer Data
-                    if (ad.manufacturerData.isNotEmpty)
-                      _ExpandableMap<List<int>>(
-                        icon: Icons.factory,
-                        title: AppLocalizations.of(
-                          context,
-                        ).manufacturerDataWithCount(ad.manufacturerData.length),
-                        items: ad.manufacturerData.map(
-                          (k, v) => MapEntry(_manufacturerKey(k), v),
-                        ),
-                        valueBuilder: (bytes) => _hex(bytes),
-                      )
-                    else
-                      ListTile(
-                        leading: const Icon(Icons.factory),
-                        title: Text(
-                          AppLocalizations.of(context).manufacturerData,
-                        ),
-                        subtitle: Text(
-                          AppLocalizations.of(context).noneAdvertised,
-                        ),
-                      ),
-                    // Service Data
-                    if (ad.serviceData.isNotEmpty)
-                      _ExpandableMap<List<int>>(
-                        icon: Icons.storage,
-                        title: AppLocalizations.of(
-                          context,
-                        ).serviceDataWithCount(ad.serviceData.length),
-                        items: ad.serviceData.map((k, v) => MapEntry(k.str, v)),
-                        valueBuilder: (bytes) => _hex(bytes),
-                      )
-                    else
-                      ListTile(
-                        leading: const Icon(Icons.storage),
-                        title: Text(AppLocalizations.of(context).serviceData),
-                        subtitle: Text(
-                          AppLocalizations.of(context).noneAdvertised,
-                        ),
-                      ),
-                  ],
-          ),
-          const SizedBox(height: 16),
-        ],
+        ),
       ),
     );
   }

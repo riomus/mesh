@@ -34,119 +34,127 @@ class SettingsPage extends StatelessWidget {
         // Do not show settings button on the Settings page itself
         onOpenSettings: null,
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(12),
-        children: [
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: ListView(
+            padding: const EdgeInsets.all(12),
+            children: [
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.security),
-                      const SizedBox(width: 8),
-                      Text(
-                        t.security,
-                        style: Theme.of(context).textTheme.titleMedium,
+                      Row(
+                        children: [
+                          const Icon(Icons.security),
+                          const SizedBox(width: 8),
+                          Text(
+                            t.security,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  if (!hasPassword)
-                    ElevatedButton(
-                      onPressed: () => _showSetPasswordDialog(context),
-                      child: Text(t.protectApp),
-                    )
-                  else
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          t.appProtected,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        const SizedBox(height: 8),
+                      const SizedBox(height: 8),
+                      if (!hasPassword)
                         ElevatedButton(
-                          onPressed: () => _showRemovePasswordDialog(context),
-                          child: Text(t.disableProtection),
-                        ),
-                      ],
-                    ),
-                ],
-              ),
-            ),
-          ),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.language),
-                      const SizedBox(width: 8),
-                      Text(
-                        t.languageTooltip, // reuse existing label
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      for (final loc in options)
-                        ChoiceChip(
-                          label: Text(_localeLabel(context, loc)),
-                          selected: _equalsLocale(loc, initialLocale),
-                          onSelected: (selected) {
-                            if (!selected) return;
-                            onChangedSettings(settings.copyWith(locale: loc));
-                          },
+                          onPressed: () => _showSetPasswordDialog(context),
+                          child: Text(t.protectApp),
+                        )
+                      else
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              t.appProtected,
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                            const SizedBox(height: 8),
+                            ElevatedButton(
+                              onPressed: () =>
+                                  _showRemovePasswordDialog(context),
+                              child: Text(t.disableProtection),
+                            ),
+                          ],
                         ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _localeDescription(context, initialLocale),
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.notifications),
-                      const SizedBox(width: 8),
+                      Row(
+                        children: [
+                          const Icon(Icons.language),
+                          const SizedBox(width: 8),
+                          Text(
+                            t.languageTooltip, // reuse existing label
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          for (final loc in options)
+                            ChoiceChip(
+                              label: Text(_localeLabel(context, loc)),
+                              selected: _equalsLocale(loc, initialLocale),
+                              onSelected: (selected) {
+                                if (!selected) return;
+                                onChangedSettings(
+                                  settings.copyWith(locale: loc),
+                                );
+                              },
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
                       Text(
-                        t.notifications,
-                        style: Theme.of(context).textTheme.titleMedium,
+                        _localeDescription(context, initialLocale),
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  ElevatedButton(
-                    onPressed: () {
-                      NotificationService.instance.requestPermissions();
-                    },
-                    child: Text(t.enableNotifications),
-                  ),
-                ],
+                ),
               ),
-            ),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.notifications),
+                          const SizedBox(width: 8),
+                          Text(
+                            t.notifications,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      ElevatedButton(
+                        onPressed: () {
+                          NotificationService.instance.requestPermissions();
+                        },
+                        child: Text(t.enableNotifications),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

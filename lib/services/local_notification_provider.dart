@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:mesh/services/notification_provider.dart';
+import 'package:mesh/services/notification_service.dart';
 
 class LocalNotificationProvider implements NotificationProvider {
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
@@ -28,7 +29,9 @@ class LocalNotificationProvider implements NotificationProvider {
     await _notificationsPlugin.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
-        // Handle notification tap
+        if (response.payload != null) {
+          NotificationService.instance.handleNotificationTap(response.payload!);
+        }
       },
     );
   }

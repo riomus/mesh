@@ -340,114 +340,143 @@ class _EventsListWidgetState extends State<EventsListWidget> {
 
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => _searchFocus.requestFocus(),
-              child: InputDecorator(
-                isFocused: _searchFocus.hasFocus,
-                isEmpty: false,
-                decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context).searchEvents,
-                  border: const OutlineInputBorder(),
-                  isDense: true,
-                  prefixIcon: const Icon(Icons.search, size: 18),
-                ),
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    ...chips,
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(minWidth: 120),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              focusNode: _searchFocus,
-                              controller: _searchCtrl,
-                              decoration: InputDecoration(
-                                hintText: AppLocalizations.of(
-                                  context,
-                                ).searchInSummaryOrTags,
-                                isDense: true,
-                                border: InputBorder.none,
-                              ),
-                              onChanged: (v) => setState(() => _search = v),
-                            ),
-                          ),
-                          if (_searchCtrl.text.isNotEmpty)
-                            IconButton(
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                              tooltip: AppLocalizations.of(context).clear,
-                              icon: const Icon(Icons.clear, size: 18),
-                              onPressed: () {
-                                _searchCtrl.clear();
-                                setState(() => _search = '');
-                              },
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isMobile = constraints.maxWidth < 600;
+
+          final searchInput = GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => _searchFocus.requestFocus(),
+            child: InputDecorator(
+              isFocused: _searchFocus.hasFocus,
+              isEmpty: false,
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context).searchEvents,
+                border: const OutlineInputBorder(),
+                isDense: true,
+                prefixIcon: const Icon(Icons.search, size: 18),
               ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Tooltip(
-            message: AppLocalizations.of(context).addFilter,
-            child: FilledButton.icon(
-              icon: const Icon(Icons.filter_alt),
-              label: Text(AppLocalizations.of(context).addFilter),
-              onPressed: _openAddChipDialog,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Tooltip(
-            message: AppLocalizations.of(context).shareEvents,
-            child: IconButton(
-              icon: const Icon(Icons.ios_share),
-              onPressed: _shareFilteredEvents,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Tooltip(
-            message: AppLocalizations.of(context).fullscreen,
-            child: IconButton(
-              icon: const Icon(Icons.fullscreen),
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (ctx) => Scaffold(
-                      appBar: AppBar(
-                        title: Text(AppLocalizations.of(ctx).eventsTitle),
-                        actions: [
-                          IconButton(
-                            tooltip: AppLocalizations.of(ctx).close,
-                            icon: const Icon(Icons.close_fullscreen),
-                            onPressed: () => Navigator.of(ctx).maybePop(),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  ...chips,
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(minWidth: 120),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            focusNode: _searchFocus,
+                            controller: _searchCtrl,
+                            decoration: InputDecoration(
+                              hintText: AppLocalizations.of(
+                                context,
+                              ).searchInSummaryOrTags,
+                              isDense: true,
+                              border: InputBorder.none,
+                            ),
+                            onChanged: (v) => setState(() => _search = v),
                           ),
-                        ],
-                      ),
-                      body: EventsListWidget(
-                        network: _selectedNetwork,
-                        deviceId: _selectedDeviceId,
-                        initialEvents: _events.toList(growable: false),
-                        initialSearch: _search,
-                      ),
+                        ),
+                        if (_searchCtrl.text.isNotEmpty)
+                          IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            tooltip: AppLocalizations.of(context).clear,
+                            icon: const Icon(Icons.clear, size: 18),
+                            onPressed: () {
+                              _searchCtrl.clear();
+                              setState(() => _search = '');
+                            },
+                          ),
+                      ],
                     ),
                   ),
-                );
-              },
+                ],
+              ),
             ),
-          ),
-        ],
+          );
+
+          final actions = Row(
+            mainAxisAlignment: isMobile
+                ? MainAxisAlignment.end
+                : MainAxisAlignment.start,
+            children: [
+              Tooltip(
+                message: AppLocalizations.of(context).addFilter,
+                child: FilledButton.icon(
+                  icon: const Icon(Icons.filter_alt),
+                  label: Text(AppLocalizations.of(context).addFilter),
+                  onPressed: _openAddChipDialog,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Tooltip(
+                message: AppLocalizations.of(context).shareEvents,
+                child: IconButton(
+                  icon: const Icon(Icons.ios_share),
+                  onPressed: _shareFilteredEvents,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Tooltip(
+                message: AppLocalizations.of(context).fullscreen,
+                child: IconButton(
+                  icon: const Icon(Icons.fullscreen),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (ctx) => Scaffold(
+                          appBar: AppBar(
+                            title: Text(AppLocalizations.of(ctx).eventsTitle),
+                            actions: [
+                              IconButton(
+                                tooltip: AppLocalizations.of(ctx).close,
+                                icon: const Icon(Icons.close_fullscreen),
+                                onPressed: () => Navigator.of(ctx).maybePop(),
+                              ),
+                            ],
+                          ),
+                          body: EventsListWidget(
+                            network: _selectedNetwork,
+                            deviceId: _selectedDeviceId,
+                            initialEvents: _events.toList(growable: false),
+                            initialSearch: _search,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          );
+
+          if (isMobile) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                searchInput,
+                const SizedBox(height: 8),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: actions,
+                ),
+              ],
+            );
+          } else {
+            return Row(
+              children: [
+                Expanded(child: searchInput),
+                const SizedBox(width: 8),
+                actions,
+              ],
+            );
+          }
+        },
       ),
     );
   }

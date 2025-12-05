@@ -1050,7 +1050,34 @@ class MeshtasticMappers {
         try {
           final t = telem.Telemetry.fromBuffer(bytes);
           final v = t.whichVariant().name;
-          return TelemetryPayloadDto(variant: v);
+          return TelemetryPayloadDto(
+            variant: v,
+            time: t.hasTime() ? t.time.toInt() : null,
+            deviceMetrics: t.hasDeviceMetrics()
+                ? _toDeviceMetricsDto(t.deviceMetrics)
+                : null,
+            environmentMetrics: t.hasEnvironmentMetrics()
+                ? _toEnvironmentMetricsDto(t.environmentMetrics)
+                : null,
+            airQualityMetrics: t.hasAirQualityMetrics()
+                ? _toAirQualityMetricsDto(t.airQualityMetrics)
+                : null,
+            powerMetrics: t.hasPowerMetrics()
+                ? _toPowerMetricsDto(t.powerMetrics)
+                : null,
+            localStats: t.hasLocalStats()
+                ? _toLocalStatsDto(t.localStats)
+                : null,
+            healthMetrics: t.hasHealthMetrics()
+                ? _toHealthMetricsDto(t.healthMetrics)
+                : null,
+            hostMetrics: t.hasHostMetrics()
+                ? _toHostMetricsDto(t.hostMetrics)
+                : null,
+            localStatsExtended: t.hasLocalStatsExtended()
+                ? const LocalStatsExtendedDto()
+                : null,
+          );
         } catch (_) {
           return RawPayloadDto(portInternal, bytes);
         }
@@ -1244,5 +1271,96 @@ DeviceMetricsDto _toDeviceMetricsDto(telem.DeviceMetrics dm) {
         : null,
     airUtilTx: dm.hasAirUtilTx() ? dm.airUtilTx : null,
     uptimeSeconds: dm.hasUptimeSeconds() ? dm.uptimeSeconds : null,
+  );
+}
+
+EnvironmentMetricsDto _toEnvironmentMetricsDto(telem.EnvironmentMetrics e) {
+  return EnvironmentMetricsDto(
+    temperature: e.hasTemperature() ? e.temperature : null,
+    relativeHumidity: e.hasRelativeHumidity() ? e.relativeHumidity : null,
+    barometricPressure: e.hasBarometricPressure() ? e.barometricPressure : null,
+    gasResistance: e.hasGasResistance() ? e.gasResistance : null,
+    voltage: e.hasVoltage() ? e.voltage : null,
+    current: e.hasCurrent() ? e.current : null,
+    iaq: e.hasIaq() ? e.iaq : null,
+    distance: e.hasDistance() ? e.distance : null,
+    lux: e.hasLux() ? e.lux : null,
+    whiteLux: e.hasWhiteLux() ? e.whiteLux : null,
+    irLux: e.hasIrLux() ? e.irLux : null,
+    uvLux: e.hasUvLux() ? e.uvLux : null,
+    windDirection: e.hasWindDirection() ? e.windDirection : null,
+    windSpeed: e.hasWindSpeed() ? e.windSpeed : null,
+    weight: e.hasWeight() ? e.weight : null,
+    windGust: e.hasWindGust() ? e.windGust : null,
+    windLull: e.hasWindLull() ? e.windLull : null,
+  );
+}
+
+AirQualityMetricsDto _toAirQualityMetricsDto(telem.AirQualityMetrics a) {
+  return AirQualityMetricsDto(
+    pm10Standard: a.hasPm10Standard() ? a.pm10Standard : null,
+    pm25Standard: a.hasPm25Standard() ? a.pm25Standard : null,
+    pm100Standard: a.hasPm100Standard() ? a.pm100Standard : null,
+    pm10Environmental: a.hasPm10Environmental() ? a.pm10Environmental : null,
+    pm25Environmental: a.hasPm25Environmental() ? a.pm25Environmental : null,
+    pm100Environmental: a.hasPm100Environmental() ? a.pm100Environmental : null,
+    particles03um: a.hasParticles03um() ? a.particles03um : null,
+    particles05um: a.hasParticles05um() ? a.particles05um : null,
+    particles10um: a.hasParticles10um() ? a.particles10um : null,
+    particles25um: a.hasParticles25um() ? a.particles25um : null,
+    particles50um: a.hasParticles50um() ? a.particles50um : null,
+    particles100um: a.hasParticles100um() ? a.particles100um : null,
+    co2: a.hasCo2() ? a.co2 : null,
+    co2Temperature: a.hasCo2Temperature() ? a.co2Temperature : null,
+    co2Humidity: a.hasCo2Humidity() ? a.co2Humidity : null,
+    formFormaldehyde: a.hasFormFormaldehyde() ? a.formFormaldehyde : null,
+    formHumidity: a.hasFormHumidity() ? a.formHumidity : null,
+    formTemperature: a.hasFormTemperature() ? a.formTemperature : null,
+    pm40Standard: a.hasPm40Standard() ? a.pm40Standard : null,
+  );
+}
+
+PowerMetricsDto _toPowerMetricsDto(telem.PowerMetrics p) {
+  return PowerMetricsDto(
+    ch1Voltage: p.hasCh1Voltage() ? p.ch1Voltage : null,
+    ch1Current: p.hasCh1Current() ? p.ch1Current : null,
+    ch2Voltage: p.hasCh2Voltage() ? p.ch2Voltage : null,
+    ch2Current: p.hasCh2Current() ? p.ch2Current : null,
+    ch3Voltage: p.hasCh3Voltage() ? p.ch3Voltage : null,
+    ch3Current: p.hasCh3Current() ? p.ch3Current : null,
+  );
+}
+
+LocalStatsDto _toLocalStatsDto(telem.LocalStats l) {
+  return LocalStatsDto(
+    uptimeSeconds: l.hasUptimeSeconds() ? l.uptimeSeconds : null,
+    channelUtilization: l.hasChannelUtilization() ? l.channelUtilization : null,
+    airUtilTx: l.hasAirUtilTx() ? l.airUtilTx : null,
+    numPacketsTx: l.hasNumPacketsTx() ? l.numPacketsTx : null,
+    numPacketsRx: l.hasNumPacketsRx() ? l.numPacketsRx : null,
+    numPacketsRxBad: l.hasNumPacketsRxBad() ? l.numPacketsRxBad : null,
+    numOnlineNodes: l.hasNumOnlineNodes() ? l.numOnlineNodes : null,
+  );
+}
+
+HealthMetricsDto _toHealthMetricsDto(telem.HealthMetrics h) {
+  return HealthMetricsDto(
+    heartBpm: h.hasHeartBpm() ? h.heartBpm : null,
+    spO2: h.hasSpO2() ? h.spO2 : null,
+    temperature: h.hasTemperature() ? h.temperature : null,
+  );
+}
+
+HostMetricsDto _toHostMetricsDto(telem.HostMetrics h) {
+  return HostMetricsDto(
+    uptimeSeconds: h.hasUptimeSeconds() ? h.uptimeSeconds : null,
+    freememBytes: h.hasFreememBytes() ? h.freememBytes.toInt() : null,
+    diskfree1Bytes: h.hasDiskfree1Bytes() ? h.diskfree1Bytes.toInt() : null,
+    diskfree2Bytes: h.hasDiskfree2Bytes() ? h.diskfree2Bytes.toInt() : null,
+    diskfree3Bytes: h.hasDiskfree3Bytes() ? h.diskfree3Bytes.toInt() : null,
+    load1: h.hasLoad1() ? h.load1 : null,
+    load5: h.hasLoad5() ? h.load5 : null,
+    load15: h.hasLoad15() ? h.load15 : null,
+    userString: h.hasUserString() ? h.userString : null,
   );
 }

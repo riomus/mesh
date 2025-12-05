@@ -267,50 +267,65 @@ class _ScannerPageState extends State<ScannerPage> {
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
           child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 800),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      textInputAction: TextInputAction.search,
-                      decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.search),
-                        hintText: t.searchHint,
-                        border: const OutlineInputBorder(),
-                        isDense: true,
-                        suffixIcon: _query.isNotEmpty
-                            ? IconButton(
-                                tooltip: MaterialLocalizations.of(
-                                  context,
-                                ).deleteButtonTooltip,
-                                icon: const Icon(Icons.clear),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  _onQueryChanged('');
-                                },
-                              )
-                            : null,
-                      ),
-                      onChanged: _onQueryChanged,
-                    ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isMobile = constraints.maxWidth < 600;
+                final searchField = TextField(
+                  controller: _searchController,
+                  textInputAction: TextInputAction.search,
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.search),
+                    hintText: t.searchHint,
+                    border: const OutlineInputBorder(),
+                    isDense: true,
+                    suffixIcon: _query.isNotEmpty
+                        ? IconButton(
+                            tooltip: MaterialLocalizations.of(
+                              context,
+                            ).deleteButtonTooltip,
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _searchController.clear();
+                              _onQueryChanged('');
+                            },
+                          )
+                        : null,
                   ),
-                  const SizedBox(width: 8),
-                  FilterChip(
-                    label: Text(t.loraOnlyFilterLabel),
-                    avatar: Icon(
-                      Icons.sensors,
-                      color: _loraOnly
-                          ? Theme.of(context).colorScheme.primary
-                          : null,
-                    ),
-                    selected: _loraOnly,
-                    showCheckmark: false,
-                    onSelected: (v) => setState(() => _loraOnly = v),
+                  onChanged: _onQueryChanged,
+                );
+
+                final filterChip = FilterChip(
+                  label: Text(t.loraOnlyFilterLabel),
+                  avatar: Icon(
+                    Icons.sensors,
+                    color: _loraOnly
+                        ? Theme.of(context).colorScheme.primary
+                        : null,
                   ),
-                ],
-              ),
+                  selected: _loraOnly,
+                  showCheckmark: false,
+                  onSelected: (v) => setState(() => _loraOnly = v),
+                );
+
+                if (isMobile) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      searchField,
+                      const SizedBox(height: 8),
+                      Align(alignment: Alignment.centerLeft, child: filterChip),
+                    ],
+                  );
+                } else {
+                  return Row(
+                    children: [
+                      Expanded(child: searchField),
+                      const SizedBox(width: 8),
+                      filterChip,
+                    ],
+                  );
+                }
+              },
             ),
           ),
         ),

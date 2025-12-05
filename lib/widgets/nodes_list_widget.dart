@@ -256,92 +256,121 @@ class _NodesListWidgetState extends State<NodesListWidget>
 
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => _searchFocus.requestFocus(),
-              child: InputDecorator(
-                isFocused: _searchFocus.hasFocus,
-                isEmpty: false,
-                decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context).searchNodes,
-                  border: const OutlineInputBorder(),
-                  isDense: true,
-                  prefixIcon: const Icon(Icons.search, size: 18),
-                ),
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    ...chips,
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(minWidth: 120),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              focusNode: _searchFocus,
-                              controller: _searchCtrl,
-                              decoration: InputDecoration(
-                                hintText: AppLocalizations.of(
-                                  context,
-                                ).findByNameOrId,
-                                isDense: true,
-                                border: InputBorder.none,
-                              ),
-                              onChanged: (v) => setState(() => _search = v),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isMobile = constraints.maxWidth < 600;
+
+          final searchInput = GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => _searchFocus.requestFocus(),
+            child: InputDecorator(
+              isFocused: _searchFocus.hasFocus,
+              isEmpty: false,
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context).searchNodes,
+                border: const OutlineInputBorder(),
+                isDense: true,
+                prefixIcon: const Icon(Icons.search, size: 18),
+              ),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  ...chips,
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(minWidth: 120),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            focusNode: _searchFocus,
+                            controller: _searchCtrl,
+                            decoration: InputDecoration(
+                              hintText: AppLocalizations.of(
+                                context,
+                              ).findByNameOrId,
+                              isDense: true,
+                              border: InputBorder.none,
                             ),
+                            onChanged: (v) => setState(() => _search = v),
                           ),
-                          if (_searchCtrl.text.isNotEmpty)
-                            IconButton(
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                              tooltip: AppLocalizations.of(context).clear,
-                              icon: const Icon(Icons.clear, size: 18),
-                              onPressed: () {
-                                _searchCtrl.clear();
-                                setState(() => _search = '');
-                              },
-                            ),
-                        ],
-                      ),
+                        ),
+                        if (_searchCtrl.text.isNotEmpty)
+                          IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            tooltip: AppLocalizations.of(context).clear,
+                            icon: const Icon(Icons.clear, size: 18),
+                            onPressed: () {
+                              _searchCtrl.clear();
+                              setState(() => _search = '');
+                            },
+                          ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-          ),
-          const SizedBox(width: 8),
-          Tooltip(
-            message: AppLocalizations.of(context).addFilter,
-            child: FilledButton.icon(
-              icon: const Icon(Icons.filter_alt),
-              label: Text(AppLocalizations.of(context).addFilter),
-              onPressed: _openAddChipDialog,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Tooltip(
-            message: AppLocalizations.of(context).sorting,
-            child: FilledButton.tonalIcon(
-              icon: const Icon(Icons.sort),
-              label: Text(AppLocalizations.of(context).sorting),
-              onPressed: _openSortDialog,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Tooltip(
-            message: AppLocalizations.of(context).clearFilters,
-            child: IconButton(
-              icon: const Icon(Icons.filter_alt_off),
-              onPressed: () => setState(() => _chips.clear()),
-            ),
-          ),
-        ],
+          );
+
+          final actions = Row(
+            mainAxisAlignment: isMobile
+                ? MainAxisAlignment.end
+                : MainAxisAlignment.start,
+            children: [
+              Tooltip(
+                message: AppLocalizations.of(context).addFilter,
+                child: FilledButton.icon(
+                  icon: const Icon(Icons.filter_alt),
+                  label: Text(AppLocalizations.of(context).addFilter),
+                  onPressed: _openAddChipDialog,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Tooltip(
+                message: AppLocalizations.of(context).sorting,
+                child: FilledButton.tonalIcon(
+                  icon: const Icon(Icons.sort),
+                  label: Text(AppLocalizations.of(context).sorting),
+                  onPressed: _openSortDialog,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Tooltip(
+                message: AppLocalizations.of(context).clearFilters,
+                child: IconButton(
+                  icon: const Icon(Icons.filter_alt_off),
+                  onPressed: () => setState(() => _chips.clear()),
+                ),
+              ),
+            ],
+          );
+
+          if (isMobile) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                searchInput,
+                const SizedBox(height: 8),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: actions,
+                ),
+              ],
+            );
+          } else {
+            return Row(
+              children: [
+                Expanded(child: searchInput),
+                const SizedBox(width: 8),
+                actions,
+              ],
+            );
+          }
+        },
       ),
     );
   }

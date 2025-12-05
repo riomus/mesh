@@ -244,7 +244,187 @@ class StoreForwardPayloadDto extends DecodedPayloadDto {
 
 class TelemetryPayloadDto extends DecodedPayloadDto {
   final String? variant; // which telemetry message variant
-  const TelemetryPayloadDto({this.variant});
+  final int? time;
+  final DeviceMetricsDto? deviceMetrics;
+  final EnvironmentMetricsDto? environmentMetrics;
+  final AirQualityMetricsDto? airQualityMetrics;
+  final PowerMetricsDto? powerMetrics;
+  final LocalStatsDto? localStats;
+  final HealthMetricsDto? healthMetrics;
+  final HostMetricsDto? hostMetrics;
+  final LocalStatsExtendedDto? localStatsExtended;
+
+  const TelemetryPayloadDto({
+    this.variant,
+    this.time,
+    this.deviceMetrics,
+    this.environmentMetrics,
+    this.airQualityMetrics,
+    this.powerMetrics,
+    this.localStats,
+    this.healthMetrics,
+    this.hostMetrics,
+    this.localStatsExtended,
+  });
+}
+
+class EnvironmentMetricsDto {
+  final double? temperature;
+  final double? relativeHumidity;
+  final double? barometricPressure;
+  final double? gasResistance;
+  final double? voltage;
+  final double? current;
+  final int? iaq;
+  final double? distance;
+  final double? lux;
+  final double? whiteLux;
+  final double? irLux;
+  final double? uvLux;
+  final double? windDirection;
+  final double? windSpeed;
+  final double? weight;
+  final double? windGust;
+  final double? windLull;
+
+  const EnvironmentMetricsDto({
+    this.temperature,
+    this.relativeHumidity,
+    this.barometricPressure,
+    this.gasResistance,
+    this.voltage,
+    this.current,
+    this.iaq,
+    this.distance,
+    this.lux,
+    this.whiteLux,
+    this.irLux,
+    this.uvLux,
+    this.windDirection,
+    this.windSpeed,
+    this.weight,
+    this.windGust,
+    this.windLull,
+  });
+}
+
+class AirQualityMetricsDto {
+  final int? pm10Standard;
+  final int? pm25Standard;
+  final int? pm100Standard;
+  final int? pm10Environmental;
+  final int? pm25Environmental;
+  final int? pm100Environmental;
+  final int? particles03um;
+  final int? particles05um;
+  final int? particles10um;
+  final int? particles25um;
+  final int? particles50um;
+  final int? particles100um;
+  final int? co2;
+  final double? co2Temperature;
+  final double? co2Humidity;
+  final double? formFormaldehyde;
+  final double? formHumidity;
+  final double? formTemperature;
+  final int? pm40Standard;
+
+  const AirQualityMetricsDto({
+    this.pm10Standard,
+    this.pm25Standard,
+    this.pm100Standard,
+    this.pm10Environmental,
+    this.pm25Environmental,
+    this.pm100Environmental,
+    this.particles03um,
+    this.particles05um,
+    this.particles10um,
+    this.particles25um,
+    this.particles50um,
+    this.particles100um,
+    this.co2,
+    this.co2Temperature,
+    this.co2Humidity,
+    this.formFormaldehyde,
+    this.formHumidity,
+    this.formTemperature,
+    this.pm40Standard,
+  });
+}
+
+class PowerMetricsDto {
+  final double? ch1Voltage;
+  final double? ch1Current;
+  final double? ch2Voltage;
+  final double? ch2Current;
+  final double? ch3Voltage;
+  final double? ch3Current;
+
+  const PowerMetricsDto({
+    this.ch1Voltage,
+    this.ch1Current,
+    this.ch2Voltage,
+    this.ch2Current,
+    this.ch3Voltage,
+    this.ch3Current,
+  });
+}
+
+class LocalStatsDto {
+  final int? uptimeSeconds;
+  final int? channelUtilization;
+  final int? airUtilTx;
+  final int? numPacketsTx;
+  final int? numPacketsRx;
+  final int? numPacketsRxBad;
+  final int? numOnlineNodes;
+
+  const LocalStatsDto({
+    this.uptimeSeconds,
+    this.channelUtilization,
+    this.airUtilTx,
+    this.numPacketsTx,
+    this.numPacketsRx,
+    this.numPacketsRxBad,
+    this.numOnlineNodes,
+  });
+}
+
+class HealthMetricsDto {
+  final int? heartBpm;
+  final int? spO2;
+  final double? temperature;
+
+  const HealthMetricsDto({this.heartBpm, this.spO2, this.temperature});
+}
+
+class HostMetricsDto {
+  final int? uptimeSeconds;
+  final int? freememBytes; // Using int for simplicity, check if BigInt needed
+  final int? diskfree1Bytes;
+  final int? diskfree2Bytes;
+  final int? diskfree3Bytes;
+  final int? load1;
+  final int? load5;
+  final int? load15;
+  final String? userString;
+
+  const HostMetricsDto({
+    this.uptimeSeconds,
+    this.freememBytes,
+    this.diskfree1Bytes,
+    this.diskfree2Bytes,
+    this.diskfree3Bytes,
+    this.load1,
+    this.load5,
+    this.load15,
+    this.userString,
+  });
+}
+
+class LocalStatsExtendedDto {
+  // Add fields if needed, currently placeholder based on protobuf
+  const LocalStatsExtendedDto();
 }
 
 class PaxcounterPayloadDto extends DecodedPayloadDto {

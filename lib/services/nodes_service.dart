@@ -32,10 +32,11 @@ class MeshNodeView {
     required this.tags,
   });
 
-  String get displayName =>
-      user?.longName?.isNotEmpty == true
-          ? user!.longName!
-          : (user?.shortName?.isNotEmpty == true ? user!.shortName! : (num?.toRadixString(16) ?? 'unknown'));
+  String get displayName => user?.longName?.isNotEmpty == true
+      ? user!.longName!
+      : (user?.shortName?.isNotEmpty == true
+            ? user!.shortName!
+            : (num?.toRadixString(16) ?? 'unknown'));
 }
 
 /// Aggregates nodes from Meshtastic events and exposes a stream for UI.
@@ -49,7 +50,9 @@ class NodesService {
         }
       },
     );
-    _sub = DeviceCommunicationEventService.instance.listenAll().listen(_onDeviceEvent);
+    _sub = DeviceCommunicationEventService.instance.listenAll().listen(
+      _onDeviceEvent,
+    );
   }
 
   static final NodesService instance = NodesService._();
@@ -95,6 +98,7 @@ class NodesService {
             if (age < 0) age = 0;
             return age;
           }
+
           // Represent node id as lowercase hex without 0x prefix for consistency
           final nodeHexId = num.toRadixString(16).toLowerCase();
           // Start with existing tags (if any) so we don't lose derived fields
@@ -110,9 +114,11 @@ class NodesService {
           // Name/role/hops/favorite/ignored/mqtt — prefer new values if provided
           if (info.user?.longName != null && info.user!.longName!.isNotEmpty) {
             tags['name'] = [info.user!.longName!];
-          } else if (info.user?.shortName != null && info.user!.shortName!.isNotEmpty) {
+          } else if (info.user?.shortName != null &&
+              info.user!.shortName!.isNotEmpty) {
             tags['name'] = [info.user!.shortName!];
-          } else if (!(tags.containsKey('name') && (tags['name']?.isNotEmpty == true))) {
+          } else if (!(tags.containsKey('name') &&
+              (tags['name']?.isNotEmpty == true))) {
             tags['name'] = ['0x$nodeHexId'];
           }
           if (info.user?.role != null) tags['role'] = [info.user!.role!];
@@ -141,11 +147,14 @@ class NodesService {
             num: num,
             user: info.user ?? existing?.user,
             // Preserve previous position if new info lacks coordinates
-            position: (info.position?.latitudeI != null && info.position?.longitudeI != null)
+            position:
+                (info.position?.latitudeI != null &&
+                    info.position?.longitudeI != null)
                 ? info.position
                 : (existing?.position ?? info.position),
             snr: info.snr ?? existing?.snr,
-            lastHeard: _normalizeLastHeard(info.lastHeard) ?? existing?.lastHeard,
+            lastHeard:
+                _normalizeLastHeard(info.lastHeard) ?? existing?.lastHeard,
             deviceMetrics: info.deviceMetrics ?? existing?.deviceMetrics,
             hopsAway: info.hopsAway ?? existing?.hopsAway,
             isFavorite: info.isFavorite ?? existing?.isFavorite,
@@ -175,6 +184,7 @@ class NodesService {
               final age = nowSec - epochSec;
               return age < 0 ? 0 : age;
             }
+
             // Build or merge node entry
             final hexId = from.toRadixString(16).toLowerCase();
             final merged = MeshNodeView(
@@ -182,17 +192,21 @@ class NodesService {
               user: existing?.user,
               position: pos,
               snr: evt.packet.rxSnr ?? existing?.snr,
-              lastHeard: _ageFromEpochSeconds(evt.packet.rxTime) ?? existing?.lastHeard,
+              lastHeard:
+                  _ageFromEpochSeconds(evt.packet.rxTime) ??
+                  existing?.lastHeard,
               deviceMetrics: existing?.deviceMetrics,
               hopsAway: existing?.hopsAway,
               isFavorite: existing?.isFavorite,
               isIgnored: existing?.isIgnored,
               viaMqtt: evt.packet.viaMqtt ?? existing?.viaMqtt,
-              tags: existing?.tags ?? <String, List<String>>{
-                'network': const ['meshtastic'],
-                'deviceId': [hexId],
-                'name': ['0x$hexId'],
-              },
+              tags:
+                  existing?.tags ??
+                  <String, List<String>>{
+                    'network': const ['meshtastic'],
+                    'deviceId': [hexId],
+                    'name': ['0x$hexId'],
+                  },
             );
             _nodes[from] = merged;
             _emit();
@@ -207,14 +221,19 @@ class NodesService {
   }
 
   /// Stream of all nodes; use client-side filtering/sorting in the UI.
-  Stream<List<MeshNodeView>> listenAll() => _controller.stream;
+  Stream<List<MeshNodeView>> listenAll() async* {
+    yield snapshot;
+    yield* _controller.stream;
+  }
 
   /// Snapshot of current nodes.
   List<MeshNodeView> get snapshot => _nodes.values.toList(growable: false);
 
   /// Best-effort guess of the connected source device's current position.
   /// Returns null if not known.
-  PositionDto? get sourcePosition => _lastReporterNodeNum != null ? _nodes[_lastReporterNodeNum!]?.position : null;
+  PositionDto? get sourcePosition => _lastReporterNodeNum != null
+      ? _nodes[_lastReporterNodeNum!]?.position
+      : null;
 
   /// Sets a custom reference point (lat, lon in degrees) used for distance sorting.
   /// Pass nulls to clear and fall back to source device position when available.

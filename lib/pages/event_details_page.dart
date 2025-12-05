@@ -17,66 +17,72 @@ class EventDetailsPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(AppLocalizations.of(context).eventDetails)),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header / Hero tile if Meshtastic
-            if (payload case MeshtasticDeviceEventPayload m)
-              Card(
-                margin: const EdgeInsets.only(bottom: 12),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: MeshtasticEventTile(event: m.event),
+      body: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header / Hero tile if Meshtastic
+                if (payload case MeshtasticDeviceEventPayload m)
+                  Card(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: MeshtasticEventTile(event: m.event),
+                    ),
+                  ),
+                if (payload case MeshtasticDeviceEventPayload m)
+                  _Section(
+                    emoji: '🆔',
+                    title: AppLocalizations.of(context).idTitle,
+                    child: Text(
+                      m.event.id?.toString() ??
+                          AppLocalizations.of(context).emptyState,
+                    ),
+                  ),
+                _Section(
+                  emoji: '⏱️',
+                  title: AppLocalizations.of(context).timestamp,
+                  child: Text(event.timestamp.toLocal().toString()),
                 ),
-              ),
-            if (payload case MeshtasticDeviceEventPayload m)
-              _Section(
-                emoji: '🆔',
-                title: AppLocalizations.of(context).idTitle,
-                child: Text(
-                  m.event.id?.toString() ??
-                      AppLocalizations.of(context).emptyState,
-                ),
-              ),
-            _Section(
-              emoji: '⏱️',
-              title: AppLocalizations.of(context).timestamp,
-              child: Text(event.timestamp.toLocal().toString()),
+                if (event.summary != null && event.summary!.isNotEmpty)
+                  _Section(
+                    emoji: '📝',
+                    title: AppLocalizations.of(context).summary,
+                    child: Text(event.summary!),
+                  ),
+                if (event.tags.isNotEmpty)
+                  _Section(
+                    emoji: '🏷️',
+                    title: AppLocalizations.of(context).tags,
+                    child: Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: event.tags.entries
+                          .map(
+                            (e) => InputChip(
+                              label: Text('${e.key}: ${e.value.join(', ')}'),
+                              onPressed: () {},
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ),
+                if (payload case MeshtasticDeviceEventPayload m)
+                  _MeshtasticEventDetails(event: m.event)
+                else if (payload != null)
+                  _Section(
+                    emoji: '📦',
+                    title: AppLocalizations.of(context).payload,
+                    child: Text(payload.runtimeType.toString()),
+                  ),
+              ],
             ),
-            if (event.summary != null && event.summary!.isNotEmpty)
-              _Section(
-                emoji: '📝',
-                title: AppLocalizations.of(context).summary,
-                child: Text(event.summary!),
-              ),
-            if (event.tags.isNotEmpty)
-              _Section(
-                emoji: '🏷️',
-                title: AppLocalizations.of(context).tags,
-                child: Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: event.tags.entries
-                      .map(
-                        (e) => InputChip(
-                          label: Text('${e.key}: ${e.value.join(', ')}'),
-                          onPressed: () {},
-                        ),
-                      )
-                      .toList(),
-                ),
-              ),
-            if (payload case MeshtasticDeviceEventPayload m)
-              _MeshtasticEventDetails(event: m.event)
-            else if (payload != null)
-              _Section(
-                emoji: '📦',
-                title: AppLocalizations.of(context).payload,
-                child: Text(payload.runtimeType.toString()),
-              ),
-          ],
+          ),
         ),
       ),
     );

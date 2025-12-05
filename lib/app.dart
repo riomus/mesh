@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'navigation/navigator_key.dart';
 import 'pages/scanner_page.dart';
 import 'pages/settings_page.dart';
 import 'services/settings_service.dart';
@@ -66,6 +67,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     final baseSeed = Colors.indigo;
     return MaterialApp(
+      navigatorKey: navigatorKey,
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       themeMode: _themeMode,
       theme: ThemeData(

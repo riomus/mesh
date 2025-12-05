@@ -111,7 +111,7 @@ class _NodeDetailsPageState extends State<NodeDetailsPage> {
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) => DeviceChatPage(
-                      device: device,
+                      deviceId: device.remoteId.str,
                       toNodeId: widget.nodeNum,
                       chatTitle:
                           n?.displayName ??
@@ -141,78 +141,83 @@ class _NodeDetailsPageState extends State<NodeDetailsPage> {
                 child: CircularProgressIndicator(),
               ),
             )
-          : ListView(
-              padding: const EdgeInsets.all(12),
-              children: [
-                Card(
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      child: Text(safeInitial(n.displayName)),
+          : Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 800),
+                child: ListView(
+                  padding: const EdgeInsets.all(12),
+                  children: [
+                    Card(
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          child: Text(safeInitial(n.displayName)),
+                        ),
+                        title: Text(safeText(n.displayName)),
+                        subtitle: Text(
+                          AppLocalizations.of(
+                            context,
+                          ).nodeIdHex(n.num!.toRadixString(16)),
+                        ),
+                      ),
                     ),
-                    title: Text(safeText(n.displayName)),
-                    subtitle: Text(
-                      AppLocalizations.of(
-                        context,
-                      ).nodeIdHex(n.num!.toRadixString(16)),
+                    Card(
+                      child: Column(
+                        children: [
+                          _infoTile(
+                            Icons.badge,
+                            AppLocalizations.of(context).role,
+                            n.user?.role,
+                          ),
+                          const Divider(height: 1),
+                          _infoTile(
+                            Icons.alt_route,
+                            AppLocalizations.of(context).hopsAway,
+                            n.hopsAway?.toString(),
+                          ),
+                          const Divider(height: 1),
+                          _infoTile(
+                            Icons.network_cell,
+                            AppLocalizations.of(context).snrLabel,
+                            n.snr?.toStringAsFixed(1),
+                          ),
+                          const Divider(height: 1),
+                          _infoTile(
+                            Icons.cloud,
+                            AppLocalizations.of(context).viaMqtt,
+                            n.viaMqtt == true
+                                ? AppLocalizations.of(context).yes
+                                : (n.viaMqtt == false
+                                      ? AppLocalizations.of(context).no
+                                      : null),
+                          ),
+                          const Divider(height: 1),
+                          _infoTile(
+                            Icons.battery_full,
+                            AppLocalizations.of(context).battery,
+                            _batteryText(n),
+                          ),
+                          const Divider(height: 1),
+                          _infoTile(
+                            Icons.access_time,
+                            AppLocalizations.of(context).lastSeenLabel,
+                            n.lastHeard != null
+                                ? _formatLastHeard(n.lastHeard!)
+                                : null,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                    _buildLocationSection(n),
+                    Card(
+                      child: ListTile(
+                        leading: const Icon(Icons.route),
+                        title: Text(AppLocalizations.of(context).sourceDevice),
+                        subtitle: Text(_sourceDeviceLine(n)),
+                      ),
+                    ),
+                  ],
                 ),
-                Card(
-                  child: Column(
-                    children: [
-                      _infoTile(
-                        Icons.badge,
-                        AppLocalizations.of(context).role,
-                        n.user?.role,
-                      ),
-                      const Divider(height: 1),
-                      _infoTile(
-                        Icons.alt_route,
-                        AppLocalizations.of(context).hopsAway,
-                        n.hopsAway?.toString(),
-                      ),
-                      const Divider(height: 1),
-                      _infoTile(
-                        Icons.network_cell,
-                        AppLocalizations.of(context).snrLabel,
-                        n.snr?.toStringAsFixed(1),
-                      ),
-                      const Divider(height: 1),
-                      _infoTile(
-                        Icons.cloud,
-                        AppLocalizations.of(context).viaMqtt,
-                        n.viaMqtt == true
-                            ? AppLocalizations.of(context).yes
-                            : (n.viaMqtt == false
-                                  ? AppLocalizations.of(context).no
-                                  : null),
-                      ),
-                      const Divider(height: 1),
-                      _infoTile(
-                        Icons.battery_full,
-                        AppLocalizations.of(context).battery,
-                        _batteryText(n),
-                      ),
-                      const Divider(height: 1),
-                      _infoTile(
-                        Icons.access_time,
-                        AppLocalizations.of(context).lastSeenLabel,
-                        n.lastHeard != null
-                            ? _formatLastHeard(n.lastHeard!)
-                            : null,
-                      ),
-                    ],
-                  ),
-                ),
-                _buildLocationSection(n),
-                Card(
-                  child: ListTile(
-                    leading: const Icon(Icons.route),
-                    title: Text(AppLocalizations.of(context).sourceDevice),
-                    subtitle: Text(_sourceDeviceLine(n)),
-                  ),
-                ),
-              ],
+              ),
             ),
     );
   }

@@ -92,14 +92,31 @@ class RecentDevicesService {
 
   Future<void> add(ScanResult result) async {
     final id = result.device.remoteId.str;
-    final name = result.advertisementData.advName.isNotEmpty
+    var name = result.advertisementData.advName.isNotEmpty
         ? result.advertisementData.advName
         : (result.device.platformName.isNotEmpty
               ? result.device.platformName
               : id);
 
-    // Remove existing entry if any
-    _devices.removeWhere((d) => d.id == id);
+    var manufacturerData = result.advertisementData.manufacturerData;
+
+    // Check if device exists to preserve better data
+    final existingIndex = _devices.indexWhere((d) => d.id == id);
+    if (existingIndex != -1) {
+      final existing = _devices[existingIndex];
+
+      // If new name is just the ID, but we have a better name stored, keep it
+      if (name == id && existing.name != id) {
+        name = existing.name;
+      }
+
+      // If new manufacturer data is empty but we have stored data, keep it
+      if (manufacturerData.isEmpty && existing.manufacturerData.isNotEmpty) {
+        manufacturerData = existing.manufacturerData;
+      }
+
+      _devices.removeAt(existingIndex);
+    }
 
     _devices.add(
       RecentDevice(
@@ -107,7 +124,7 @@ class RecentDevicesService {
         name: name,
         rssi: result.rssi,
         lastConnected: DateTime.now(),
-        manufacturerData: result.advertisementData.manufacturerData,
+        manufacturerData: manufacturerData,
       ),
     );
 

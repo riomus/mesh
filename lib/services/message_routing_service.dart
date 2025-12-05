@@ -273,10 +273,48 @@ class MessageRoutingService {
               ],
             );
             _addMessage(roomId, message);
+            _addMessage(roomId, message);
+
+            // Resolve names for notification
+            String title = 'New Message';
+            String body = textPayload.text;
+
+            final deviceState = DeviceStateService.instance.getState(deviceId);
+            if (deviceState != null) {
+              // Source Device Name
+              String sourceName = 'Device';
+              final myNodeNum = deviceState.myNodeInfo?.myNodeNum;
+              if (myNodeNum != null) {
+                final myNode = deviceState.nodes.firstWhere(
+                  (n) => n.num == myNodeNum,
+                  orElse: () => NodeInfoDto(num: myNodeNum),
+                );
+                sourceName =
+                    myNode.user?.longName ?? myNode.user?.shortName ?? 'Device';
+              }
+
+              // Author Name
+              String authorName = 'Unknown';
+              final authorNode = deviceState.nodes.firstWhere(
+                (n) => n.num == packet.from,
+                orElse: () => NodeInfoDto(num: packet.from),
+              );
+
+              if (authorNode.user?.longName?.isNotEmpty == true) {
+                authorName = authorNode.user!.longName!;
+              } else if (authorNode.user?.shortName?.isNotEmpty == true) {
+                authorName = authorNode.user!.shortName!;
+              } else {
+                authorName = 'Node ${packet.from}';
+              }
+
+              title = '$authorName ($sourceName)';
+            }
+
             await _notificationService.showNotification(
               (packet.id ?? DateTime.now().millisecondsSinceEpoch) % 2147483647,
-              'New Message',
-              textPayload.text,
+              title,
+              body,
               roomId,
             );
           }
