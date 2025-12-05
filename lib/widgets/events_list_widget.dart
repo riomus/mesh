@@ -33,12 +33,16 @@ class _EventChipFilter {
 class EventsListWidget extends StatefulWidget {
   /// If provided, widget will pre-filter by this deviceId.
   final String? deviceId;
+
   /// If provided, widget will pre-filter by this network.
   final String? network;
+
   /// Maximum number of events rendered (helps performance on long sessions)
   final int maxVisible;
+
   /// Optional initial list of events to seed the view (used for fullscreen to mirror current view).
   final List<DeviceEvent>? initialEvents;
+
   /// Optional initial search text to seed the view.
   final String? initialSearch;
 
@@ -114,7 +118,8 @@ class _EventsListWidgetState extends State<EventsListWidget> {
     _sub?.cancel();
     // Prefer replay so when the widget remounts (e.g., after navigating back),
     // the recent history is visible immediately.
-    final hasInitialSeed = widget.initialEvents != null && widget.initialEvents!.isNotEmpty;
+    final hasInitialSeed =
+        widget.initialEvents != null && widget.initialEvents!.isNotEmpty;
     if (hasInitialSeed) {
       // If the parent already provided an initial set to mirror, avoid double
       // adding by listening live only.
@@ -131,16 +136,15 @@ class _EventsListWidgetState extends State<EventsListWidget> {
     }
     final useFilters = allEquals.isNotEmpty;
     _sub = _svc
-        .listenWithReplay(
-          allEquals: useFilters ? allEquals : null,
-        )
+        .listenWithReplay(allEquals: useFilters ? allEquals : null)
         .listen(_onEvent);
   }
 
   @override
   void didUpdateWidget(covariant EventsListWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final changed = oldWidget.deviceId != widget.deviceId ||
+    final changed =
+        oldWidget.deviceId != widget.deviceId ||
         oldWidget.network != widget.network ||
         oldWidget.initialEvents != widget.initialEvents ||
         oldWidget.initialSearch != widget.initialSearch;
@@ -210,7 +214,8 @@ class _EventsListWidgetState extends State<EventsListWidget> {
             if (chip._compiledRegex?.hasMatch('') == false) {
               // ensure compiled
             }
-            final re = chip._compiledRegex ?? RegExp(chip.value, caseSensitive: false);
+            final re =
+                chip._compiledRegex ?? RegExp(chip.value, caseSensitive: false);
             chip._compiledRegex = re;
             if (values.any((v) => re.hasMatch(v))) {
               groupMatch = true;
@@ -225,52 +230,68 @@ class _EventsListWidgetState extends State<EventsListWidget> {
       final s = _search.toLowerCase();
       // search in summary and tag values
       final summaryHit = (e.summary ?? '').toLowerCase().contains(s);
-      final tagsHit = e.tags.entries.any((kv) => kv.value.any((v) => v.toLowerCase().contains(s)));
+      final tagsHit = e.tags.entries.any(
+        (kv) => kv.value.any((v) => v.toLowerCase().contains(s)),
+      );
       if (!(summaryHit || tagsHit)) return false;
     }
     return true;
   }
 
-  List<DeviceEvent> _filtered() => _events.where(_matchFilters).toList().reversed.toList();
+  List<DeviceEvent> _filtered() =>
+      _events.where(_matchFilters).toList().reversed.toList();
 
   Future<void> _shareFilteredEvents() async {
     try {
-      final items = _filtered().map((e) {
-        final payload = e.payload;
-        Object? payloadJson;
-        if (payload == null) {
-          payloadJson = null;
-        } else if (payload is MeshtasticDeviceEventPayload) {
-          // Keep it lightweight; include a brief structured snapshot
-          payloadJson = {
-            'type': 'MeshtasticDeviceEventPayload',
-            'eventType': payload.event.runtimeType.toString(),
-          };
-        } else {
-          payloadJson = {'type': payload.runtimeType.toString()};
-        }
-        return {
-          'timestamp': e.timestamp.toIso8601String(),
-          'tags': e.tags,
-          'summary': e.summary,
-          'payload': payloadJson,
-        };
-      }).toList(growable: false);
+      final items = _filtered()
+          .map((e) {
+            final payload = e.payload;
+            Object? payloadJson;
+            if (payload == null) {
+              payloadJson = null;
+            } else if (payload is MeshtasticDeviceEventPayload) {
+              // Keep it lightweight; include a brief structured snapshot
+              payloadJson = {
+                'type': 'MeshtasticDeviceEventPayload',
+                'eventType': payload.event.runtimeType.toString(),
+              };
+            } else {
+              payloadJson = {'type': payload.runtimeType.toString()};
+            }
+            return {
+              'timestamp': e.timestamp.toIso8601String(),
+              'tags': e.tags,
+              'summary': e.summary,
+              'payload': payloadJson,
+            };
+          })
+          .toList(growable: false);
       final jsonStr = const JsonEncoder.withIndent('  ').convert(items);
       final bytes = Uint8List.fromList(utf8.encode(jsonStr));
       final ts = DateTime.now();
-      final name = 'events-${ts.year.toString().padLeft(4, '0')}'
+      final name =
+          'events-${ts.year.toString().padLeft(4, '0')}'
           '${ts.month.toString().padLeft(2, '0')}'
           '${ts.day.toString().padLeft(2, '0')}-'
           '${ts.hour.toString().padLeft(2, '0')}'
           '${ts.minute.toString().padLeft(2, '0')}'
           '${ts.second.toString().padLeft(2, '0')}.json';
-      final file = XFile.fromData(bytes, name: name, mimeType: 'application/json');
-      await Share.shareXFiles([file], text: AppLocalizations.of(context).eventsExport);
+      final file = XFile.fromData(
+        bytes,
+        name: name,
+        mimeType: 'application/json',
+      );
+      await Share.shareXFiles([
+        file,
+      ], text: AppLocalizations.of(context).eventsExport);
     } catch (err) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context).failedToShareEvents(err.toString()))),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context).failedToShareEvents(err.toString()),
+            ),
+          ),
         );
       }
     }
@@ -288,9 +309,9 @@ class _EventsListWidgetState extends State<EventsListWidget> {
           child: filtered.isEmpty
               ? const _Empty()
               : ListView.builder(
-                itemCount: filtered.length,
-                itemBuilder: (context, i) => _EventTile(e: filtered[i]),
-              ),
+                  itemCount: filtered.length,
+                  itemBuilder: (context, i) => _EventTile(e: filtered[i]),
+                ),
         ),
       ],
     );
@@ -301,16 +322,20 @@ class _EventsListWidgetState extends State<EventsListWidget> {
     final chips = _chips
         .asMap()
         .entries
-        .map((entry) => InputChip(
-              label: Text(entry.value.label),
-              onDeleted: () => setState(() => _chips.removeAt(entry.key)),
-            ))
+        .map(
+          (entry) => InputChip(
+            label: Text(entry.value.label),
+            onDeleted: () => setState(() => _chips.removeAt(entry.key)),
+          ),
+        )
         .toList(growable: false);
 
     // keep controller text in sync with state (once per build if needed)
     if (_searchCtrl.text != _search) {
       _searchCtrl.text = _search;
-      _searchCtrl.selection = TextSelection.fromPosition(TextPosition(offset: _searchCtrl.text.length));
+      _searchCtrl.selection = TextSelection.fromPosition(
+        TextPosition(offset: _searchCtrl.text.length),
+      );
     }
 
     return Padding(
@@ -346,7 +371,9 @@ class _EventsListWidgetState extends State<EventsListWidget> {
                               focusNode: _searchFocus,
                               controller: _searchCtrl,
                               decoration: InputDecoration(
-                                hintText: AppLocalizations.of(context).searchInSummaryOrTags,
+                                hintText: AppLocalizations.of(
+                                  context,
+                                ).searchInSummaryOrTags,
                                 isDense: true,
                                 border: InputBorder.none,
                               ),
@@ -430,8 +457,10 @@ class _EventsListWidgetState extends State<EventsListWidget> {
     String? draftKey = _selectedNetwork != null
         ? 'network'
         : (_selectedDeviceId != null
-            ? 'deviceId'
-            : (_seenKeys.isNotEmpty ? (_seenKeys.toList()..sort()).first : null));
+              ? 'deviceId'
+              : (_seenKeys.isNotEmpty
+                    ? (_seenKeys.toList()..sort()).first
+                    : null));
     _EventChipOp draftOp = _EventChipOp.exact;
     final Set<String> selectedValues = <String>{};
     final TextEditingController customCtrl = TextEditingController();
@@ -452,30 +481,46 @@ class _EventsListWidgetState extends State<EventsListWidget> {
               } catch (_) {
                 return;
               }
-              final c = _EventChipFilter(key: key, value: pattern, op: _EventChipOp.regex);
+              final c = _EventChipFilter(
+                key: key,
+                value: pattern,
+                op: _EventChipOp.regex,
+              );
               setState(() => _addChipUnique(c));
               Navigator.of(context).pop();
               return;
             }
             bool any = false;
             if (presence) {
-              any |= _addChipUnique(_EventChipFilter(key: key, value: '', op: _EventChipOp.exact));
+              any |= _addChipUnique(
+                _EventChipFilter(key: key, value: '', op: _EventChipOp.exact),
+              );
             }
             for (final v in selectedValues) {
-              any |= _addChipUnique(_EventChipFilter(key: key, value: v, op: _EventChipOp.exact));
+              any |= _addChipUnique(
+                _EventChipFilter(key: key, value: v, op: _EventChipOp.exact),
+              );
             }
             final custom = customCtrl.text.trim();
             if (custom.isNotEmpty) {
-              any |= _addChipUnique(_EventChipFilter(key: key, value: custom, op: _EventChipOp.exact));
+              any |= _addChipUnique(
+                _EventChipFilter(
+                  key: key,
+                  value: custom,
+                  op: _EventChipOp.exact,
+                ),
+              );
             }
             if (any) setState(() {});
             Navigator.of(context).pop();
           }
 
-          final values = draftKey == null ? const <String>{} : (_seenValuesByKey[draftKey!] ?? const <String>{});
+          final values = draftKey == null
+              ? const <String>{}
+              : (_seenValuesByKey[draftKey!] ?? const <String>{});
           final valuesSorted = values.toList()..sort();
           return AlertDialog(
-            title: const Text('Add filter'),
+            title: Text(AppLocalizations.of(context).addFilterTitle),
             content: SizedBox(
               width: 480,
               child: ConstrainedBox(
@@ -488,11 +533,20 @@ class _EventsListWidgetState extends State<EventsListWidget> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       DropdownButtonFormField<String>(
-                        decoration: const InputDecoration(labelText: 'Key'),
+                        decoration: InputDecoration(
+                          labelText: AppLocalizations.of(context).filterKey,
+                        ),
                         initialValue: draftKey,
                         items: (() {
                           final list = _seenKeys.toList()..sort();
-                          return list.map((k) => DropdownMenuItem<String>(value: k, child: Text(k))).toList();
+                          return list
+                              .map(
+                                (k) => DropdownMenuItem<String>(
+                                  value: k,
+                                  child: Text(k),
+                                ),
+                              )
+                              .toList();
                         })(),
                         onChanged: (v) {
                           setDlg(() {
@@ -506,11 +560,18 @@ class _EventsListWidgetState extends State<EventsListWidget> {
                       const SizedBox(height: 8),
                       SegmentedButton<_EventChipOp>(
                         segments: [
-                          ButtonSegment(value: _EventChipOp.exact, label: Text(AppLocalizations.of(context).exact)),
-                          ButtonSegment(value: _EventChipOp.regex, label: Text(AppLocalizations.of(context).regex)),
+                          ButtonSegment(
+                            value: _EventChipOp.exact,
+                            label: Text(AppLocalizations.of(context).exact),
+                          ),
+                          ButtonSegment(
+                            value: _EventChipOp.regex,
+                            label: Text(AppLocalizations.of(context).regex),
+                          ),
                         ],
                         selected: {draftOp},
-                        onSelectionChanged: (s) => setDlg(() => draftOp = s.first),
+                        onSelectionChanged: (s) =>
+                            setDlg(() => draftOp = s.first),
                       ),
                       const SizedBox(height: 12),
                       if (draftOp == _EventChipOp.exact) ...[
@@ -519,28 +580,36 @@ class _EventsListWidgetState extends State<EventsListWidget> {
                           runSpacing: 8,
                           children: [
                             FilterChip(
-                              label: Text(AppLocalizations.of(context).hasValueFor(draftKey ?? 'value')),
+                              label: Text(
+                                AppLocalizations.of(
+                                  context,
+                                ).hasValueFor(draftKey ?? 'value'),
+                              ),
                               selected: presence,
                               onSelected: (v) => setDlg(() => presence = v),
                             ),
-                            ...valuesSorted.map((v) => FilterChip(
-                                  label: Text(v),
-                                  selected: selectedValues.contains(v),
-                                  onSelected: (sel) => setDlg(() {
-                                    if (sel) {
-                                      selectedValues.add(v);
-                                    } else {
-                                      selectedValues.remove(v);
-                                    }
-                                  }),
-                                )),
+                            ...valuesSorted.map(
+                              (v) => FilterChip(
+                                label: Text(v),
+                                selected: selectedValues.contains(v),
+                                onSelected: (sel) => setDlg(() {
+                                  if (sel) {
+                                    selectedValues.add(v);
+                                  } else {
+                                    selectedValues.remove(v);
+                                  }
+                                }),
+                              ),
+                            ),
                           ],
                         ),
                         const SizedBox(height: 8),
                         TextField(
                           controller: customCtrl,
                           decoration: InputDecoration(
-                            labelText: AppLocalizations.of(context).customValueOptional,
+                            labelText: AppLocalizations.of(
+                              context,
+                            ).customValueOptional,
                             isDense: true,
                             border: OutlineInputBorder(),
                           ),
@@ -550,7 +619,9 @@ class _EventsListWidgetState extends State<EventsListWidget> {
                         TextField(
                           controller: customCtrl,
                           decoration: InputDecoration(
-                            labelText: AppLocalizations.of(context).regexCaseInsensitive,
+                            labelText: AppLocalizations.of(
+                              context,
+                            ).regexCaseInsensitive,
                             isDense: true,
                             border: OutlineInputBorder(),
                           ),
@@ -563,8 +634,14 @@ class _EventsListWidgetState extends State<EventsListWidget> {
               ),
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.of(context).maybePop(), child: Text(AppLocalizations.of(context).cancel)),
-              FilledButton(onPressed: addSelected, child: Text(AppLocalizations.of(context).addAction)),
+              TextButton(
+                onPressed: () => Navigator.of(context).maybePop(),
+                child: Text(AppLocalizations.of(context).cancel),
+              ),
+              FilledButton(
+                onPressed: addSelected,
+                child: Text(AppLocalizations.of(context).addAction),
+              ),
             ],
           );
         },
@@ -573,7 +650,9 @@ class _EventsListWidgetState extends State<EventsListWidget> {
   }
 
   bool _addChipUnique(_EventChipFilter c) {
-    final exists = _chips.any((x) => x.key == c.key && x.value == c.value && x.op == c.op);
+    final exists = _chips.any(
+      (x) => x.key == c.key && x.value == c.value && x.op == c.op,
+    );
     if (!exists) {
       _chips.add(c);
       return true;
@@ -582,14 +661,11 @@ class _EventsListWidgetState extends State<EventsListWidget> {
   }
 }
 
-
 class _Empty extends StatelessWidget {
   const _Empty();
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text(AppLocalizations.of(context).noEventsYet),
-    );
+    return Center(child: Text(AppLocalizations.of(context).noEventsYet));
   }
 }
 
@@ -603,21 +679,24 @@ class _EventTile extends StatelessWidget {
     if (p is MeshtasticDeviceEventPayload) {
       // Render using existing Meshtastic tiles for nicer UX
       return InkWell(
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => EventDetailsPage(event: e)),
-        ),
+        onTap: () => Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => EventDetailsPage(event: e))),
         child: MeshtasticEventTile(event: p.event),
       );
     }
     // Fallback generic tile
     return ListTile(
-      leading: const Text('🧩', style: TextStyle(fontSize: 18)),
-      title: Text(e.summary ?? 'Event'),
+      leading: Text(
+        AppLocalizations.of(context).puzzleEmoji,
+        style: const TextStyle(fontSize: 18),
+      ),
+      title: Text(e.summary ?? AppLocalizations.of(context).event),
       subtitle: Text(_tagsSummary(e.tags)),
       dense: true,
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => EventDetailsPage(event: e)),
-      ),
+      onTap: () => Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => EventDetailsPage(event: e))),
     );
   }
 

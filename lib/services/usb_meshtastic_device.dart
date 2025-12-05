@@ -1,28 +1,26 @@
-import 'dart:typed_data';
 import 'dart:math';
 import 'dart:convert';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'dart:typed_data';
+
 import '../generated/meshtastic/meshtastic/mesh.pb.dart' as mesh;
 import '../generated/meshtastic/meshtastic/portnums.pbenum.dart' as port;
 import 'device_status_store.dart';
-
 import 'device_state_service.dart';
 import 'chatting_device.dart';
 
-/// Implementation of [ChattingDevice] for Bluetooth LE devices.
-class BleMeshtasticDevice implements ChattingDevice {
-  final BluetoothDevice _device;
+/// Implementation of [ChattingDevice] for USB devices.
+class UsbMeshtasticDevice implements ChattingDevice {
+  final String _portName;
+  final String _deviceId; // The node ID
   int _currentPacketId = Random().nextInt(0xFFFFFFFF);
 
-  BleMeshtasticDevice(this._device);
+  UsbMeshtasticDevice(this._portName, this._deviceId);
 
   @override
-  String get id => _device.remoteId.str;
+  String get id => _deviceId;
 
   @override
-  String get displayName => _device.platformName.isNotEmpty
-      ? _device.platformName
-      : _device.remoteId.str;
+  String get displayName => 'USB:$_portName';
 
   int _generatePacketId() {
     var nextPacketId = (_currentPacketId + 1) & 0xFFFFFFFF;
@@ -34,8 +32,41 @@ class BleMeshtasticDevice implements ChattingDevice {
 
   @override
   Future<int> sendMessage(String text, int? toId, {int? channelIndex}) async {
-    final client = await DeviceStatusStore.instance.connect(_device);
+    // Ensure connected
+    final client = await DeviceStatusStore.instance.connectToId(_deviceId);
 
+    if (client == null) {
+      // Try to connect if not connected?
+      await DeviceStatusStore.instance.connectUsb(_portName);
+      // Try getting client again
+      final retryClient = await DeviceStatusStore.instance.connectToId(
+        _deviceId,
+      );
+      if (retryClient == null) {
+        throw Exception('Could not connect to USB device $_deviceId');
+      }
+      return _sendMessageWithClient(
+        retryClient,
+        text,
+        toId,
+        channelIndex: channelIndex,
+      );
+    }
+
+    return _sendMessageWithClient(
+      client,
+      text,
+      toId,
+      channelIndex: channelIndex,
+    );
+  }
+
+  Future<int> _sendMessageWithClient(
+    dynamic client,
+    String text,
+    int? toId, {
+    int? channelIndex,
+  }) async {
     // Construct MeshPacket
     final packet = mesh.MeshPacket();
     // 0xFFFFFFFF is broadcast
@@ -48,7 +79,7 @@ class BleMeshtasticDevice implements ChattingDevice {
       packet.to = toId;
     } else {
       print(
-        'BleMeshtasticDevice: sendMessage: toId is null and channelIndex is null. Not sending message.',
+        'UsbMeshtasticDevice: sendMessage: toId is null and channelIndex is null. Not sending message.',
       );
       return 0;
     }
@@ -57,13 +88,10 @@ class BleMeshtasticDevice implements ChattingDevice {
     packet.decoded.portnum = port.PortNum.TEXT_MESSAGE_APP;
     packet.decoded.payload = Uint8List.fromList(utf8.encode(text));
     // Only want ack for direct messages
-    if (toId != null) {
-      packet.wantAck = true;
-    }
+    packet.wantAck = toId != null;
 
     // Fetch hopLimit from device state, default to 3 if not found (standard default)
-    // Python implementation: loraConfig.hop_limit
-    final state = DeviceStateService.instance.getState(_device.remoteId.str);
+    final state = DeviceStateService.instance.getState(_deviceId);
     packet.hopLimit = state?.config?.lora?.hopLimit ?? 3;
 
     packet.priority = mesh.MeshPacket_Priority.RELIABLE;
@@ -72,8 +100,6 @@ class BleMeshtasticDevice implements ChattingDevice {
     packet.id = _generatePacketId();
 
     // packet.from is intentionally NOT set.
-    // The device firmware will populate this with its own node ID.
-    // Setting it manually can cause the device to reject the packet as a duplicate/loopback.
 
     print(packet);
 

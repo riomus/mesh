@@ -206,7 +206,8 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
           );
           parts.add(const SizedBox(height: 8));
           final hex = n.num?.toRadixString(16);
-          if (hex != null) parts.add(Text('ID: 0x$hex'));
+          if (hex != null)
+            parts.add(Text(AppLocalizations.of(ctx).nodeIdHex(hex)));
           if (n.user?.role != null)
             parts.add(
               Text(

@@ -5,7 +5,11 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 import 'logging_service.dart';
 import 'meshtastic_ble_client.dart';
+import 'meshtastic_ip_client.dart';
+import 'meshtastic_usb_client.dart';
+import 'meshtastic_client.dart';
 import 'device_communication_event_service.dart';
+import 'recent_devices_service.dart';
 import '../meshtastic/model/meshtastic_event.dart';
 
 /// Represents the connection state for a device along with optional error.
@@ -62,10 +66,17 @@ class DeviceStatusStore {
   final Map<String, _Entry> _entries = <String, _Entry>{};
 
   /// Connect (or reuse existing connection) for the given device.
-  /// Returns the active [MeshtasticBleClient].
-  Future<MeshtasticBleClient> connect(BluetoothDevice device) async {
+  /// Returns the active [MeshtasticClient].
+  Future<MeshtasticClient> connect(BluetoothDevice device) async {
     final id = device.remoteId.str;
     final entry = _entries.putIfAbsent(id, () => _Entry(device));
+
+    // IMPORTANT: Update the device reference in the entry.
+    // If the entry was a placeholder (from recent devices list), it might have a null device
+    // or a device object that isn't fully initialized/doesn't have the same internal state.
+    // We want to ensure we are using the fresh BluetoothDevice object passed to connect().
+    entry.device = device;
+
     // If already connected or connecting, return the existing client
     if (entry.client != null &&
         entry.status?.state == DeviceConnectionState.connected) {
@@ -77,7 +88,7 @@ class DeviceStatusStore {
 
     entry._update(DeviceConnectionState.connecting);
     _connectedDevicesController.add(connectedDevices);
-    final completer = Completer<MeshtasticBleClient>();
+    final completer = Completer<MeshtasticClient>();
     entry.connecting = completer.future;
     try {
       final client = MeshtasticBleClient(device);
@@ -117,9 +128,34 @@ class DeviceStatusStore {
       entry._subscribeClientRssi();
       _connectedDevicesController.add(connectedDevices);
       _log(id, 'Connected');
+
+      // Add to recent devices list
+      final scanResult = ScanResult(
+        device: device,
+        advertisementData: AdvertisementData(
+          advName: device.platformName,
+          txPowerLevel: null,
+          connectable: true,
+          manufacturerData:
+              {}, // We might miss this, but it's okay for basic listing
+          serviceData: {},
+          serviceUuids: [],
+          appearance: null,
+        ),
+        rssi: 0, // Unknown
+        timeStamp: DateTime.now(),
+      );
+      RecentDevicesService.instance.add(scanResult);
+
       completer.complete(client);
       return client;
     } catch (e) {
+      // If we failed to connect, we should probably disconnect to clean up
+      try {
+        await entry.client?.dispose();
+      } catch (_) {}
+      entry.client = null;
+
       entry._update(DeviceConnectionState.error, error: e);
       entry._scheduleErrorRemoval();
       _connectedDevicesController.add(connectedDevices);
@@ -131,11 +167,121 @@ class DeviceStatusStore {
     }
   }
 
+  Future<MeshtasticClient> connectIp(String host, int port) async {
+    final deviceId =
+        'IP:$host:$port'; // Temporary ID until we get real one from config
+    final entry = _entries.putIfAbsent(deviceId, () => _Entry.ip(deviceId));
+
+    if (entry.client != null &&
+        entry.status?.state == DeviceConnectionState.connected) {
+      return entry.client!;
+    }
+    if (entry.connecting != null) {
+      return await entry.connecting!;
+    }
+
+    entry._update(DeviceConnectionState.connecting);
+    // Note: IP devices are not added to _connectedDevicesController yet as it expects BluetoothDevice
+
+    final completer = Completer<MeshtasticClient>();
+    entry.connecting = completer.future;
+
+    try {
+      final client = MeshtasticIpClient(
+        host: host,
+        port: port,
+        deviceId: deviceId,
+      );
+
+      // Wait for ConfigCompleteEvent? IP might be faster, but let's stick to pattern if needed.
+      // For now, just connect.
+
+      await client.connect();
+      entry.client = client;
+
+      entry._update(DeviceConnectionState.connected);
+      entry._subscribeClientRssi();
+      _log(deviceId, 'Connected via IP');
+      completer.complete(client);
+      return client;
+    } catch (e) {
+      try {
+        await entry.client?.dispose();
+      } catch (_) {}
+      entry.client = null;
+      entry._update(DeviceConnectionState.error, error: e);
+      entry._scheduleErrorRemoval();
+      _log(deviceId, 'Connect IP failed: $e', level: 'error');
+      completer.completeError(e);
+      rethrow;
+    } finally {
+      entry.connecting = null;
+    }
+  }
+
+  Future<MeshtasticClient> connectUsb(String portName) async {
+    final deviceId = 'USB:$portName'; // Temporary ID
+    final entry = _entries.putIfAbsent(deviceId, () => _Entry.usb(deviceId));
+
+    if (entry.client != null &&
+        entry.status?.state == DeviceConnectionState.connected) {
+      return entry.client!;
+    }
+    if (entry.connecting != null) {
+      return await entry.connecting!;
+    }
+
+    entry._update(DeviceConnectionState.connecting);
+
+    final completer = Completer<MeshtasticClient>();
+    entry.connecting = completer.future;
+
+    try {
+      final client = MeshtasticUsbClient(
+        portName: portName,
+        deviceId: deviceId,
+      );
+      await client.connect();
+      entry.client = client;
+
+      entry._update(DeviceConnectionState.connected);
+      entry._subscribeClientRssi();
+      _log(deviceId, 'Connected via USB');
+      completer.complete(client);
+      return client;
+    } catch (e) {
+      try {
+        await entry.client?.dispose();
+      } catch (_) {}
+      entry.client = null;
+      entry._update(DeviceConnectionState.error, error: e);
+      entry._scheduleErrorRemoval();
+      _log(deviceId, 'Connect USB failed: $e', level: 'error');
+      completer.completeError(e);
+      rethrow;
+    } finally {
+      entry.connecting = null;
+    }
+  }
+
   /// Connect to a device by its ID if it is already known to the store.
-  Future<MeshtasticBleClient?> connectToId(String deviceId) async {
+  Future<MeshtasticClient?> connectToId(String deviceId) async {
     final entry = _entries[deviceId];
     if (entry != null) {
-      return connect(entry.device);
+      // If we have an active client, return it
+      if (entry.client != null &&
+          entry.status?.state == DeviceConnectionState.connected) {
+        return entry.client;
+      }
+
+      if (entry.device != null) {
+        return connect(entry.device!);
+      } else {
+        // For IP/USB devices, if we are not connected, we can't easily reconnect
+        // without host/port/portName unless we stored them.
+        // But if we are here, maybe we are just checking status or trying to send message.
+        return null;
+      }
     }
     return null;
   }
@@ -149,7 +295,7 @@ class DeviceStatusStore {
       // Politely inform the radio first via ToRadio(disconnect=true)
       if (entry.client != null) {
         try {
-          await entry.client!.sendDisconnectCommand();
+          await entry.client!.disconnect();
           // Give the radio a brief moment to handle the request
           await Future<void>.delayed(const Duration(milliseconds: 100));
         } catch (_) {
@@ -204,6 +350,8 @@ class DeviceStatusStore {
               e.status?.state == DeviceConnectionState.error,
         )
         .map((e) => e.device)
+        .where((d) => d != null)
+        .cast<BluetoothDevice>()
         .toList();
   }
 
@@ -234,9 +382,9 @@ class DeviceStatusStore {
 
 class _Entry {
   final String deviceId;
-  BluetoothDevice device;
-  MeshtasticBleClient? client;
-  Future<MeshtasticBleClient>? connecting;
+  BluetoothDevice? device; // Nullable for IP/USB devices
+  MeshtasticClient? client;
+  Future<MeshtasticClient>? connecting;
   final StreamController<DeviceStatus> controller =
       StreamController<DeviceStatus>.broadcast();
   DeviceStatus? status;
@@ -246,15 +394,27 @@ class _Entry {
   Timer? _errorRemovalTimer;
 
   _Entry(this.device)
-    : deviceId = device.remoteId.str,
+    : deviceId = device!.remoteId.str,
       status = DeviceStatus(
         deviceId: device.remoteId.str,
         state: DeviceConnectionState.disconnected,
       );
 
-  _Entry.placeholder(this.deviceId)
-    : device = BluetoothDevice(remoteId: DeviceIdentifier(deviceId)),
-      status = null;
+  _Entry.ip(this.deviceId)
+    : device = null,
+      status = DeviceStatus(
+        deviceId: deviceId,
+        state: DeviceConnectionState.disconnected,
+      );
+
+  _Entry.usb(this.deviceId)
+    : device = null,
+      status = DeviceStatus(
+        deviceId: deviceId,
+        state: DeviceConnectionState.disconnected,
+      );
+
+  _Entry.placeholder(this.deviceId) : device = null, status = null;
 
   void _update(DeviceConnectionState state, {Object? error, int? rssi}) {
     // If we are moving out of error state, cancel any pending removal
@@ -291,7 +451,9 @@ class _Entry {
 
   void _listenConnectionState() {
     connStateSub?.cancel();
-    connStateSub = device.connectionState.listen((state) {
+    if (device == null)
+      return; // IP/USB devices don't have OS-level connection state stream yet
+    connStateSub = device!.connectionState.listen((state) {
       if (state == BluetoothConnectionState.disconnected) {
         // Update status and notify services so UI can reflect and users can see it.
         _unsubscribeClientRssi();

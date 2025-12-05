@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:mesh/services/notification_service.dart';
+import 'package:mesh/services/settings_service.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/mesh_app_bar.dart';
 
 class SettingsPage extends StatelessWidget {
-  final Locale? initialLocale; // null → system default
-  final void Function(Locale? locale) onChangedLocale;
+  final AppSettings settings;
+  final ValueChanged<AppSettings> onChangedSettings;
   final VoidCallback? onToggleTheme;
   final ThemeMode? themeMode;
 
   const SettingsPage({
     super.key,
-    required this.initialLocale,
-    required this.onChangedLocale,
+    required this.settings,
+    required this.onChangedSettings,
     this.onToggleTheme,
     this.themeMode,
   });
@@ -21,6 +22,9 @@ class SettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     final options = <Locale?>[null, ...AppLocalizations.supportedLocales];
+    final initialLocale = settings.locale;
+    final hasPassword =
+        settings.adminPassword != null && settings.adminPassword!.isNotEmpty;
 
     return Scaffold(
       appBar: MeshAppBar(
@@ -33,6 +37,47 @@ class SettingsPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(12),
         children: [
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.security),
+                      const SizedBox(width: 8),
+                      Text(
+                        t.security,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  if (!hasPassword)
+                    ElevatedButton(
+                      onPressed: () => _showSetPasswordDialog(context),
+                      child: Text(t.protectApp),
+                    )
+                  else
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          t.appProtected,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        ElevatedButton(
+                          onPressed: () => _showRemovePasswordDialog(context),
+                          child: Text(t.disableProtection),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+          ),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(12),
@@ -60,7 +105,7 @@ class SettingsPage extends StatelessWidget {
                           selected: _equalsLocale(loc, initialLocale),
                           onSelected: (selected) {
                             if (!selected) return;
-                            onChangedLocale(loc);
+                            onChangedSettings(settings.copyWith(locale: loc));
                           },
                         ),
                     ],
@@ -104,6 +149,74 @@ class SettingsPage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _showSetPasswordDialog(BuildContext context) async {
+    final controller = TextEditingController();
+    final t = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(t.setPassword),
+        content: TextField(
+          controller: controller,
+          obscureText: true,
+          decoration: InputDecoration(labelText: t.password),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(t.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(t.save),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && controller.text.isNotEmpty) {
+      onChangedSettings(settings.copyWith(adminPassword: controller.text));
+    }
+  }
+
+  Future<void> _showRemovePasswordDialog(BuildContext context) async {
+    final controller = TextEditingController();
+    final t = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(t.enterPassword),
+        content: TextField(
+          controller: controller,
+          obscureText: true,
+          decoration: InputDecoration(labelText: t.currentPassword),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(t.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(t.confirm),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      if (controller.text == settings.adminPassword) {
+        onChangedSettings(settings.copyWith(adminPassword: ''));
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(t.incorrectPassword)));
+        }
+      }
+    }
   }
 }
 

@@ -125,6 +125,12 @@ class MessageRoutingService {
       isMe: true,
       timestamp: DateTime.now(),
       status: MessageStatus.sending,
+      statusHistory: [
+        MessageStatusHistoryEntry(
+          status: MessageStatus.sending,
+          timestamp: DateTime.now(),
+        ),
+      ],
     );
 
     _addMessage(roomId, message);
@@ -258,6 +264,13 @@ class MessageRoutingService {
               },
               authorNodeId: packet.from,
               deviceId: deviceId,
+              statusHistory: [
+                MessageStatusHistoryEntry(
+                  status: MessageStatus.received,
+                  timestamp: DateTime.now(),
+                  sourceNodeId: packet.from,
+                ),
+              ],
             );
             _addMessage(roomId, message);
             await _notificationService.showNotification(
@@ -272,62 +285,126 @@ class MessageRoutingService {
           final deviceId = event.tags['deviceId']?.firstOrNull;
 
           // Handle Routing/ACK
-          // We check if the ACK is from the intended receiver or from a relay node
-          if (routing.errorReason != null && deviceId != null) {
+          if (deviceId != null) {
             final fromNode = packet.from;
-            if (fromNode != null) {
-              // Iterate through all rooms to find messages awaiting ACK
-              for (final roomId in _rooms.keys) {
-                final room = _rooms[roomId]!;
+            final myNodeId = DeviceStateService.instance
+                .getState(deviceId)
+                ?.myNodeInfo
+                ?.myNodeNum;
 
-                // For direct messages, we can determine if this is receiver vs relay
-                if (room.isDirect && room.deviceId == deviceId) {
+            if (fromNode != null) {
+              // If we have a requestId, we can find the exact message
+              if (routing.requestId != null && routing.requestId != 0) {
+                for (final roomId in _rooms.keys) {
+                  // Only check rooms for this device
+                  if (_rooms[roomId]?.deviceId != deviceId) continue;
+
                   final roomMessages = _messages[roomId];
                   if (roomMessages != null) {
-                    // Find messages that are pending ACK
-                    for (final msg in roomMessages) {
-                      if (msg.status == MessageStatus.sent ||
-                          msg.status == MessageStatus.sending) {
-                        // Determine if this ACK is from the receiver or a relay
-                        final isFromReceiver = (fromNode == room.otherNodeId);
-                        final newStatus = routing.errorReason != 'NONE'
-                            ? MessageStatus.failed
-                            : (isFromReceiver
-                                  ? MessageStatus.acked
-                                  : MessageStatus.ackedByRelay);
+                    final msgIndex = roomMessages.indexWhere(
+                      (m) => m.packetId == routing.requestId,
+                    );
+                    if (msgIndex != -1) {
+                      final msg = roomMessages[msgIndex];
+                      final room = _rooms[roomId]!;
 
-                        _updateMessageStatus(
-                          roomId,
-                          msg.id,
-                          newStatus,
-                          ackFrom: fromNode,
-                        );
-                        // ACK the first pending message we find
-                        // (usually ACKs are for the oldest pending message)
-                        break;
+                      // Determine status
+                      MessageStatus newStatus;
+                      if (routing.errorReason != null &&
+                          routing.errorReason != 'NONE') {
+                        newStatus = MessageStatus.failed;
+                      } else {
+                        // Success
+                        if (room.isDirect) {
+                          if (fromNode == room.otherNodeId) {
+                            newStatus = MessageStatus.acked;
+                          } else {
+                            // Local confirmation or relay confirmation
+                            newStatus = MessageStatus.ackedByRelay;
+                          }
+                        } else {
+                          // Broadcast / Channel
+                          if (fromNode == myNodeId) {
+                            // Local confirmation means sent to mesh successfully
+                            // User wants this to show as acked (or at least better than "sent")
+                            // We'll use ackedByRelay or acked. User said "sure it is acked".
+                            // Let's use acked for now as it's a "success" indication from the mesh perspective (injected)
+                            newStatus = MessageStatus.acked;
+                          } else {
+                            // Rebroadcast heard from someone else
+                            newStatus = MessageStatus.ackedByRelay;
+                          }
+                        }
                       }
+
+                      _updateMessageStatus(
+                        roomId,
+                        msg.id,
+                        newStatus,
+                        ackFrom: fromNode,
+                      );
+                      break; // Found the message, stop searching
                     }
                   }
                 }
-                // For channel messages, we treat any ACK as relay ACK
-                // since we can't easily determine the final recipient
-                else if (!room.isDirect && room.deviceId == deviceId) {
-                  final roomMessages = _messages[roomId];
-                  if (roomMessages != null) {
-                    for (final msg in roomMessages) {
-                      if (msg.status == MessageStatus.sent ||
-                          msg.status == MessageStatus.sending) {
-                        final newStatus = routing.errorReason != 'NONE'
-                            ? MessageStatus.failed
-                            : MessageStatus.ackedByRelay;
+              } else {
+                // Fallback for missing requestId (old behavior)
+                // Iterate through all rooms to find messages awaiting ACK
+                for (final roomId in _rooms.keys) {
+                  final room = _rooms[roomId]!;
+                  if (room.deviceId != deviceId) continue;
 
-                        _updateMessageStatus(
-                          roomId,
-                          msg.id,
-                          newStatus,
-                          ackFrom: fromNode,
-                        );
-                        break;
+                  // For direct messages, we can determine if this is receiver vs relay
+                  if (room.isDirect) {
+                    final roomMessages = _messages[roomId];
+                    if (roomMessages != null) {
+                      // Find messages that are pending ACK
+                      for (final msg in roomMessages) {
+                        if (msg.status == MessageStatus.sent ||
+                            msg.status == MessageStatus.sending) {
+                          // Determine if this ACK is from the receiver or a relay
+                          final isFromReceiver = (fromNode == room.otherNodeId);
+                          final newStatus =
+                              (routing.errorReason != null &&
+                                  routing.errorReason != 'NONE')
+                              ? MessageStatus.failed
+                              : (isFromReceiver
+                                    ? MessageStatus.acked
+                                    : MessageStatus.ackedByRelay);
+
+                          _updateMessageStatus(
+                            roomId,
+                            msg.id,
+                            newStatus,
+                            ackFrom: fromNode,
+                          );
+                          // ACK the first pending message we find
+                          break;
+                        }
+                      }
+                    }
+                  }
+                  // For channel messages, we treat any ACK as relay ACK
+                  else if (!room.isDirect) {
+                    final roomMessages = _messages[roomId];
+                    if (roomMessages != null) {
+                      for (final msg in roomMessages) {
+                        if (msg.status == MessageStatus.sent ||
+                            msg.status == MessageStatus.sending) {
+                          final newStatus =
+                              (routing.errorReason != null &&
+                                  routing.errorReason != 'NONE')
+                              ? MessageStatus.failed
+                              : MessageStatus.ackedByRelay;
+
+                          _updateMessageStatus(
+                            roomId,
+                            msg.id,
+                            newStatus,
+                            ackFrom: fromNode,
+                          );
+                          break;
+                        }
                       }
                     }
                   }
@@ -371,10 +448,26 @@ class MessageRoutingService {
 
     final index = roomMessages.indexWhere((m) => m.id == messageId);
     if (index != -1) {
-      roomMessages[index] = roomMessages[index].copyWith(
+      final oldMessage = roomMessages[index];
+      final newHistory = List<MessageStatusHistoryEntry>.from(
+        oldMessage.statusHistory,
+      );
+
+      // Only add to history if status changed or it's a significant update (like ackFrom)
+      // But user wants ALL status changes.
+      newHistory.add(
+        MessageStatusHistoryEntry(
+          status: status,
+          timestamp: DateTime.now(),
+          sourceNodeId: ackFrom,
+        ),
+      );
+
+      roomMessages[index] = oldMessage.copyWith(
         status: status,
         packetId: packetId,
         ackFrom: ackFrom,
+        statusHistory: newHistory,
       );
       _emitMessages(roomId);
     }

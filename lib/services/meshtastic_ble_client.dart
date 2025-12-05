@@ -10,6 +10,8 @@ import '../generated/meshtastic/meshtastic/mesh.pb.dart' as mesh;
 import '../meshtastic/model/meshtastic_event.dart';
 import '../meshtastic/model/meshtastic_mappers.dart';
 
+import 'meshtastic_client.dart';
+
 /// Meshtastic BLE client that implements the documented flow:
 /// - Connect to device and set MTU 512
 /// - Discover SERVICE and three characteristics: ToRadio, FromRadio, FromNum
@@ -17,7 +19,7 @@ import '../meshtastic/model/meshtastic_mappers.dart';
 /// - Drain FromRadio until empty for initial download
 /// - Subscribe to FromNum notifications; on notify, drain FromRadio until empty
 /// - Provide public API to send ToRadio messages
-class MeshtasticBleClient {
+class MeshtasticBleClient implements MeshtasticClient {
   // UUIDs (lowercase normalized)
   static const String serviceUuid = '6ba1b218-15a8-461f-9fa8-5dcae273eafd';
   static const String toRadioUuid = 'f75c76d2-129e-4dad-a1dd-7866124401e7';
@@ -65,24 +67,49 @@ class MeshtasticBleClient {
   MeshtasticBleClient(this.device);
 
   /// High-level events parsed from FromRadio payloads.
+  @override
   Stream<MeshtasticEvent> get events => _eventsController.stream;
 
   /// Live RSSI updates (dBm) while connected. Emits when values change.
+  @override
   Stream<int> get rssi => _rssiController.stream;
 
+  @override
   Future<void> connect({Duration timeout = const Duration(seconds: 20)}) async {
     _ensureNotDisposed();
     _log('Connecting to ${device.remoteId.str} ...');
-    int? requestMtu = 512;
-    if (kIsWeb) {
-      requestMtu = null;
+
+    // Check if already connected at the OS level
+    var isConnected = false;
+    try {
+      // We can check the current connection state from the device stream's latest value if available,
+      // or check the list of connected devices from FlutterBluePlus.
+      final connectedDevices = await FlutterBluePlus.connectedSystemDevices;
+      if (connectedDevices.any((d) => d.remoteId == device.remoteId)) {
+        isConnected = true;
+        _log('Device is already connected at OS level');
+      } else {
+        // Fallback: check the device's current state if possible, though connectedSystemDevices is more reliable for "already paired/connected"
+        // Note: device.connectionState is a stream.
+      }
+    } catch (e) {
+      _log('Failed to check existing connection status: $e', level: 'warn');
     }
 
-    await device.connect(
-      timeout: timeout,
-      license: License.free,
-      mtu: requestMtu,
-    );
+    if (!isConnected) {
+      int? requestMtu = 512;
+      if (kIsWeb) {
+        requestMtu = null;
+      }
+
+      await device.connect(
+        timeout: timeout,
+        license: License.free,
+        mtu: requestMtu,
+      );
+    } else {
+      _log('Skipping connect() call because device is already connected');
+    }
 
     // Request MTU 512 only on Android. Other platforms either ignore or don't support it.
     // On non-Android, just read the current MTU.
@@ -166,6 +193,7 @@ class MeshtasticBleClient {
     _log('Discovery done');
   }
 
+  @override
   Future<void> requestConfig() async {
     _log('Sending startConfig (wantConfigId=0)');
     final start = mesh.ToRadio(wantConfigId: 0);
@@ -242,6 +270,7 @@ class MeshtasticBleClient {
 
   /// Send arbitrary `ToRadio` protobuf to the device (Write With Response).
   /// Handles chunking to fit negotiated MTU (payload <= MTU-3).
+  @override
   Future<void> sendToRadio(mesh.ToRadio message) async {
     _log('Sending ToRadio message: $message');
     final data = message.writeToBuffer();
@@ -257,6 +286,7 @@ class MeshtasticBleClient {
   }
 
   /// Convenience: send a MeshPacket wrapped in ToRadio
+  @override
   Future<void> sendMeshPacket(mesh.MeshPacket packet) async {
     await sendToRadio(mesh.ToRadio(packet: packet));
   }
@@ -286,7 +316,14 @@ class MeshtasticBleClient {
     }
   }
 
+  @override
+  Future<void> disconnect() async {
+    await sendDisconnectCommand();
+    await dispose();
+  }
+
   /// Dispose resources and disconnect.
+  @override
   Future<void> dispose() async {
     if (_isDisposed) return;
     _isDisposed = true;

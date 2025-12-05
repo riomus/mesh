@@ -156,7 +156,9 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                 leading: const Icon(Icons.badge),
                 title: Text(AppLocalizations.of(context).platformName),
                 subtitle: Text(
-                  device.platformName.isNotEmpty ? device.platformName : '—',
+                  device.platformName.isNotEmpty
+                      ? device.platformName
+                      : AppLocalizations.of(context).emptyState,
                 ),
               ),
               ListTile(
@@ -290,7 +292,10 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                   children: [
                     Row(
                       children: [
-                        const Text('📡', style: TextStyle(fontSize: 18)),
+                        Text(
+                          AppLocalizations.of(context).satelliteEmoji,
+                          style: const TextStyle(fontSize: 18),
+                        ),
                         const SizedBox(width: 8),
                         Text(
                           AppLocalizations.of(context).liveEvents,
@@ -440,7 +445,11 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                     ListTile(
                       leading: const Icon(Icons.label),
                       title: Text(AppLocalizations.of(context).advertisedName),
-                      subtitle: Text(ad.advName.isNotEmpty ? ad.advName : '—'),
+                      subtitle: Text(
+                        ad.advName.isNotEmpty
+                            ? ad.advName
+                            : AppLocalizations.of(context).emptyState,
+                      ),
                     ),
                     ListTile(
                       leading: const Icon(Icons.link),

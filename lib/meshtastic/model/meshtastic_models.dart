@@ -162,7 +162,8 @@ class UserPayloadDto extends DecodedPayloadDto {
 class RoutingPayloadDto extends DecodedPayloadDto {
   final String? variant;
   final String? errorReason;
-  const RoutingPayloadDto({this.variant, this.errorReason});
+  final int? requestId;
+  const RoutingPayloadDto({this.variant, this.errorReason, this.requestId});
 }
 
 class AdminPayloadDto extends DecodedPayloadDto {

@@ -44,6 +44,18 @@ class ChatRoom {
   }
 }
 
+class MessageStatusHistoryEntry {
+  final MessageStatus status;
+  final DateTime timestamp;
+  final int? sourceNodeId;
+
+  MessageStatusHistoryEntry({
+    required this.status,
+    required this.timestamp,
+    this.sourceNodeId,
+  });
+}
+
 class ChatMessage {
   final String id;
   final String roomId;
@@ -56,6 +68,7 @@ class ChatMessage {
   final int? authorNodeId;
   final String? deviceId;
   final int? ackFrom; // Node ID that sent the acknowledgment
+  final List<MessageStatusHistoryEntry> statusHistory;
 
   ChatMessage({
     required this.id,
@@ -69,6 +82,7 @@ class ChatMessage {
     this.authorNodeId,
     this.deviceId,
     this.ackFrom,
+    this.statusHistory = const [],
   });
 
   ChatMessage copyWith({
@@ -83,6 +97,7 @@ class ChatMessage {
     int? authorNodeId,
     String? deviceId,
     int? ackFrom,
+    List<MessageStatusHistoryEntry>? statusHistory,
   }) {
     return ChatMessage(
       id: id ?? this.id,
@@ -96,6 +111,7 @@ class ChatMessage {
       authorNodeId: authorNodeId ?? this.authorNodeId,
       deviceId: deviceId ?? this.deviceId,
       ackFrom: ackFrom ?? this.ackFrom,
+      statusHistory: statusHistory ?? this.statusHistory,
     );
   }
 }

@@ -969,6 +969,7 @@ class MeshtasticMappers {
           return RoutingPayloadDto(
             variant: r.whichVariant().name,
             errorReason: r.hasErrorReason() ? r.errorReason.name : null,
+            requestId: data.hasRequestId() ? data.requestId : null,
           );
         } catch (_) {
           return RawPayloadDto(portInternal, bytes);

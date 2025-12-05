@@ -815,4 +815,679 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get idTitle => 'ID';
+
+  @override
+  String get protectApp => 'Protect App';
+
+  @override
+  String get setPassword => 'Set Password';
+
+  @override
+  String get enterPassword => 'Enter Password';
+
+  @override
+  String get currentPassword => 'Current Password';
+
+  @override
+  String get incorrectPassword => 'Incorrect password';
+
+  @override
+  String get confirm => 'Confirm';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get hostInputLabel => 'Host (IP address or hostname)';
+
+  @override
+  String get portInputLabel => 'Port';
+
+  @override
+  String get invalidHostPort => 'Please enter valid host and port';
+
+  @override
+  String get connectedToIpDevice => 'Connected to IP device';
+
+  @override
+  String get connectedToUsbDevice => 'Connected to USB device';
+
+  @override
+  String get refreshPorts => 'Refresh Ports';
+
+  @override
+  String get noSerialPortsFound => 'No serial ports found';
+
+  @override
+  String get selectSerialPort => 'Select Serial Port';
+
+  @override
+  String get xmodemTitle => 'XModem';
+
+  @override
+  String get emptyState => '—';
+
+  @override
+  String get filterKey => 'Key';
+
+  @override
+  String get satelliteEmoji => '📡';
+
+  @override
+  String get puzzleEmoji => '🧩';
+
+  @override
+  String get appProtected => 'App is protected. Advanced features are hidden.';
+
+  @override
+  String get disableProtection => 'Disable Protection';
+
+  @override
+  String get password => 'Password';
+
+  @override
+  String get connectToIpDevice => 'Connect to Meshtastic Device via IP';
+
+  @override
+  String get connectViaUsb => 'Connect via USB';
+
+  @override
+  String get event => 'Event';
+
+  @override
+  String get defaultChannel => 'Default';
+
+  @override
+  String rssiDbm(Object value) {
+    return '$value dBm';
+  }
+
+  @override
+  String get sendingToRadio => 'Sending to radio...';
+
+  @override
+  String get sentToRadio => 'Sent to radio';
+
+  @override
+  String get acknowledgedByReceiver => 'Acknowledged by receiver';
+
+  @override
+  String get acknowledgedByRelay => 'Acknowledged by relay node';
+
+  @override
+  String get notAcknowledgedTimeout => 'Not acknowledged (Timeout)';
+
+  @override
+  String get received => 'Received';
+
+  @override
+  String get packetInfo => 'Packet Info:';
+
+  @override
+  String nodeName(Object name) {
+    return 'Node $name';
+  }
+
+  @override
+  String unknownNode(Object id) {
+    return 'Node $id (Unknown)';
+  }
+
+  @override
+  String get deviceConfig => 'Device Config';
+
+  @override
+  String get positionConfig => 'Position Config';
+
+  @override
+  String get powerConfig => 'Power Config';
+
+  @override
+  String get networkConfig => 'Network Config';
+
+  @override
+  String get displayConfig => 'Display Config';
+
+  @override
+  String get loraConfig => 'LoRa Config';
+
+  @override
+  String get bluetoothConfig => 'Bluetooth Config';
+
+  @override
+  String get securityConfig => 'Security Config';
+
+  @override
+  String get mqttConfig => 'MQTT Config';
+
+  @override
+  String get telemetryConfig => 'Telemetry Config';
+
+  @override
+  String get serialConfig => 'Serial Config';
+
+  @override
+  String get storeForwardConfig => 'Store & Forward Config';
+
+  @override
+  String get rangeTestConfig => 'Range Test Config';
+
+  @override
+  String get externalNotificationConfig => 'External Notification Config';
+
+  @override
+  String get audioConfig => 'Audio Config';
+
+  @override
+  String get neighborInfoConfig => 'Neighbor Info Config';
+
+  @override
+  String get remoteHardwareConfig => 'Remote Hardware Config';
+
+  @override
+  String get paxcounterConfig => 'Paxcounter Config';
+
+  @override
+  String get cannedMessageConfig => 'Canned Message Config';
+
+  @override
+  String get ambientLightingConfig => 'Ambient Lighting Config';
+
+  @override
+  String get detectionSensorConfig => 'Detection Sensor Config';
+
+  @override
+  String get dtnOverlayConfig => 'DTN Overlay Config';
+
+  @override
+  String get broadcastAssistConfig => 'Broadcast Assist Config';
+
+  @override
+  String get nodeModConfig => 'Node Mod Config';
+
+  @override
+  String get nodeModAdminConfig => 'Node Mod Admin Config';
+
+  @override
+  String get idleGameConfig => 'Idle Game Config';
+
+  @override
+  String get serialEnabled => 'Serial Enabled';
+
+  @override
+  String get buttonGpio => 'Button GPIO';
+
+  @override
+  String get buzzerGpio => 'Buzzer GPIO';
+
+  @override
+  String get rebroadcastMode => 'Rebroadcast Mode';
+
+  @override
+  String get nodeInfoBroadcastSecs => 'Node Info Broadcast Secs';
+
+  @override
+  String get doubleTapAsButtonPress => 'Double Tap As Button Press';
+
+  @override
+  String get isManaged => 'Is Managed';
+
+  @override
+  String get disableTripleClick => 'Disable Triple Click';
+
+  @override
+  String get timezone => 'Timezone';
+
+  @override
+  String get ledHeartbeatDisabled => 'LED Heartbeat Disabled';
+
+  @override
+  String get buzzerMode => 'Buzzer Mode';
+
+  @override
+  String get positionBroadcastSecs => 'Position Broadcast Secs';
+
+  @override
+  String get positionBroadcastSmartEnabled =>
+      'Position Broadcast Smart Enabled';
+
+  @override
+  String get fixedPosition => 'Fixed Position';
+
+  @override
+  String get gpsEnabled => 'GPS Enabled';
+
+  @override
+  String get gpsUpdateInterval => 'GPS Update Interval';
+
+  @override
+  String get gpsAttemptTime => 'GPS Attempt Time';
+
+  @override
+  String get positionFlags => 'Position Flags';
+
+  @override
+  String get rxGpio => 'RX GPIO';
+
+  @override
+  String get txGpio => 'TX GPIO';
+
+  @override
+  String get broadcastSmartMinimumDistance =>
+      'Broadcast Smart Minimum Distance';
+
+  @override
+  String get broadcastSmartMinimumIntervalSecs =>
+      'Broadcast Smart Minimum Interval Secs';
+
+  @override
+  String get gpsEnableGpio => 'GPS Enable GPIO';
+
+  @override
+  String get gpsMode => 'GPS Mode';
+
+  @override
+  String get isPowerSaving => 'Is Power Saving';
+
+  @override
+  String get onBatteryShutdownAfterSecs => 'On Battery Shutdown After Secs';
+
+  @override
+  String get adcMultiplierOverride => 'ADC Multiplier Override';
+
+  @override
+  String get waitBluetoothSecs => 'Wait Bluetooth Secs';
+
+  @override
+  String get sdsSecs => 'SDS Secs';
+
+  @override
+  String get lsSecs => 'LS Secs';
+
+  @override
+  String get minWakeSecs => 'Min Wake Secs';
+
+  @override
+  String get deviceBatteryInaAddress => 'Device Battery INA Address';
+
+  @override
+  String get powermonEnables => 'Powermon Enables';
+
+  @override
+  String get wifiEnabled => 'WiFi Enabled';
+
+  @override
+  String get wifiSsid => 'WiFi SSID';
+
+  @override
+  String get screenOnSecs => 'Screen On Secs';
+
+  @override
+  String get autoScreenCarouselSecs => 'Auto Screen Carousel Secs';
+
+  @override
+  String get compassNorthTop => 'Compass North Top';
+
+  @override
+  String get flipScreen => 'Flip Screen';
+
+  @override
+  String get units => 'Units';
+
+  @override
+  String get oled => 'OLED';
+
+  @override
+  String get displayMode => 'Display Mode';
+
+  @override
+  String get headingBold => 'Heading Bold';
+
+  @override
+  String get wakeOnTapOrMotion => 'Wake On Tap Or Motion';
+
+  @override
+  String get compassOrientation => 'Compass Orientation';
+
+  @override
+  String get use12hClock => 'Use 12h Clock';
+
+  @override
+  String get useLongNodeName => 'Use Long Node Name';
+
+  @override
+  String get region => 'Region';
+
+  @override
+  String get modemPreset => 'Modem Preset';
+
+  @override
+  String get hopLimit => 'Hop Limit';
+
+  @override
+  String get txEnabled => 'TX Enabled';
+
+  @override
+  String get txPower => 'TX Power';
+
+  @override
+  String get enabled => 'Enabled';
+
+  @override
+  String get mode => 'Mode';
+
+  @override
+  String get fixedPin => 'Fixed PIN';
+
+  @override
+  String get publicKey => 'Public Key';
+
+  @override
+  String get privateKey => 'Private Key';
+
+  @override
+  String get adminKeys => 'Admin Keys';
+
+  @override
+  String get debugLogApiEnabled => 'Debug Log API Enabled';
+
+  @override
+  String get adminChannelEnabled => 'Admin Channel Enabled';
+
+  @override
+  String get address => 'Address';
+
+  @override
+  String get username => 'Username';
+
+  @override
+  String get encryption => 'Encryption';
+
+  @override
+  String get json => 'JSON';
+
+  @override
+  String get tls => 'TLS';
+
+  @override
+  String get rootTopic => 'Root Topic';
+
+  @override
+  String get proxyToClient => 'Proxy to Client';
+
+  @override
+  String get mapReporting => 'Map Reporting';
+
+  @override
+  String get deviceUpdateInterval => 'Device Update Interval';
+
+  @override
+  String get environmentUpdateInterval => 'Environment Update Interval';
+
+  @override
+  String get environmentMeasurement => 'Environment Measurement';
+
+  @override
+  String get environmentScreen => 'Environment Screen';
+
+  @override
+  String get airQuality => 'Air Quality';
+
+  @override
+  String get airQualityInterval => 'Air Quality Interval';
+
+  @override
+  String get powerMeasurement => 'Power Measurement';
+
+  @override
+  String get powerUpdateInterval => 'Power Update Interval';
+
+  @override
+  String get powerScreen => 'Power Screen';
+
+  @override
+  String get healthMeasurement => 'Health Measurement';
+
+  @override
+  String get healthUpdateInterval => 'Health Update Interval';
+
+  @override
+  String get healthScreen => 'Health Screen';
+
+  @override
+  String get deviceTelemetry => 'Device Telemetry';
+
+  @override
+  String get echo => 'Echo';
+
+  @override
+  String get rxd => 'RXD';
+
+  @override
+  String get txd => 'TXD';
+
+  @override
+  String get baud => 'Baud';
+
+  @override
+  String get timeout => 'Timeout';
+
+  @override
+  String get overrideConsole => 'Override Console';
+
+  @override
+  String get heartbeat => 'Heartbeat';
+
+  @override
+  String get records => 'Records';
+
+  @override
+  String get historyReturnMax => 'History Return Max';
+
+  @override
+  String get historyReturnWindow => 'History Return Window';
+
+  @override
+  String get isServer => 'Is Server';
+
+  @override
+  String get emitControlSignals => 'Emit Control Signals';
+
+  @override
+  String get sender => 'Sender';
+
+  @override
+  String get clearOnReboot => 'Clear on Reboot';
+
+  @override
+  String get outputMs => 'Output MS';
+
+  @override
+  String get output => 'Output';
+
+  @override
+  String get active => 'Active';
+
+  @override
+  String get alertMessage => 'Alert Message';
+
+  @override
+  String get alertBell => 'Alert Bell';
+
+  @override
+  String get usePwm => 'Use PWM';
+
+  @override
+  String get outputVibra => 'Output Vibra';
+
+  @override
+  String get outputBuzzer => 'Output Buzzer';
+
+  @override
+  String get nagTimeout => 'Nag Timeout';
+
+  @override
+  String get useI2sAsBuzzer => 'Use I2S as Buzzer';
+
+  @override
+  String get codec2Enabled => 'Codec2 Enabled';
+
+  @override
+  String get pttPin => 'PTT Pin';
+
+  @override
+  String get bitrate => 'Bitrate';
+
+  @override
+  String get i2sWs => 'I2S WS';
+
+  @override
+  String get i2sSd => 'I2S SD';
+
+  @override
+  String get i2sDin => 'I2S DIN';
+
+  @override
+  String get i2sSck => 'I2S SCK';
+
+  @override
+  String get updateInterval => 'Update Interval';
+
+  @override
+  String get transmitOverLora => 'Transmit Over LoRa';
+
+  @override
+  String get allowUndefinedPinAccess => 'Allow Undefined Pin Access';
+
+  @override
+  String get paxcounterUpdateInterval => 'Paxcounter Update Interval';
+
+  @override
+  String get wifiThreshold => 'WiFi Threshold';
+
+  @override
+  String get bleThreshold => 'BLE Threshold';
+
+  @override
+  String get rotary1Enabled => 'Rotary1 Enabled';
+
+  @override
+  String get inputBrokerPinA => 'Input Broker Pin A';
+
+  @override
+  String get inputBrokerPinB => 'Input Broker Pin B';
+
+  @override
+  String get inputBrokerPinPress => 'Input Broker Pin Press';
+
+  @override
+  String get upDown1Enabled => 'Up/Down 1 Enabled';
+
+  @override
+  String get allowInputSource => 'Allow Input Source';
+
+  @override
+  String get sendBell => 'Send Bell';
+
+  @override
+  String get ledState => 'LED State';
+
+  @override
+  String get current => 'Current';
+
+  @override
+  String get red => 'Red';
+
+  @override
+  String get green => 'Green';
+
+  @override
+  String get blue => 'Blue';
+
+  @override
+  String get minBroadcastSecs => 'Min Broadcast Secs';
+
+  @override
+  String get stateBroadcastSecs => 'State Broadcast Secs';
+
+  @override
+  String get monitorPin => 'Monitor Pin';
+
+  @override
+  String get triggerType => 'Trigger Type';
+
+  @override
+  String get usePullup => 'Use Pullup';
+
+  @override
+  String get ttlMinutes => 'TTL Minutes';
+
+  @override
+  String get initialDelayBaseMs => 'Initial Delay Base MS';
+
+  @override
+  String get retryBackoffMs => 'Retry Backoff MS';
+
+  @override
+  String get maxTries => 'Max Tries';
+
+  @override
+  String get degreeThreshold => 'Degree Threshold';
+
+  @override
+  String get dupThreshold => 'Dup Threshold';
+
+  @override
+  String get windowMs => 'Window MS';
+
+  @override
+  String get maxExtraHops => 'Max Extra Hops';
+
+  @override
+  String get jitterMs => 'Jitter MS';
+
+  @override
+  String get airtimeGuard => 'Airtime Guard';
+
+  @override
+  String get textStatus => 'Text Status';
+
+  @override
+  String get emoji => 'Emoji';
+
+  @override
+  String get snifferEnabled => 'Sniffer Enabled';
+
+  @override
+  String get doNotSendPrvOverMqtt => 'Do Not Send PRV Over MQTT';
+
+  @override
+  String get localStatsOverMesh => 'Local Stats Over Mesh';
+
+  @override
+  String get idlegameEnabled => 'Idle Game Enabled';
+
+  @override
+  String get autoResponderEnabled => 'Auto Responder Enabled';
+
+  @override
+  String get autoResponderText => 'Auto Responder Text';
+
+  @override
+  String get autoRedirectMessages => 'Auto Redirect Messages';
+
+  @override
+  String get autoRedirectTarget => 'Auto Redirect Target';
+
+  @override
+  String get telemetryLimiter => 'Telemetry Limiter';
+
+  @override
+  String get positionLimiter => 'Position Limiter';
+
+  @override
+  String get opportunisticFlooding => 'Opportunistic Flooding';
+
+  @override
+  String get idleGameVariant => 'Idle Game Variant';
 }

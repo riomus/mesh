@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 
 class RssiBar extends StatelessWidget {
   final int rssi; // typically [-100..-20]
@@ -54,7 +55,10 @@ class RssiBar extends StatelessWidget {
             ),
           ),
         const SizedBox(width: 8),
-        Text('$rssi dBm', style: Theme.of(context).textTheme.bodySmall),
+        Text(
+          AppLocalizations.of(context).rssiDbm(rssi.toString()),
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
       ],
     );
   }

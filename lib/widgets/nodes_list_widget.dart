@@ -17,7 +17,9 @@ class _NodeChipFilter {
   final _NodeChipOp op;
   RegExp? _compiledRegex;
   _NodeChipFilter({required this.key, required this.value, required this.op});
-  String get label => op == _NodeChipOp.exact ? (value.isEmpty ? key : '$key=$value') : '$key~/$value/i';
+  String get label => op == _NodeChipOp.exact
+      ? (value.isEmpty ? key : '$key=$value')
+      : '$key~/$value/i';
 }
 
 class NodesListWidget extends StatefulWidget {
@@ -50,7 +52,8 @@ class _NodesListWidgetState extends State<NodesListWidget>
   ];
   List<_SortEntry> _sorters = List<_SortEntry>.from(_defaultSort);
 
-  String? _firstOrNull(List<String>? list) => (list == null || list.isEmpty) ? null : list.first;
+  String? _firstOrNull(List<String>? list) =>
+      (list == null || list.isEmpty) ? null : list.first;
 
   @override
   void initState() {
@@ -64,7 +67,10 @@ class _NodesListWidgetState extends State<NodesListWidget>
         for (final n in list) {
           for (final entry in n.tags.entries) {
             _seenKeys.add(entry.key);
-            final set = _seenValuesByKey.putIfAbsent(entry.key, () => <String>{});
+            final set = _seenValuesByKey.putIfAbsent(
+              entry.key,
+              () => <String>{},
+            );
             set.addAll(entry.value);
           }
         }
@@ -107,7 +113,8 @@ class _NodesListWidgetState extends State<NodesListWidget>
               }
             }
           } else {
-            final re = chip._compiledRegex ?? RegExp(chip.value, caseSensitive: false);
+            final re =
+                chip._compiledRegex ?? RegExp(chip.value, caseSensitive: false);
             chip._compiledRegex = re;
             if (values.any((v) => re.hasMatch(v))) {
               groupMatch = true;
@@ -146,18 +153,28 @@ class _NodesListWidgetState extends State<NodesListWidget>
             separatorBuilder: (_, index2) => const Divider(height: 1),
             itemBuilder: (context, index) {
               final n = filtered[index];
+              // hopsAway is nullable. We only highlight if explicitly 0 (direct connection).
+              // Unset (null) values are ignored.
+              final isHop0 = n.hopsAway == 0;
               return ListTile(
+                tileColor: isHop0
+                    ? Theme.of(
+                        context,
+                      ).colorScheme.primaryContainer.withOpacity(0.2)
+                    : null,
                 leading: CircleAvatar(child: Text(safeInitial(n.displayName))),
                 title: Text(safeText(n.displayName)),
                 subtitle: _buildSubtitle(n),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (n.isFavorite == true) const Icon(Icons.star, color: Colors.amber),
-                    if (n.viaMqtt == true) const Padding(
-                      padding: EdgeInsets.only(left: 6),
-                      child: Icon(Icons.cloud, color: Colors.blueAccent),
-                    ),
+                    if (n.isFavorite == true)
+                      const Icon(Icons.star, color: Colors.amber),
+                    if (n.viaMqtt == true)
+                      const Padding(
+                        padding: EdgeInsets.only(left: 6),
+                        child: Icon(Icons.cloud, color: Colors.blueAccent),
+                      ),
                   ],
                 ),
                 onTap: () {
@@ -178,10 +195,13 @@ class _NodesListWidgetState extends State<NodesListWidget>
 
   Widget _buildSubtitle(MeshNodeView n) {
     final parts = <String>[];
-    if (n.user?.shortName != null && n.user!.shortName!.isNotEmpty) parts.add('@${n.user!.shortName!}');
+    if (n.user?.shortName != null && n.user!.shortName!.isNotEmpty)
+      parts.add('@${n.user!.shortName!}');
     if (n.num != null) parts.add('0x${n.num!.toRadixString(16)}');
-    if (n.hopsAway != null) parts.add('${n.hopsAway} ${AppLocalizations.of(context).hops}');
-    if (n.position?.latitudeI != null && n.position?.longitudeI != null) parts.add('📍');
+    if (n.hopsAway != null)
+      parts.add('${n.hopsAway} ${AppLocalizations.of(context).hops}');
+    if (n.position?.latitudeI != null && n.position?.longitudeI != null)
+      parts.add('📍');
     if (n.deviceMetrics?.batteryLevel != null) {
       final lvl = n.deviceMetrics!.batteryLevel!;
       if (lvl == 101) {
@@ -213,20 +233,25 @@ class _NodesListWidgetState extends State<NodesListWidget>
     final s = isHex ? cleaned : raw;
     return s.length <= 4 ? s : s.substring(s.length - 4);
   }
+
   Widget _buildTopBar(BuildContext context) {
     final chips = _chips
         .asMap()
         .entries
-        .map((entry) => InputChip(
-              label: Text(safeText(entry.value.label)),
-              onDeleted: () => setState(() => _chips.removeAt(entry.key)),
-            ))
+        .map(
+          (entry) => InputChip(
+            label: Text(safeText(entry.value.label)),
+            onDeleted: () => setState(() => _chips.removeAt(entry.key)),
+          ),
+        )
         .toList(growable: false);
 
     // sync controller text with state
     if (_searchCtrl.text != _search) {
       _searchCtrl.text = _search;
-      _searchCtrl.selection = TextSelection.fromPosition(TextPosition(offset: _searchCtrl.text.length));
+      _searchCtrl.selection = TextSelection.fromPosition(
+        TextPosition(offset: _searchCtrl.text.length),
+      );
     }
 
     return Padding(
@@ -262,7 +287,9 @@ class _NodesListWidgetState extends State<NodesListWidget>
                               focusNode: _searchFocus,
                               controller: _searchCtrl,
                               decoration: InputDecoration(
-                                hintText: AppLocalizations.of(context).findByNameOrId,
+                                hintText: AppLocalizations.of(
+                                  context,
+                                ).findByNameOrId,
                                 isDense: true,
                                 border: InputBorder.none,
                               ),
@@ -321,7 +348,9 @@ class _NodesListWidgetState extends State<NodesListWidget>
 
   Future<void> _openAddChipDialog() async {
     if (_seenKeys.isEmpty) return;
-    String? draftKey = _seenKeys.contains('role') ? 'role' : (_seenKeys.toList()..sort()).first;
+    String? draftKey = _seenKeys.contains('role')
+        ? 'role'
+        : (_seenKeys.toList()..sort()).first;
     _NodeChipOp draftOp = _NodeChipOp.exact;
     final Set<String> selectedValues = <String>{};
     final TextEditingController customCtrl = TextEditingController();
@@ -342,30 +371,47 @@ class _NodesListWidgetState extends State<NodesListWidget>
               } catch (_) {
                 return;
               }
-              final c = _NodeChipFilter(key: key, value: pattern, op: _NodeChipOp.regex);
+              final c = _NodeChipFilter(
+                key: key,
+                value: pattern,
+                op: _NodeChipOp.regex,
+              );
               setState(() => _addChipUnique(c));
               Navigator.of(context).pop();
               return;
             }
             bool any = false;
             if (presence) {
-              any |= _addChipUnique(_NodeChipFilter(key: key, value: '', op: _NodeChipOp.exact));
+              any |= _addChipUnique(
+                _NodeChipFilter(key: key, value: '', op: _NodeChipOp.exact),
+              );
             }
             for (final v in selectedValues) {
-              any |= _addChipUnique(_NodeChipFilter(key: key, value: v, op: _NodeChipOp.exact));
+              any |= _addChipUnique(
+                _NodeChipFilter(key: key, value: v, op: _NodeChipOp.exact),
+              );
             }
             final custom = customCtrl.text.trim();
             if (custom.isNotEmpty) {
-              any |= _addChipUnique(_NodeChipFilter(key: key, value: custom, op: _NodeChipOp.exact));
+              any |= _addChipUnique(
+                _NodeChipFilter(key: key, value: custom, op: _NodeChipOp.exact),
+              );
             }
             if (any) setState(() {});
             Navigator.of(context).pop();
           }
 
-          final values = draftKey == null ? const <String>{} : (_seenValuesByKey[draftKey!] ?? const <String>{});
+          final values = draftKey == null
+              ? const <String>{}
+              : (_seenValuesByKey[draftKey!] ?? const <String>{});
           final valuesSorted = values.toList()..sort();
           final keyItems = (_seenKeys.toList()..sort())
-              .map((k) => DropdownMenuItem<String>(value: k, child: Text(safeText(k))))
+              .map(
+                (k) => DropdownMenuItem<String>(
+                  value: k,
+                  child: Text(safeText(k)),
+                ),
+              )
               .toList();
 
           return AlertDialog(
@@ -382,7 +428,9 @@ class _NodesListWidgetState extends State<NodesListWidget>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       DropdownButtonFormField<String>(
-                        decoration: InputDecoration(labelText: AppLocalizations.of(context).key),
+                        decoration: InputDecoration(
+                          labelText: AppLocalizations.of(context).key,
+                        ),
                         initialValue: draftKey,
                         items: keyItems,
                         onChanged: (v) => setDlg(() {
@@ -395,11 +443,18 @@ class _NodesListWidgetState extends State<NodesListWidget>
                       const SizedBox(height: 8),
                       SegmentedButton<_NodeChipOp>(
                         segments: [
-                          ButtonSegment(value: _NodeChipOp.exact, label: Text(AppLocalizations.of(context).exact)),
-                          ButtonSegment(value: _NodeChipOp.regex, label: Text(AppLocalizations.of(context).regex)),
+                          ButtonSegment(
+                            value: _NodeChipOp.exact,
+                            label: Text(AppLocalizations.of(context).exact),
+                          ),
+                          ButtonSegment(
+                            value: _NodeChipOp.regex,
+                            label: Text(AppLocalizations.of(context).regex),
+                          ),
                         ],
                         selected: {draftOp},
-                        onSelectionChanged: (s) => setDlg(() => draftOp = s.first),
+                        onSelectionChanged: (s) =>
+                            setDlg(() => draftOp = s.first),
                       ),
                       const SizedBox(height: 12),
                       if (draftOp == _NodeChipOp.exact) ...[
@@ -408,28 +463,38 @@ class _NodesListWidgetState extends State<NodesListWidget>
                           runSpacing: 8,
                           children: [
                             FilterChip(
-                              label: Text(safeText(AppLocalizations.of(context).hasValueFor(draftKey ?? 'value'))),
+                              label: Text(
+                                safeText(
+                                  AppLocalizations.of(
+                                    context,
+                                  ).hasValueFor(draftKey ?? 'value'),
+                                ),
+                              ),
                               selected: presence,
                               onSelected: (v) => setDlg(() => presence = v),
                             ),
-                            ...valuesSorted.map((v) => FilterChip(
-                                  label: Text(safeText(v)),
-                                  selected: selectedValues.contains(v),
-                                  onSelected: (sel) => setDlg(() {
-                                    if (sel) {
-                                      selectedValues.add(v);
-                                    } else {
-                                      selectedValues.remove(v);
-                                    }
-                                  }),
-                                )),
+                            ...valuesSorted.map(
+                              (v) => FilterChip(
+                                label: Text(safeText(v)),
+                                selected: selectedValues.contains(v),
+                                onSelected: (sel) => setDlg(() {
+                                  if (sel) {
+                                    selectedValues.add(v);
+                                  } else {
+                                    selectedValues.remove(v);
+                                  }
+                                }),
+                              ),
+                            ),
                           ],
                         ),
                         const SizedBox(height: 8),
                         TextField(
                           controller: customCtrl,
                           decoration: InputDecoration(
-                            labelText: AppLocalizations.of(context).customValueOptional,
+                            labelText: AppLocalizations.of(
+                              context,
+                            ).customValueOptional,
                             isDense: true,
                             border: const OutlineInputBorder(),
                           ),
@@ -439,7 +504,9 @@ class _NodesListWidgetState extends State<NodesListWidget>
                         TextField(
                           controller: customCtrl,
                           decoration: InputDecoration(
-                            labelText: AppLocalizations.of(context).regexCaseInsensitive,
+                            labelText: AppLocalizations.of(
+                              context,
+                            ).regexCaseInsensitive,
                             isDense: true,
                             border: const OutlineInputBorder(),
                           ),
@@ -452,8 +519,14 @@ class _NodesListWidgetState extends State<NodesListWidget>
               ),
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.of(context).maybePop(), child: Text(AppLocalizations.of(context).cancel)),
-              FilledButton(onPressed: addSelected, child: Text(AppLocalizations.of(context).addAction)),
+              TextButton(
+                onPressed: () => Navigator.of(context).maybePop(),
+                child: Text(AppLocalizations.of(context).cancel),
+              ),
+              FilledButton(
+                onPressed: addSelected,
+                child: Text(AppLocalizations.of(context).addAction),
+              ),
             ],
           );
         },
@@ -463,6 +536,13 @@ class _NodesListWidgetState extends State<NodesListWidget>
 
   // ===== Sorting helpers =====
   int _compareNodes(MeshNodeView a, MeshNodeView b) {
+    // Always show hop 0 nodes first.
+    // Note: hopsAway is nullable. If null (unset), it is not 0, so it won't be prioritized.
+    final aIsHop0 = a.hopsAway == 0;
+    final bIsHop0 = b.hopsAway == 0;
+    if (aIsHop0 && !bIsHop0) return -1;
+    if (!aIsHop0 && bIsHop0) return 1;
+
     for (final s in _sorters) {
       int r = 0;
       switch (s.field) {
@@ -491,7 +571,9 @@ class _NodesListWidgetState extends State<NodesListWidget>
           r = _stringCompare(a.user?.role, b.user?.role);
           break;
         case _SortField.name:
-          r = a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase());
+          r = a.displayName.toLowerCase().compareTo(
+            b.displayName.toLowerCase(),
+          );
           break;
       }
       if (r != 0) return s.asc ? r : -r;
@@ -516,15 +598,19 @@ class _NodesListWidgetState extends State<NodesListWidget>
   double? _distanceMeters(MeshNodeView n) {
     final ref = _svc.effectiveDistanceReference;
     final p = n.position;
-    if (ref == null || p?.latitudeI == null || p?.longitudeI == null) return null;
+    if (ref == null || p?.latitudeI == null || p?.longitudeI == null)
+      return null;
     final lat1 = ref.$1 * math.pi / 180.0;
     final lon1 = ref.$2 * math.pi / 180.0;
     final lat2 = (p!.latitudeI! / 1e7) * math.pi / 180.0;
     final lon2 = (p.longitudeI! / 1e7) * math.pi / 180.0;
     final dLat = lat2 - lat1;
     final dLon = lon2 - lon1;
-    final a = math.pow(math.sin(dLat / 2), 2) + math.cos(lat1) * math.cos(lat2) * math.pow(math.sin(dLon / 2), 2);
-    final c = 2 * math.atan2(math.sqrt(a.toDouble()), math.sqrt(1 - a.toDouble()));
+    final a =
+        math.pow(math.sin(dLat / 2), 2) +
+        math.cos(lat1) * math.cos(lat2) * math.pow(math.sin(dLon / 2), 2);
+    final c =
+        2 * math.atan2(math.sqrt(a.toDouble()), math.sqrt(1 - a.toDouble()));
     const R = 6371000.0; // meters
     return R * c;
   }
@@ -535,7 +621,8 @@ class _NodesListWidgetState extends State<NodesListWidget>
   String _formatLastHeard(int secondsAgo) {
     const twoDays = 2 * 24 * 60 * 60; // 172800
     if (secondsAgo < twoDays) {
-      if (secondsAgo < 60) return AppLocalizations.of(context).agoSeconds(secondsAgo);
+      if (secondsAgo < 60)
+        return AppLocalizations.of(context).agoSeconds(secondsAgo);
       final minutes = secondsAgo ~/ 60;
       if (minutes < 60) return AppLocalizations.of(context).agoMinutes(minutes);
       final hours = minutes ~/ 60;
@@ -546,7 +633,8 @@ class _NodesListWidgetState extends State<NodesListWidget>
     final dt = DateTime.now().subtract(Duration(seconds: secondsAgo));
     String two(int n) => n.toString().padLeft(2, '0');
     final relDays = secondsAgo ~/ (24 * 60 * 60);
-    final dateStr = '${dt.year}-${two(dt.month)}-${two(dt.day)} ${two(dt.hour)}:${two(dt.minute)}:${two(dt.second)}';
+    final dateStr =
+        '${dt.year}-${two(dt.month)}-${two(dt.day)} ${two(dt.hour)}:${two(dt.minute)}:${two(dt.second)}';
     return '$dateStr (${AppLocalizations.of(context).agoDays(relDays)})';
   }
 
@@ -559,6 +647,7 @@ class _NodesListWidgetState extends State<NodesListWidget>
           void addIfMissing(_SortField f) {
             if (!local.any((e) => e.field == f)) local.add(_SortEntry(f, true));
           }
+
           return AlertDialog(
             title: Text(AppLocalizations.of(context).sorting),
             content: SizedBox(
@@ -571,11 +660,51 @@ class _NodesListWidgetState extends State<NodesListWidget>
                     child: Wrap(
                       spacing: 8,
                       children: [
-                        OutlinedButton.icon(onPressed: () { setDlg(() { addIfMissing(_SortField.distance); }); }, icon: const Icon(Icons.place), label: Text(AppLocalizations.of(context).distance)),
-                        OutlinedButton.icon(onPressed: () { setDlg(() { addIfMissing(_SortField.snr); }); }, icon: const Icon(Icons.network_cell), label: Text(AppLocalizations.of(context).snr)),
-                        OutlinedButton.icon(onPressed: () { setDlg(() { addIfMissing(_SortField.lastSeen); }); }, icon: const Icon(Icons.access_time), label: Text(AppLocalizations.of(context).lastSeen)),
-                        OutlinedButton.icon(onPressed: () { setDlg(() { addIfMissing(_SortField.role); }); }, icon: const Icon(Icons.badge), label: Text(AppLocalizations.of(context).role)),
-                        OutlinedButton.icon(onPressed: () { setDlg(() { addIfMissing(_SortField.name); }); }, icon: const Icon(Icons.abc), label: Text(AppLocalizations.of(context).name)),
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            setDlg(() {
+                              addIfMissing(_SortField.distance);
+                            });
+                          },
+                          icon: const Icon(Icons.place),
+                          label: Text(AppLocalizations.of(context).distance),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            setDlg(() {
+                              addIfMissing(_SortField.snr);
+                            });
+                          },
+                          icon: const Icon(Icons.network_cell),
+                          label: Text(AppLocalizations.of(context).snr),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            setDlg(() {
+                              addIfMissing(_SortField.lastSeen);
+                            });
+                          },
+                          icon: const Icon(Icons.access_time),
+                          label: Text(AppLocalizations.of(context).lastSeen),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            setDlg(() {
+                              addIfMissing(_SortField.role);
+                            });
+                          },
+                          icon: const Icon(Icons.badge),
+                          label: Text(AppLocalizations.of(context).role),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            setDlg(() {
+                              addIfMissing(_SortField.name);
+                            });
+                          },
+                          icon: const Icon(Icons.abc),
+                          label: Text(AppLocalizations.of(context).name),
+                        ),
                       ],
                     ),
                   ),
@@ -594,19 +723,28 @@ class _NodesListWidgetState extends State<NodesListWidget>
                         for (int i = 0; i < local.length; i++)
                           ListTile(
                             key: ValueKey('sort_$i'),
-                            title: Text(_labelForField(local[i].field, context)),
+                            title: Text(
+                              _labelForField(local[i].field, context),
+                            ),
                             leading: const Icon(Icons.drag_handle),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text(local[i].asc ? AppLocalizations.of(context).sortAsc : AppLocalizations.of(context).sortDesc),
+                                Text(
+                                  local[i].asc
+                                      ? AppLocalizations.of(context).sortAsc
+                                      : AppLocalizations.of(context).sortDesc,
+                                ),
                                 IconButton(
                                   icon: const Icon(Icons.swap_vert),
-                                  onPressed: () => setDlg(() => local[i] = local[i].toggle()),
+                                  onPressed: () => setDlg(
+                                    () => local[i] = local[i].toggle(),
+                                  ),
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.delete_outline),
-                                  onPressed: () => setDlg(() => local.removeAt(i)),
+                                  onPressed: () =>
+                                      setDlg(() => local.removeAt(i)),
                                 ),
                               ],
                             ),
@@ -617,24 +755,52 @@ class _NodesListWidgetState extends State<NodesListWidget>
                   const SizedBox(height: 8),
                   Align(
                     alignment: Alignment.centerLeft,
-                    child: Wrap(spacing: 8, children: [
-                      FilledButton.tonal(
-                        onPressed: () { setDlg(() { local = List<_SortEntry>.from(_defaultSort); }); },
-                        child: Text(AppLocalizations.of(context).resetToDefault),
-                      ),
-                      TextButton(
-                        onPressed: () { _svc.setCustomDistanceReference(lat: null, lon: null); Navigator.of(context).maybePop(); },
-                        child: Text(AppLocalizations.of(context).useSourceAsRef),
-                      ),
-                      Text(AppLocalizations.of(context).tipSetCustomRef),
-                    ]),
+                    child: Wrap(
+                      spacing: 8,
+                      children: [
+                        FilledButton.tonal(
+                          onPressed: () {
+                            setDlg(() {
+                              local = List<_SortEntry>.from(_defaultSort);
+                            });
+                          },
+                          child: Text(
+                            AppLocalizations.of(context).resetToDefault,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            _svc.setCustomDistanceReference(
+                              lat: null,
+                              lon: null,
+                            );
+                            Navigator.of(context).maybePop();
+                          },
+                          child: Text(
+                            AppLocalizations.of(context).useSourceAsRef,
+                          ),
+                        ),
+                        Text(AppLocalizations.of(context).tipSetCustomRef),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(AppLocalizations.of(context).cancel)),
-              FilledButton(onPressed: () { setState(() { _sorters = List<_SortEntry>.from(local); }); Navigator.of(context).pop(); }, child: Text(AppLocalizations.of(context).apply)),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(AppLocalizations.of(context).cancel),
+              ),
+              FilledButton(
+                onPressed: () {
+                  setState(() {
+                    _sorters = List<_SortEntry>.from(local);
+                  });
+                  Navigator.of(context).pop();
+                },
+                child: Text(AppLocalizations.of(context).apply),
+              ),
             ],
           );
         },
@@ -660,8 +826,11 @@ class _NodesListWidgetState extends State<NodesListWidget>
     // Fallback (should be unreachable)
     return AppLocalizations.of(context).unknownState;
   }
+
   bool _addChipUnique(_NodeChipFilter c) {
-    final exists = _chips.any((x) => x.key == c.key && x.value == c.value && x.op == c.op);
+    final exists = _chips.any(
+      (x) => x.key == c.key && x.value == c.value && x.op == c.op,
+    );
     if (!exists) {
       _chips.add(c);
       return true;

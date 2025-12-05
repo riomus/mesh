@@ -1,0 +1,21 @@
+{
+  "pl": [
+    "notifications",
+    "enableNotifications",
+    "roleWithRole",
+    "knownNodes",
+    "notConfigured",
+    "noConfigurationData",
+    "nodesWithCount",
+    "messageDetails",
+    "statusWithStatus",
+    "packetIdWithId",
+    "messageInfo",
+    "sessionKeyRequested",
+    "stateMissing",
+    "idWithId",
+    "xmodem",
+    "xmodemStatus",
+    "idTitle"
+  ]
+}
