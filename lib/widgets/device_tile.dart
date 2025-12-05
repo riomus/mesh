@@ -76,7 +76,17 @@ class _DeviceTileState extends State<DeviceTile> {
     if (_connected || _connecting) return;
     setState(() => _connecting = true);
     try {
-      await DeviceStatusStore.instance.connect(widget.result.device);
+      // Get device name (same logic as build method for consistency)
+      final name = result.advertisementData.advName.isNotEmpty
+          ? result.advertisementData.advName
+          : (widget.result.device.platformName.isNotEmpty
+                ? widget.result.device.platformName
+                : widget.result.device.remoteId.str);
+
+      await DeviceStatusStore.instance.connect(
+        widget.result.device,
+        deviceName: name,
+      );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

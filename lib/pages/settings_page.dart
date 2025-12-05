@@ -152,6 +152,119 @@ class SettingsPage extends StatelessWidget {
                   ),
                 ),
               ),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.bluetooth),
+                          const SizedBox(width: 8),
+                          Text(
+                            t.bleHeartbeatInterval,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        t.bleHeartbeatIntervalDescription,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Slider(
+                              value: settings.bleHeartbeatIntervalSeconds
+                                  .toDouble()
+                                  .clamp(10.0, 600.0),
+                              min: 10,
+                              max: 600,
+                              divisions:
+                                  118, // (600-10)/5 = 118 steps of 5 seconds
+                              label: '${settings.bleHeartbeatIntervalSeconds}s',
+                              onChanged: (value) {
+                                onChangedSettings(
+                                  settings.copyWith(
+                                    bleHeartbeatIntervalSeconds: value.round(),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          SizedBox(
+                            width: 80,
+                            child: Text(
+                              '${settings.bleHeartbeatIntervalSeconds}s',
+                              style: Theme.of(context).textTheme.bodyMedium,
+                              textAlign: TextAlign.end,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.timer),
+                          const SizedBox(width: 8),
+                          Text(
+                            t.configTimeout,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        t.configTimeoutDescription,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Slider(
+                              value: settings.configTimeoutSeconds
+                                  .toDouble()
+                                  .clamp(5.0, 60.0),
+                              min: 5,
+                              max: 60,
+                              divisions: 11, // (60-5)/5 = 11 steps of 5 seconds
+                              label: '${settings.configTimeoutSeconds}s',
+                              onChanged: (value) {
+                                onChangedSettings(
+                                  settings.copyWith(
+                                    configTimeoutSeconds: value.round(),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          SizedBox(
+                            width: 80,
+                            child: Text(
+                              '${settings.configTimeoutSeconds}s',
+                              style: Theme.of(context).textTheme.bodyMedium,
+                              textAlign: TextAlign.end,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
         ),

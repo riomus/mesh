@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../models/trace_models.dart';
 import '../services/traceroute_service.dart';
 import '../services/nodes_service.dart';
+import '../services/device_status_store.dart';
 import '../l10n/app_localizations.dart';
 
 /// Page to display all traceroute history and initiate new traces.
@@ -98,7 +99,71 @@ class _TracesPageState extends State<TracesPage> {
   }
 
   Future<void> _showNodePicker(BuildContext context) async {
-    // Get all available nodes
+    // First, get all connected devices
+    final store = DeviceStatusStore.instance;
+    final connectedDeviceIds = store.connectedDeviceIds;
+
+    if (!mounted) return;
+
+    if (connectedDeviceIds.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context).noDeviceConnected),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    // If multiple devices, let user select device first
+    String? selectedDeviceId;
+    if (connectedDeviceIds.length > 1) {
+      selectedDeviceId = await showDialog<String>(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text(AppLocalizations.of(context).selectDevice),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: connectedDeviceIds.length,
+                itemBuilder: (context, index) {
+                  final deviceId = connectedDeviceIds[index];
+                  final deviceName = store.getDeviceName(deviceId) ?? deviceId;
+                  return ListTile(
+                    leading: Icon(
+                      deviceId.startsWith('IP:')
+                          ? Icons.wifi
+                          : deviceId.startsWith('USB:')
+                          ? Icons.usb
+                          : Icons.bluetooth,
+                    ),
+                    title: Text(deviceName),
+                    subtitle: Text(deviceId),
+                    onTap: () => Navigator.of(context).pop(deviceId),
+                  );
+                },
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(AppLocalizations.of(context).cancel),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      // Only one device connected, use it
+      selectedDeviceId = connectedDeviceIds.first;
+    }
+
+    if (selectedDeviceId == null) return;
+    if (!mounted) return;
+
+    // Now get nodes for this device and let user select target node
     final nodes = await _nodesService.listenAll().first;
 
     if (!mounted) return;
@@ -152,13 +217,10 @@ class _TracesPageState extends State<TracesPage> {
 
     if (!mounted) return;
 
-    // Send trace request (assuming we have a connected device)
-    // TODO: Get actual device ID from connected device
+    // Send trace request with selected device and node
     try {
-      // For now, use a placeholder device ID
-      // In real implementation, get from DeviceStatusStore
       await _tracerouteService.sendTraceRequest(
-        'device_placeholder',
+        selectedDeviceId,
         selectedNode.num!,
       );
 

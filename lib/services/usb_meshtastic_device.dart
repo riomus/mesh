@@ -106,4 +106,50 @@ class UsbMeshtasticDevice implements ChattingDevice {
     await client.sendMeshPacket(packet);
     return packet.id;
   }
+
+  @override
+  Future<int> sendTraceroute(int targetNodeId) async {
+    // Ensure connected
+    final client = await DeviceStatusStore.instance.connectToId(_deviceId);
+
+    if (client == null) {
+      await DeviceStatusStore.instance.connectUsb(_portName);
+      final retryClient = await DeviceStatusStore.instance.connectToId(
+        _deviceId,
+      );
+      if (retryClient == null) {
+        throw Exception('Could not connect to USB device $_deviceId');
+      }
+      return _sendTracerouteWithClient(retryClient, targetNodeId);
+    }
+
+    return _sendTracerouteWithClient(client, targetNodeId);
+  }
+
+  Future<int> _sendTracerouteWithClient(
+    dynamic client,
+    int targetNodeId,
+  ) async {
+    final packet = mesh.MeshPacket();
+    packet.to = targetNodeId;
+
+    packet.decoded = mesh.Data();
+    packet.decoded.portnum = port.PortNum.TRACEROUTE_APP;
+    packet.decoded.payload = Uint8List(0);
+
+    packet.wantAck = true;
+
+    final state = DeviceStateService.instance.getState(_deviceId);
+    packet.hopLimit = state?.config?.lora?.hopLimit ?? 3;
+
+    packet.priority = mesh.MeshPacket_Priority.RELIABLE;
+    packet.id = _generatePacketId();
+
+    print(
+      'Sending traceroute packet to node $targetNodeId (USB device): $packet',
+    );
+
+    await client.sendMeshPacket(packet);
+    return packet.id;
+  }
 }

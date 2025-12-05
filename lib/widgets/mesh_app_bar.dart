@@ -64,6 +64,15 @@ class MeshAppBar extends StatelessWidget implements PreferredSizeWidget {
                           final isConnecting =
                               status?.state == DeviceConnectionState.connecting;
 
+                          // Get stored device name or fall back to platformName
+                          final storedName = DeviceStatusStore.instance
+                              .getDeviceName(device.remoteId.str);
+                          final displayName =
+                              storedName ??
+                              (device.platformName.isNotEmpty
+                                  ? device.platformName
+                                  : device.remoteId.str);
+
                           return Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 4),
                             child: ActionChip(
@@ -85,9 +94,7 @@ class MeshAppBar extends StatelessWidget implements PreferredSizeWidget {
                                     )
                                   : const Icon(Icons.link, size: 16),
                               label: Text(
-                                device.platformName.isNotEmpty
-                                    ? device.platformName
-                                    : device.remoteId.str,
+                                displayName,
                                 style: TextStyle(
                                   fontSize: 12,
                                   color:

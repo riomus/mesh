@@ -7,6 +7,7 @@ import '../models/trace_models.dart';
 import 'device_communication_event_service.dart';
 import 'transport_layer.dart';
 import 'ble_transport_layer.dart';
+import 'settings_service.dart';
 
 /// Service to manage traceroute requests and track their results.
 ///
@@ -28,6 +29,9 @@ class TracerouteService {
 
   /// Map of target node ID to trace request IDs for quick lookup
   final Map<int, List<String>> _nodeTraceIndex = {};
+
+  /// Map of target node ID to last trace time for rate limiting
+  final Map<int, DateTime> _lastTraceTime = {};
 
   final _historyController = StreamController<List<TraceResult>>.broadcast();
   TransportLayer _transportLayer = BleTransportLayer();
@@ -61,6 +65,7 @@ class TracerouteService {
 
   /// Send a traceroute request to discover the path to a target node.
   ///
+  /// Throws an Exception if called too soon after a previous trace to the same node.
   /// Returns the trace request ID for tracking.
   Future<String> sendTraceRequest(String deviceId, int targetNodeId) async {
     final device = await _transportLayer.getDevice(deviceId);
@@ -68,9 +73,34 @@ class TracerouteService {
       throw Exception('Device not connected: $deviceId');
     }
 
+    // Check rate limiting
+    final minInterval =
+        SettingsService.instance.current?.tracerouteMinIntervalSeconds ?? 30;
+    final lastTrace = _lastTraceTime[targetNodeId];
+
+    if (lastTrace != null) {
+      final timeSinceLastTrace = DateTime.now().difference(lastTrace);
+      final requiredInterval = Duration(seconds: minInterval);
+
+      if (timeSinceLastTrace < requiredInterval) {
+        final remainingSeconds =
+            (requiredInterval - timeSinceLastTrace).inSeconds;
+        throw Exception(
+          'Please wait $remainingSeconds more second${remainingSeconds == 1 ? '' : 's'} before tracing to this node again (rate limit: ${minInterval}s)',
+        );
+      }
+    }
+
+    // Update last trace time
+    _lastTraceTime[targetNodeId] = DateTime.now();
+
     // Generate unique trace request ID
     final requestId = _generateTraceId();
     final now = DateTime.now();
+
+    print(
+      '[TracerouteService] Sending trace request to node $targetNodeId from device $deviceId',
+    );
 
     // Create empty RouteDiscovery message and send it via TRACEROUTE_APP
     // The actual tracing is done by the firmware by sending an empty payload
@@ -122,23 +152,16 @@ class TracerouteService {
     return requestId;
   }
 
-  /// Send the actual TRACEROUTE_APP packet via the device
+  /// Send the actual TRACEROUTE_APP packet via the device.
+  ///
+  /// This sends a proper TRACEROUTE_APP packet with an empty payload.
+  /// The Meshtastic firmware handles the actual route discovery when it
+  /// receives a packet with portnum=TRACEROUTE_APP.
   Future<int> _sendTraceroutePacket(dynamic device, int targetNodeId) async {
-    // For now, we use sendMessage as a workaround since we don't have
-    // a direct sendRawPacket method exposed. In a real implementation,
-    // we would send an empty payload with portnum=TRACEROUTE_APP
-    // and dest=targetNodeId.
-    //
-    // The Meshtastic firmware will automatically handle the traceroute
-    // when it receives a TRACEROUTE_APP packet.
-    //
-    // For this implementation, we'll send a special marker text that
-    // the firmware ignores, but ideally we'd have a sendRawPacket method.
-
     try {
-      // Send to the target node with empty text
-      // The packet ID returned will help us track responses
-      return await device.sendMessage('', targetNodeId);
+      // Use the device's sendTraceroute method which sends a proper
+      // TRACEROUTE_APP packet with PortNum.TRACEROUTE_APP and empty payload
+      return await device.sendTraceroute(targetNodeId);
     } catch (e) {
       throw Exception('Failed to send traceroute packet: $e');
     }
@@ -162,10 +185,18 @@ class TracerouteService {
 
     // Handle traceroute responses
     if (decoded is TraceroutePayloadDto) {
+      print(
+        '[TracerouteService] Received TraceroutePayloadDto from node ${packet.from}',
+      );
+      print(
+        '[TracerouteService] Route: ${decoded.route}, RouteBack: ${decoded.routeBack}',
+      );
+      print('[TracerouteService] Pending traces: ${_pendingTraces.length}');
       _handleTracerouteResponse(packet, decoded);
     }
     // Handle routing ACKs for our trace requests
     else if (decoded is RoutingPayloadDto) {
+      print('[TracerouteService] Received RoutingPayloadDto');
       _handleRoutingAck(packet, decoded);
     }
   }
@@ -180,36 +211,67 @@ class TracerouteService {
     TraceRequest? matchingRequest;
     String? matchingRequestId;
 
+    print(
+      '[TracerouteService] Looking for matching trace for packet from node ${packet.from}',
+    );
+    print(
+      '[TracerouteService] Pending traces target nodes: ${_pendingTraces.values.map((r) => r.targetNodeId).toList()}',
+    );
+
     for (final entry in _pendingTraces.entries) {
       final request = entry.value;
+      print(
+        '[TracerouteService] Checking trace ${entry.key}: target=${request.targetNodeId}, status=${request.status}',
+      );
       if (request.targetNodeId == packet.from &&
           request.status == TraceStatus.pending) {
         matchingRequest = request;
         matchingRequestId = entry.key;
+        print('[TracerouteService] MATCHED trace request: $matchingRequestId');
         break;
       }
     }
 
     if (matchingRequest == null || matchingRequestId == null) {
       // No matching pending request, might be an unsolicited trace
+      print(
+        '[TracerouteService] No matching trace request found for packet from ${packet.from}',
+      );
       return;
     }
 
     final now = DateTime.now();
     final result = _traceHistory[matchingRequestId];
 
-    if (result == null) return;
+    if (result == null) {
+      print(
+        '[TracerouteService] ERROR: No trace result found for $matchingRequestId',
+      );
+      return;
+    }
 
     // Check if this is a route_request or route_reply based on what fields are populated
-    final isReply =
+    // For directly connected nodes (0 hops), both route and routeBack may be empty but it's still complete
+    final hasRouteBack =
         traceroute.routeBack != null && traceroute.routeBack!.isNotEmpty;
+    final hasRoute = traceroute.route != null && traceroute.route!.isNotEmpty;
+
+    // Any traceroute response completes the trace
+    // Empty routes just mean 0 hops (directly connected)
+    final hopCount = hasRouteBack
+        ? traceroute.routeBack!.length
+        : (hasRoute ? traceroute.route!.length : 0);
+
+    print(
+      '[TracerouteService] Processing trace response: $hopCount hops, hasRoute=$hasRoute, hasRouteBack=$hasRouteBack',
+    );
 
     final event = TraceEvent(
       timestamp: now,
-      type: isReply ? 'route_reply' : 'route_update',
-      description: isReply
-          ? 'Received route reply with ${traceroute.routeBack?.length ?? 0} hops back'
-          : 'Received route update with ${traceroute.route?.length ?? 0} hops',
+      type: 'route_reply',
+      description: hopCount == 0
+          ? 'Trace complete: directly connected (0 hops)'
+          : 'Received route reply with $hopCount hops',
       data: {
         'route': traceroute.route,
         'snrTowards': traceroute.snrTowards,
@@ -229,36 +291,38 @@ class TracerouteService {
       routeBack: traceroute.routeBack ?? result.routeBack,
       snrBack: traceroute.snrBack ?? result.snrBack,
       events: updatedEvents,
-      status: isReply ? TraceStatus.completed : TraceStatus.pending,
+      status: TraceStatus
+          .completed, // Always mark as completed when we get a response
       lastUpdated: now,
     );
 
     _traceHistory[matchingRequestId] = updatedResult;
 
-    // If completed, remove from pending
-    if (isReply) {
-      final updatedRequest = matchingRequest.copyWith(
-        status: TraceStatus.completed,
-      );
-      _pendingTraces[matchingRequestId] = updatedRequest;
+    // Remove from pending since it's completed
+    final updatedRequest = matchingRequest.copyWith(
+      status: TraceStatus.completed,
+    );
+    _pendingTraces[matchingRequestId] = updatedRequest;
 
-      // Add completion event
-      final completionEvent = TraceEvent(
-        timestamp: now,
-        type: 'completed',
-        description:
-            'Trace completed successfully with ${traceroute.routeBack?.length ?? 0} hops',
-      );
+    // Add completion event
+    final completionEvent = TraceEvent(
+      timestamp: now,
+      type: 'completed',
+      description: hopCount == 0
+          ? 'Trace completed: node is directly connected'
+          : 'Trace completed successfully with $hopCount hops',
+    );
 
-      _traceHistory[matchingRequestId] = updatedResult.copyWith(
-        events: List<TraceEvent>.from(updatedEvents)..add(completionEvent),
-      );
+    _traceHistory[matchingRequestId] = updatedResult.copyWith(
+      events: List<TraceEvent>.from(updatedEvents)..add(completionEvent),
+    );
 
-      // Clean up pending after a delay
-      Future.delayed(const Duration(seconds: 5), () {
-        _pendingTraces.remove(matchingRequestId);
-      });
-    }
+    print('[TracerouteService] Trace $matchingRequestId marked as completed');
+
+    // Clean up pending after a delay
+    Future.delayed(const Duration(seconds: 5), () {
+      _pendingTraces.remove(matchingRequestId);
+    });
 
     _emitHistory();
   }

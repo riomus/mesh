@@ -3091,6 +3091,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Refresh'**
   String get refresh;
+
+  /// No description provided for @noDeviceConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'No device connected'**
+  String get noDeviceConnected;
+
+  /// No description provided for @selectDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Device'**
+  String get selectDevice;
+
+  /// No description provided for @bleHeartbeatInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'BLE Heartbeat Interval'**
+  String get bleHeartbeatInterval;
+
+  /// No description provided for @bleHeartbeatIntervalDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Time between heartbeat messages sent to BLE devices (in seconds)'**
+  String get bleHeartbeatIntervalDescription;
+
+  /// No description provided for @tracerouteMinInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'Traceroute Rate Limit'**
+  String get tracerouteMinInterval;
+
+  /// No description provided for @tracerouteMinIntervalDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum seconds between traceroute requests to the same node. The firmware also enforces rate limits to prevent network congestion.'**
+  String get tracerouteMinIntervalDescription;
+
+  /// No description provided for @configTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Config Download Timeout'**
+  String get configTimeout;
+
+  /// No description provided for @configTimeoutDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum time without activity when downloading device configuration (in seconds)'**
+  String get configTimeoutDescription;
 }
 
 class _AppLocalizationsDelegate

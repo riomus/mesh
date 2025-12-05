@@ -62,9 +62,12 @@ class MeshtasticBleClient implements MeshtasticClient {
 
   // Heartbeat timer to periodically ping the radio while connected
   Timer? _heartbeatTimer;
-  static const Duration _heartbeatInterval = Duration(minutes: 1);
+  final Duration _heartbeatInterval;
 
-  MeshtasticBleClient(this.device);
+  MeshtasticBleClient(
+    this.device, {
+    Duration heartbeatInterval = const Duration(minutes: 1),
+  }) : _heartbeatInterval = heartbeatInterval;
 
   /// High-level events parsed from FromRadio payloads.
   @override

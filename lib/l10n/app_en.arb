@@ -536,5 +536,13 @@
   "traceSent": "Trace request sent",
   "traceToggleVisualization": "Toggle Trace Visualization",
   "noNodesAvailable": "No nodes available",
-  "refresh": "Refresh"
+  "refresh": "Refresh",
+  "noDeviceConnected": "No device connected",
+  "selectDevice": "Select Device",
+  "bleHeartbeatInterval": "BLE Heartbeat Interval",
+  "bleHeartbeatIntervalDescription": "Time between heartbeat messages sent to BLE devices (in seconds)",
+  "tracerouteMinInterval": "Traceroute Rate Limit",
+  "tracerouteMinIntervalDescription": "Minimum seconds between traceroute requests to the same node. The firmware also enforces rate limits to prevent network congestion.",
+  "configTimeout": "Config Download Timeout",
+  "configTimeoutDescription": "Maximum time without activity when downloading device configuration (in seconds)"
 }

@@ -1604,4 +1604,31 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get refresh => 'Odśwież';
+
+  @override
+  String get noDeviceConnected => 'Brak połączonego urządzenia';
+
+  @override
+  String get selectDevice => 'Wybierz urządzenie';
+
+  @override
+  String get bleHeartbeatInterval => 'Interwał Heartbeat BLE';
+
+  @override
+  String get bleHeartbeatIntervalDescription =>
+      'Czas między wiadomościami heartbeat wysyłanymi do urządzeń BLE (w sekundach)';
+
+  @override
+  String get tracerouteMinInterval => 'Limit częstotliwości Traceroute';
+
+  @override
+  String get tracerouteMinIntervalDescription =>
+      'Minimalna liczba sekund między żądaniami traceroute do tego samego węzła. Firmware również wymusza limity częstotliwości, aby zapobiec przeciążeniu sieci.';
+
+  @override
+  String get configTimeout => 'Timeout Pobierania Konfiguracji';
+
+  @override
+  String get configTimeoutDescription =>
+      'Maksymalny czas bez aktywności podczas pobierania konfiguracji urządzenia (w sekundach)';
 }

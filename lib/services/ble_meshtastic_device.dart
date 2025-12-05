@@ -80,4 +80,36 @@ class BleMeshtasticDevice implements ChattingDevice {
     await client.sendMeshPacket(packet);
     return packet.id;
   }
+
+  @override
+  Future<int> sendTraceroute(int targetNodeId) async {
+    final client = await DeviceStatusStore.instance.connect(_device);
+
+    // Construct MeshPacket for traceroute
+    final packet = mesh.MeshPacket();
+    packet.to = targetNodeId;
+
+    // Create Data payload with TRACEROUTE_APP portnum
+    packet.decoded = mesh.Data();
+    packet.decoded.portnum = port.PortNum.TRACEROUTE_APP;
+    // Payload should be empty RouteDiscovery (firmware handles the actual tracing)
+    packet.decoded.payload = Uint8List(0);
+
+    // Request ACK to track when the packet is received
+    packet.wantAck = true;
+
+    // Fetch hopLimit from device state
+    final state = DeviceStateService.instance.getState(_device.remoteId.str);
+    packet.hopLimit = state?.config?.lora?.hopLimit ?? 3;
+
+    packet.priority = mesh.MeshPacket_Priority.RELIABLE;
+
+    // Generate unique packet ID
+    packet.id = _generatePacketId();
+
+    print('Sending traceroute packet to node $targetNodeId: $packet');
+
+    await client.sendMeshPacket(packet);
+    return packet.id;
+  }
 }

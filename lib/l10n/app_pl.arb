@@ -534,5 +534,13 @@
   "traceSent": "Wysłano żądanie śledzenia",
   "traceToggleVisualization": "Przełącz wizualizację śledzenia",
   "noNodesAvailable": "Brak dostępnych węzłów",
-  "refresh": "Odśwież"
+  "refresh": "Odśwież",
+  "noDeviceConnected": "Brak połączonego urządzenia",
+  "selectDevice": "Wybierz urządzenie",
+  "bleHeartbeatInterval": "Interwał Heartbeat BLE",
+  "bleHeartbeatIntervalDescription": "Czas między wiadomościami heartbeat wysyłanymi do urządzeń BLE (w sekundach)",
+  "tracerouteMinInterval": "Limit częstotliwości Traceroute",
+  "tracerouteMinIntervalDescription": "Minimalna liczba sekund między żądaniami traceroute do tego samego węzła. Firmware również wymusza limity częstotliwości, aby zapobiec przeciążeniu sieci.",
+  "configTimeout": "Timeout Pobierania Konfiguracji",
+  "configTimeoutDescription": "Maksymalny czas bez aktywności podczas pobierania konfiguracji urządzenia (w sekundach)"
 }

@@ -6,8 +6,10 @@ import 'services/settings_service.dart';
 import 'pages/logs_page.dart';
 import 'pages/events_page.dart';
 import 'pages/nodes_page.dart';
+import 'pages/traces_page.dart';
 import 'services/device_state_service.dart';
 import 'services/notification_service.dart';
+import 'services/traceroute_service.dart';
 
 import 'l10n/app_localizations.dart';
 
@@ -30,6 +32,8 @@ class _MyAppState extends State<MyApp> {
     _loadSettings();
     DeviceStateService.instance.init();
     NotificationService.instance.init();
+    // Initialize TracerouteService to ensure it subscribes to events immediately
+    TracerouteService.instance;
   }
 
   Future<void> _loadSettings() async {
@@ -118,7 +122,8 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  int _selectedIndex = 0; // 0 = Scanner, 1 = Logs, 2 = Events, 3 = Nodes
+  int _selectedIndex =
+      0; // 0 = Scanner, 1 = Logs, 2 = Events, 3 = Nodes, 4 = Traces
 
   @override
   Widget build(BuildContext context) {
@@ -193,6 +198,7 @@ class _HomeState extends State<Home> {
           );
         },
       ),
+      const TracesPage(),
     ];
 
     final allDestinations = <NavigationDestination>[
@@ -209,6 +215,7 @@ class _HomeState extends State<Home> {
         label: t.eventsTitle,
       ),
       NavigationDestination(icon: const Icon(Icons.hub), label: t.nodesTitle),
+      NavigationDestination(icon: const Icon(Icons.route), label: t.traces),
     ];
 
     final allRailDestinations = <NavigationRailDestination>[
@@ -227,6 +234,10 @@ class _HomeState extends State<Home> {
       NavigationRailDestination(
         icon: const Icon(Icons.hub),
         label: Text(t.nodesTitle),
+      ),
+      NavigationRailDestination(
+        icon: const Icon(Icons.route),
+        label: Text(t.traces),
       ),
     ];
 
@@ -253,6 +264,10 @@ class _HomeState extends State<Home> {
       visiblePages.add(allPages[3]);
       visibleDestinations.add(allDestinations[3]);
       visibleRailDestinations.add(allRailDestinations[3]);
+      // Show Traces
+      visiblePages.add(allPages[4]);
+      visibleDestinations.add(allDestinations[4]);
+      visibleRailDestinations.add(allRailDestinations[4]);
     } else {
       // If protected, maybe we still want Nodes?
       // "only chatting should be left".
@@ -264,6 +279,10 @@ class _HomeState extends State<Home> {
       visiblePages.add(allPages[3]);
       visibleDestinations.add(allDestinations[3]);
       visibleRailDestinations.add(allRailDestinations[3]);
+      // Also show Traces
+      visiblePages.add(allPages[4]);
+      visibleDestinations.add(allDestinations[4]);
+      visibleRailDestinations.add(allRailDestinations[4]);
     }
 
     // Ensure selected index is valid

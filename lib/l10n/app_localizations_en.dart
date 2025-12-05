@@ -1599,4 +1599,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get refresh => 'Refresh';
+
+  @override
+  String get noDeviceConnected => 'No device connected';
+
+  @override
+  String get selectDevice => 'Select Device';
+
+  @override
+  String get bleHeartbeatInterval => 'BLE Heartbeat Interval';
+
+  @override
+  String get bleHeartbeatIntervalDescription =>
+      'Time between heartbeat messages sent to BLE devices (in seconds)';
+
+  @override
+  String get tracerouteMinInterval => 'Traceroute Rate Limit';
+
+  @override
+  String get tracerouteMinIntervalDescription =>
+      'Minimum seconds between traceroute requests to the same node. The firmware also enforces rate limits to prevent network congestion.';
+
+  @override
+  String get configTimeout => 'Config Download Timeout';
+
+  @override
+  String get configTimeoutDescription =>
+      'Maximum time without activity when downloading device configuration (in seconds)';
 }

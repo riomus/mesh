@@ -10,6 +10,7 @@ import 'meshtastic_usb_client.dart';
 import 'meshtastic_client.dart';
 import 'device_communication_event_service.dart';
 import 'recent_devices_service.dart';
+import 'settings_service.dart';
 import '../meshtastic/model/meshtastic_event.dart';
 
 /// Represents the connection state for a device along with optional error.
@@ -67,7 +68,13 @@ class DeviceStatusStore {
 
   /// Connect (or reuse existing connection) for the given device.
   /// Returns the active [MeshtasticClient].
-  Future<MeshtasticClient> connect(BluetoothDevice device) async {
+  /// [deviceName] is an optional display name for the device.
+  /// [heartbeatInterval] is the interval for BLE heartbeat messages (default: 1 minute).
+  Future<MeshtasticClient> connect(
+    BluetoothDevice device, {
+    String? deviceName,
+    Duration heartbeatInterval = const Duration(minutes: 1),
+  }) async {
     final id = device.remoteId.str;
     final entry = _entries.putIfAbsent(id, () => _Entry(device));
 
@@ -76,6 +83,15 @@ class DeviceStatusStore {
     // or a device object that isn't fully initialized/doesn't have the same internal state.
     // We want to ensure we are using the fresh BluetoothDevice object passed to connect().
     entry.device = device;
+
+    // Store the device name if provided, otherwise use platformName
+    if (deviceName != null && deviceName.isNotEmpty) {
+      entry.deviceName = deviceName;
+    } else if (entry.deviceName == null || entry.deviceName!.isEmpty) {
+      entry.deviceName = device.platformName.isNotEmpty
+          ? device.platformName
+          : device.remoteId.str;
+    }
 
     // If already connected or connecting, return the existing client
     if (entry.client != null &&
@@ -91,34 +107,82 @@ class DeviceStatusStore {
     final completer = Completer<MeshtasticClient>();
     entry.connecting = completer.future;
     try {
-      final client = MeshtasticBleClient(device);
+      // Get heartbeat interval from settings if not explicitly provided
+      final effectiveHeartbeat = heartbeatInterval != const Duration(minutes: 1)
+          ? heartbeatInterval
+          : Duration(
+              seconds:
+                  SettingsService
+                      .instance
+                      .current
+                      ?.bleHeartbeatIntervalSeconds ??
+                  60,
+            );
+
+      final client = MeshtasticBleClient(
+        device,
+        heartbeatInterval: effectiveHeartbeat,
+      );
 
       // Wait for ConfigCompleteEvent to ensure we have full state
       final configCompleter = Completer<void>();
+      Timer? activityTimer;
+
+      // Get timeout from settings (default to 15 seconds if not set)
+      final timeoutSeconds =
+          SettingsService.instance.current?.configTimeoutSeconds ?? 15;
+      final timeoutDuration = Duration(seconds: timeoutSeconds);
+
       // We must subscribe before connecting because connect() triggers the initial download
       final configSub = client.events.listen((event) {
+        // Reset the activity timer on any event
+        activityTimer?.cancel();
+        activityTimer = Timer(timeoutDuration, () {
+          if (!configCompleter.isCompleted) {
+            configCompleter.completeError(
+              TimeoutException(
+                'No events received for $timeoutSeconds seconds',
+              ),
+            );
+          }
+        });
+
         if (event is ConfigCompleteEvent) {
+          activityTimer?.cancel();
           if (!configCompleter.isCompleted) {
             configCompleter.complete();
           }
         }
       });
 
+      // Start the initial activity timer
+      activityTimer = Timer(timeoutDuration, () {
+        if (!configCompleter.isCompleted) {
+          configCompleter.completeError(
+            TimeoutException('No events received for $timeoutSeconds seconds'),
+          );
+        }
+      });
+
       await client.connect();
       entry.client = client;
 
-      // Wait for config to complete or timeout, but don't block forever
+      // Wait for config to complete or timeout based on inactivity
       try {
-        _log(id, 'Waiting for ConfigCompleteEvent...');
-        await configCompleter.future.timeout(const Duration(seconds: 15));
+        _log(
+          id,
+          'Waiting for ConfigCompleteEvent (timeout: ${timeoutSeconds}s)...',
+        );
+        await configCompleter.future;
         _log(id, 'ConfigCompleteEvent received');
       } catch (e) {
         _log(
           id,
-          'Timed out waiting for ConfigCompleteEvent, proceeding anyway',
+          'Timed out waiting for ConfigCompleteEvent (no activity for ${timeoutSeconds}s), proceeding anyway',
           level: 'warn',
         );
       } finally {
+        activityTimer?.cancel();
         configSub.cancel();
       }
 
@@ -171,6 +235,8 @@ class DeviceStatusStore {
     final deviceId =
         'IP:$host:$port'; // Temporary ID until we get real one from config
     final entry = _entries.putIfAbsent(deviceId, () => _Entry.ip(deviceId));
+    // Store IP device name
+    entry.deviceName = '$host:$port';
 
     if (entry.client != null &&
         entry.status?.state == DeviceConnectionState.connected) {
@@ -222,6 +288,8 @@ class DeviceStatusStore {
   Future<MeshtasticClient> connectUsb(String portName) async {
     final deviceId = 'USB:$portName'; // Temporary ID
     final entry = _entries.putIfAbsent(deviceId, () => _Entry.usb(deviceId));
+    // Store USB device name
+    entry.deviceName = portName;
 
     if (entry.client != null &&
         entry.status?.state == DeviceConnectionState.connected) {
@@ -317,6 +385,9 @@ class DeviceStatusStore {
   /// Obtain the latest status synchronously if present.
   DeviceStatus? statusNow(String deviceId) => _entries[deviceId]?.status;
 
+  /// Get the stored device name for a given device ID.
+  String? getDeviceName(String deviceId) => _entries[deviceId]?.deviceName;
+
   /// A stream of status updates for a given device that first replays the last
   /// known status (if any) and then emits live updates.
   Stream<DeviceStatus> statusStream(String deviceId) async* {
@@ -352,6 +423,14 @@ class DeviceStatusStore {
         .map((e) => e.device)
         .where((d) => d != null)
         .cast<BluetoothDevice>()
+        .toList();
+  }
+
+  /// Returns all connected device IDs (including BLE, IP, and USB).
+  List<String> get connectedDeviceIds {
+    return _entries.entries
+        .where((e) => e.value.status?.state == DeviceConnectionState.connected)
+        .map((e) => e.key)
         .toList();
   }
 
@@ -392,6 +471,8 @@ class _Entry {
   // Subscription to client's RSSI stream
   StreamSubscription<int>? _clientRssiSub;
   Timer? _errorRemovalTimer;
+  // Stored device name for display
+  String? deviceName;
 
   _Entry(this.device)
     : deviceId = device!.remoteId.str,
@@ -451,8 +532,9 @@ class _Entry {
 
   void _listenConnectionState() {
     connStateSub?.cancel();
-    if (device == null)
+    if (device == null) {
       return; // IP/USB devices don't have OS-level connection state stream yet
+    }
     connStateSub = device!.connectionState.listen((state) {
       if (state == BluetoothConnectionState.disconnected) {
         // Update status and notify services so UI can reflect and users can see it.
