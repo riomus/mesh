@@ -11,6 +11,7 @@ import '../services/device_status_store.dart';
 import 'device_chat_page.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/map_zoom_controls.dart';
+import '../widgets/telemetry_widget.dart';
 
 /// Detailed view of a single mesh node.
 class NodeDetailsPage extends StatefulWidget {
@@ -215,6 +216,7 @@ class _NodeDetailsPageState extends State<NodeDetailsPage> {
                         subtitle: Text(_sourceDeviceLine(n)),
                       ),
                     ),
+                    TelemetryWidget(nodeId: widget.nodeNum),
                   ],
                 ),
               ),

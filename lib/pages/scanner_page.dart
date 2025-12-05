@@ -14,7 +14,10 @@ import '../config/manufacturer_db.dart';
 import '../config/version_info.dart';
 import '../widgets/mesh_app_bar.dart';
 import '../services/device_status_store.dart';
-import 'package:flutter_libserialport/flutter_libserialport.dart';
+
+// Conditional import for serial port support
+import '../services/serial_port_helper_stub.dart'
+    if (dart.library.io) '../services/serial_port_helper_io.dart';
 
 class ScannerPage extends StatefulWidget {
   final VoidCallback? onToggleTheme;
@@ -42,7 +45,10 @@ class _ScannerPageState extends State<ScannerPage> {
 
   void initState() {
     super.initState();
-    _refreshSerialPorts();
+    // Only refresh serial ports on non-web platforms
+    if (!kIsWeb) {
+      _refreshSerialPorts();
+    }
     _sub = FlutterBluePlus.scanResults.listen((results) {
       setState(() {
         for (final r in results) {
@@ -199,19 +205,22 @@ class _ScannerPageState extends State<ScannerPage> {
         return b.rssi.compareTo(a.rssi);
       });
 
+    final supportsUsb = !kIsWeb;
+    final tabCount = supportsUsb ? 3 : 2;
+
     return DefaultTabController(
-      length: 3,
+      length: tabCount,
       child: Scaffold(
         appBar: MeshAppBar(
           title: Text(t.nearbyDevicesTitle),
           onToggleTheme: widget.onToggleTheme,
           themeMode: widget.themeMode,
           onOpenSettings: widget.onOpenSettings,
-          bottom: const TabBar(
+          bottom: TabBar(
             tabs: [
-              Tab(text: 'BLE', icon: Icon(Icons.bluetooth)),
-              Tab(text: 'IP', icon: Icon(Icons.wifi)),
-              Tab(text: 'USB', icon: Icon(Icons.usb)),
+              const Tab(text: 'BLE', icon: Icon(Icons.bluetooth)),
+              const Tab(text: 'IP', icon: Icon(Icons.wifi)),
+              if (supportsUsb) const Tab(text: 'USB', icon: Icon(Icons.usb)),
             ],
           ),
           extraActions: [
@@ -245,7 +254,7 @@ class _ScannerPageState extends State<ScannerPage> {
           children: [
             _buildBleTab(context, t, devices),
             _buildIpTab(context, t),
-            _buildUsbTab(context, t),
+            if (supportsUsb) _buildUsbTab(context, t),
           ],
         ),
         floatingActionButton: FloatingActionButton.extended(
@@ -447,7 +456,7 @@ class _ScannerPageState extends State<ScannerPage> {
   Future<void> _refreshSerialPorts() async {
     try {
       setState(() {
-        _serialPorts = SerialPort.availablePorts;
+        _serialPorts = SerialPortHelper.availablePorts;
         if (_selectedPort != null && !_serialPorts.contains(_selectedPort)) {
           _selectedPort = null;
         }

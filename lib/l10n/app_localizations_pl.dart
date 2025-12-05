@@ -1494,4 +1494,114 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get idleGameVariant => 'Wariant gry bezczynności';
+
+  @override
+  String get telemetryTitle => 'Telemetria';
+
+  @override
+  String get noTelemetryData => 'Brak danych telemetrycznych';
+
+  @override
+  String get telemetryBattery => 'Bateria';
+
+  @override
+  String get telemetryVoltage => 'Napięcie';
+
+  @override
+  String get telemetryChannelUtil => 'Wykorzystanie kanału';
+
+  @override
+  String get telemetryAirUtilTx => 'Wykorzystanie TX';
+
+  @override
+  String get telemetryTemperature => 'Temperatura';
+
+  @override
+  String get telemetryHumidity => 'Wilgotność';
+
+  @override
+  String get telemetryPressure => 'Ciśnienie';
+
+  @override
+  String get telemetryPm25 => 'PM2.5';
+
+  @override
+  String get telemetryCo2 => 'CO2';
+
+  @override
+  String telemetryChVoltage(Object channel) {
+    return 'Napięcie kan. $channel';
+  }
+
+  @override
+  String telemetryHistory(Object count) {
+    return 'Historia: $count punktów';
+  }
+
+  @override
+  String get traces => 'Śledzenie tras';
+
+  @override
+  String get traceRoute => 'Śledź trasę';
+
+  @override
+  String get startTrace => 'Rozpocznij śledzenie';
+
+  @override
+  String get traceTarget => 'Cel';
+
+  @override
+  String get tracePending => 'W toku';
+
+  @override
+  String get traceCompleted => 'Zakończono';
+
+  @override
+  String get traceFailed => 'Nieudane';
+
+  @override
+  String get traceTimeout => 'Przekroczono czas';
+
+  @override
+  String get traceNoHistory => 'Brak śledzeń';
+
+  @override
+  String get traceEvents => 'Zdarzenia śledzenia';
+
+  @override
+  String get traceForwardRoute => 'Trasa tam';
+
+  @override
+  String get traceReturnRoute => 'Trasa powrotna';
+
+  @override
+  String traceHopCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count skoków',
+      few: '$count skoki',
+      one: '1 skok',
+      zero: '0 skoków',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get traceShowOnMap => 'Pokaż na mapie';
+
+  @override
+  String get traceSelectNode => 'Wybierz węzeł do śledzenia';
+
+  @override
+  String get traceSent => 'Wysłano żądanie śledzenia';
+
+  @override
+  String get traceToggleVisualization => 'Przełącz wizualizację śledzenia';
+
+  @override
+  String get noNodesAvailable => 'Brak dostępnych węzłów';
+
+  @override
+  String get refresh => 'Odśwież';
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../meshtastic/model/meshtastic_models.dart';
 import '../services/telemetry_service.dart';
+import '../l10n/app_localizations.dart';
 
 class TelemetryWidget extends StatelessWidget {
   final int nodeId;
@@ -13,7 +14,14 @@ class TelemetryWidget extends StatelessWidget {
       stream: TelemetryService.instance.historyStream(nodeId),
       builder: (context, snapshot) {
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const SizedBox.shrink();
+          return Card(
+            margin: const EdgeInsets.all(8.0),
+            child: ListTile(
+              leading: const Icon(Icons.info_outline),
+              title: Text(AppLocalizations.of(context).telemetryTitle),
+              subtitle: Text(AppLocalizations.of(context).noTelemetryData),
+            ),
+          );
         }
 
         final history = snapshot.data!;
@@ -27,67 +35,77 @@ class TelemetryWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Telemetry',
+                  AppLocalizations.of(context).telemetryTitle,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 8),
                 if (latest.deviceMetrics != null) ...[
                   _buildMetricRow(
-                    'Battery',
+                    context,
+                    AppLocalizations.of(context).telemetryBattery,
                     '${latest.deviceMetrics!.batteryLevel}%',
                   ),
                   _buildMetricRow(
-                    'Voltage',
+                    context,
+                    AppLocalizations.of(context).telemetryVoltage,
                     '${latest.deviceMetrics!.voltage?.toStringAsFixed(2)} V',
                   ),
                   _buildMetricRow(
-                    'Channel Util',
+                    context,
+                    AppLocalizations.of(context).telemetryChannelUtil,
                     '${latest.deviceMetrics!.channelUtilization?.toStringAsFixed(1)}%',
                   ),
                   _buildMetricRow(
-                    'Air Util Tx',
+                    context,
+                    AppLocalizations.of(context).telemetryAirUtilTx,
                     '${latest.deviceMetrics!.airUtilTx?.toStringAsFixed(1)}%',
                   ),
                 ],
                 if (latest.environmentMetrics != null) ...[
                   if (latest.environmentMetrics!.temperature != null)
                     _buildMetricRow(
-                      'Temperature',
+                      context,
+                      AppLocalizations.of(context).telemetryTemperature,
                       '${latest.environmentMetrics!.temperature?.toStringAsFixed(1)} °C',
                     ),
                   if (latest.environmentMetrics!.relativeHumidity != null)
                     _buildMetricRow(
-                      'Humidity',
+                      context,
+                      AppLocalizations.of(context).telemetryHumidity,
                       '${latest.environmentMetrics!.relativeHumidity?.toStringAsFixed(1)}%',
                     ),
                   if (latest.environmentMetrics!.barometricPressure != null)
                     _buildMetricRow(
-                      'Pressure',
+                      context,
+                      AppLocalizations.of(context).telemetryPressure,
                       '${latest.environmentMetrics!.barometricPressure?.toStringAsFixed(1)} hPa',
                     ),
                 ],
                 if (latest.airQualityMetrics != null) ...[
                   if (latest.airQualityMetrics!.pm25Standard != null)
                     _buildMetricRow(
-                      'PM2.5',
+                      context,
+                      AppLocalizations.of(context).telemetryPm25,
                       '${latest.airQualityMetrics!.pm25Standard}',
                     ),
                   if (latest.airQualityMetrics!.co2 != null)
                     _buildMetricRow(
-                      'CO2',
+                      context,
+                      AppLocalizations.of(context).telemetryCo2,
                       '${latest.airQualityMetrics!.co2} ppm',
                     ),
                 ],
                 if (latest.powerMetrics != null) ...[
                   if (latest.powerMetrics!.ch1Voltage != null)
                     _buildMetricRow(
-                      'Ch1 Voltage',
+                      context,
+                      AppLocalizations.of(context).telemetryChVoltage(1),
                       '${latest.powerMetrics!.ch1Voltage?.toStringAsFixed(2)} V',
                     ),
                 ],
                 const SizedBox(height: 8),
                 Text(
-                  'History: ${history.length} points',
+                  AppLocalizations.of(context).telemetryHistory(history.length),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
@@ -98,7 +116,7 @@ class TelemetryWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildMetricRow(String label, String value) {
+  Widget _buildMetricRow(BuildContext context, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2.0),
       child: Row(

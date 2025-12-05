@@ -2899,6 +2899,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Idle Game Variant'**
   String get idleGameVariant;
+
+  /// No description provided for @telemetryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Telemetry'**
+  String get telemetryTitle;
+
+  /// No description provided for @noTelemetryData.
+  ///
+  /// In en, this message translates to:
+  /// **'No telemetry data available'**
+  String get noTelemetryData;
+
+  /// No description provided for @telemetryBattery.
+  ///
+  /// In en, this message translates to:
+  /// **'Battery'**
+  String get telemetryBattery;
+
+  /// No description provided for @telemetryVoltage.
+  ///
+  /// In en, this message translates to:
+  /// **'Voltage'**
+  String get telemetryVoltage;
+
+  /// No description provided for @telemetryChannelUtil.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel Util'**
+  String get telemetryChannelUtil;
+
+  /// No description provided for @telemetryAirUtilTx.
+  ///
+  /// In en, this message translates to:
+  /// **'Air Util Tx'**
+  String get telemetryAirUtilTx;
+
+  /// No description provided for @telemetryTemperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Temperature'**
+  String get telemetryTemperature;
+
+  /// No description provided for @telemetryHumidity.
+  ///
+  /// In en, this message translates to:
+  /// **'Humidity'**
+  String get telemetryHumidity;
+
+  /// No description provided for @telemetryPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure'**
+  String get telemetryPressure;
+
+  /// No description provided for @telemetryPm25.
+  ///
+  /// In en, this message translates to:
+  /// **'PM2.5'**
+  String get telemetryPm25;
+
+  /// No description provided for @telemetryCo2.
+  ///
+  /// In en, this message translates to:
+  /// **'CO2'**
+  String get telemetryCo2;
+
+  /// No description provided for @telemetryChVoltage.
+  ///
+  /// In en, this message translates to:
+  /// **'Ch{channel} Voltage'**
+  String telemetryChVoltage(Object channel);
+
+  /// No description provided for @telemetryHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History: {count} points'**
+  String telemetryHistory(Object count);
+
+  /// No description provided for @traces.
+  ///
+  /// In en, this message translates to:
+  /// **'Traceroutes'**
+  String get traces;
+
+  /// No description provided for @traceRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Trace Route'**
+  String get traceRoute;
+
+  /// No description provided for @startTrace.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Trace'**
+  String get startTrace;
+
+  /// No description provided for @traceTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Target'**
+  String get traceTarget;
+
+  /// No description provided for @tracePending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get tracePending;
+
+  /// No description provided for @traceCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get traceCompleted;
+
+  /// No description provided for @traceFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get traceFailed;
+
+  /// No description provided for @traceTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Timeout'**
+  String get traceTimeout;
+
+  /// No description provided for @traceNoHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'No traces yet'**
+  String get traceNoHistory;
+
+  /// No description provided for @traceEvents.
+  ///
+  /// In en, this message translates to:
+  /// **'Trace Events'**
+  String get traceEvents;
+
+  /// No description provided for @traceForwardRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Forward Route'**
+  String get traceForwardRoute;
+
+  /// No description provided for @traceReturnRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Return Route'**
+  String get traceReturnRoute;
+
+  /// No description provided for @traceHopCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{0 hops} =1{1 hop} other{{count} hops}}'**
+  String traceHopCount(num count);
+
+  /// No description provided for @traceShowOnMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Show on Map'**
+  String get traceShowOnMap;
+
+  /// No description provided for @traceSelectNode.
+  ///
+  /// In en, this message translates to:
+  /// **'Select node to trace'**
+  String get traceSelectNode;
+
+  /// No description provided for @traceSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Trace request sent'**
+  String get traceSent;
+
+  /// No description provided for @traceToggleVisualization.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle Trace Visualization'**
+  String get traceToggleVisualization;
+
+  /// No description provided for @noNodesAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No nodes available'**
+  String get noNodesAvailable;
+
+  /// No description provided for @refresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get refresh;
 }
 
 class _AppLocalizationsDelegate

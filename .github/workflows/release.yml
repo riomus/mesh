@@ -217,6 +217,9 @@ jobs:
       - name: Flutter Pub Get
         run: flutter pub get
 
+      - name: Install libserialport dependencies
+        run: brew install automake libtool
+
       - name: Build macOS
         run: flutter build macos --release --build-name "${{ needs.version.outputs.name }}" --build-number "${{ needs.version.outputs.number }}"
 

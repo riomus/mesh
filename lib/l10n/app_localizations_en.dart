@@ -1490,4 +1490,113 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get idleGameVariant => 'Idle Game Variant';
+
+  @override
+  String get telemetryTitle => 'Telemetry';
+
+  @override
+  String get noTelemetryData => 'No telemetry data available';
+
+  @override
+  String get telemetryBattery => 'Battery';
+
+  @override
+  String get telemetryVoltage => 'Voltage';
+
+  @override
+  String get telemetryChannelUtil => 'Channel Util';
+
+  @override
+  String get telemetryAirUtilTx => 'Air Util Tx';
+
+  @override
+  String get telemetryTemperature => 'Temperature';
+
+  @override
+  String get telemetryHumidity => 'Humidity';
+
+  @override
+  String get telemetryPressure => 'Pressure';
+
+  @override
+  String get telemetryPm25 => 'PM2.5';
+
+  @override
+  String get telemetryCo2 => 'CO2';
+
+  @override
+  String telemetryChVoltage(Object channel) {
+    return 'Ch$channel Voltage';
+  }
+
+  @override
+  String telemetryHistory(Object count) {
+    return 'History: $count points';
+  }
+
+  @override
+  String get traces => 'Traceroutes';
+
+  @override
+  String get traceRoute => 'Trace Route';
+
+  @override
+  String get startTrace => 'Start Trace';
+
+  @override
+  String get traceTarget => 'Target';
+
+  @override
+  String get tracePending => 'Pending';
+
+  @override
+  String get traceCompleted => 'Completed';
+
+  @override
+  String get traceFailed => 'Failed';
+
+  @override
+  String get traceTimeout => 'Timeout';
+
+  @override
+  String get traceNoHistory => 'No traces yet';
+
+  @override
+  String get traceEvents => 'Trace Events';
+
+  @override
+  String get traceForwardRoute => 'Forward Route';
+
+  @override
+  String get traceReturnRoute => 'Return Route';
+
+  @override
+  String traceHopCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hops',
+      one: '1 hop',
+      zero: '0 hops',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get traceShowOnMap => 'Show on Map';
+
+  @override
+  String get traceSelectNode => 'Select node to trace';
+
+  @override
+  String get traceSent => 'Trace request sent';
+
+  @override
+  String get traceToggleVisualization => 'Toggle Trace Visualization';
+
+  @override
+  String get noNodesAvailable => 'No nodes available';
+
+  @override
+  String get refresh => 'Refresh';
 }
