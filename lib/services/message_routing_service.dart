@@ -4,8 +4,8 @@ import '../meshtastic/model/meshtastic_event.dart';
 import '../meshtastic/model/meshtastic_models.dart';
 import '../services/device_communication_event_service.dart';
 import '../models/chat_models.dart';
-import 'device_state_service.dart';
 import 'notification_service.dart';
+import '../models/device_state.dart'; // Import DeviceState model
 
 import 'transport_layer.dart';
 import 'ble_transport_layer.dart';
@@ -22,6 +22,9 @@ class MessageRoutingService {
 
   final Map<String, ChatRoom> _rooms = {};
   final Map<String, List<ChatMessage>> _messages = {};
+
+  // Internal state tracking to replace DeviceStateService dependency
+  final Map<String, DeviceState> _deviceStates = {};
 
   final _roomsController = StreamController<List<ChatRoom>>.broadcast();
   final Map<String, StreamController<List<ChatMessage>>> _messageControllers =
@@ -71,8 +74,8 @@ class MessageRoutingService {
         name = 'Default';
       }
 
-      // Try to fetch actual name from device state
-      final state = DeviceStateService.instance.getState(deviceId);
+      // Try to fetch actual name from internal device state
+      final state = _deviceStates[deviceId];
       if (state != null) {
         final channel = state.channels.firstWhere(
           (c) => c.index == channelIndex,
@@ -156,11 +159,6 @@ class MessageRoutingService {
       );
 
       // Start timeout timer for ACK
-      // Only expect ACK for direct messages or if we can track it (currently only DM usually implies ACK request)
-      // But user requirement says "if routing packet for given message is received - it should get acked"
-      // We will assume we want ACK for all for now, or at least DMs.
-      // The user prompt implies general "messages should have status informations".
-      // Let's set a timeout.
       Timer(const Duration(seconds: 30), () {
         final currentMsg = _messages[roomId]?.firstWhere(
           (m) => m.packetId == packetId,
@@ -198,13 +196,18 @@ class MessageRoutingService {
   Future<void> _handleEvent(DeviceEvent event) async {
     if (event.payload is MeshtasticDeviceEventPayload) {
       final meshPayload = event.payload as MeshtasticDeviceEventPayload;
+      final deviceId = event.tags['deviceId']?.firstOrNull;
+
+      if (deviceId != null) {
+        _updateInternalState(deviceId, meshPayload.event);
+      }
+
       if (meshPayload.event is MeshPacketEvent) {
         final packetEvent = meshPayload.event as MeshPacketEvent;
         final packet = packetEvent.packet;
 
         if (packetEvent.decoded is TextPayloadDto) {
           final textPayload = packetEvent.decoded as TextPayloadDto;
-          final deviceId = event.tags['deviceId']?.firstOrNull;
 
           if (deviceId == null) return;
 
@@ -279,7 +282,7 @@ class MessageRoutingService {
             String title = 'New Message';
             String body = textPayload.text;
 
-            final deviceState = DeviceStateService.instance.getState(deviceId);
+            final deviceState = _deviceStates[deviceId];
             if (deviceState != null) {
               // Source Device Name
               String sourceName = 'Device';
@@ -325,10 +328,7 @@ class MessageRoutingService {
           // Handle Routing/ACK
           if (deviceId != null) {
             final fromNode = packet.from;
-            final myNodeId = DeviceStateService.instance
-                .getState(deviceId)
-                ?.myNodeInfo
-                ?.myNodeNum;
+            final myNodeId = _deviceStates[deviceId]?.myNodeInfo?.myNodeNum;
 
             if (fromNode != null) {
               // If we have a requestId, we can find the exact message
@@ -364,9 +364,6 @@ class MessageRoutingService {
                           // Broadcast / Channel
                           if (fromNode == myNodeId) {
                             // Local confirmation means sent to mesh successfully
-                            // User wants this to show as acked (or at least better than "sent")
-                            // We'll use ackedByRelay or acked. User said "sure it is acked".
-                            // Let's use acked for now as it's a "success" indication from the mesh perspective (injected)
                             newStatus = MessageStatus.acked;
                           } else {
                             // Rebroadcast heard from someone else
@@ -452,6 +449,43 @@ class MessageRoutingService {
           }
         }
       }
+    }
+  }
+
+  void _updateInternalState(String deviceId, MeshtasticEvent meshEvent) {
+    var currentState =
+        _deviceStates[deviceId] ?? DeviceState(deviceId: deviceId);
+    var changed = false;
+
+    if (meshEvent is ChannelEvent) {
+      final newChannel = meshEvent.channel;
+      final channels = List<ChannelDto>.from(currentState.channels);
+      final index = channels.indexWhere((c) => c.index == newChannel.index);
+      if (index >= 0) {
+        channels[index] = newChannel;
+      } else {
+        channels.add(newChannel);
+      }
+      currentState = currentState.copyWith(channels: channels);
+      changed = true;
+    } else if (meshEvent is NodeInfoEvent) {
+      final newNode = meshEvent.nodeInfo;
+      final nodes = List<NodeInfoDto>.from(currentState.nodes);
+      final index = nodes.indexWhere((n) => n.num == newNode.num);
+      if (index >= 0) {
+        nodes[index] = newNode;
+      } else {
+        nodes.add(newNode);
+      }
+      currentState = currentState.copyWith(nodes: nodes);
+      changed = true;
+    } else if (meshEvent is MyInfoEvent) {
+      currentState = currentState.copyWith(myNodeInfo: meshEvent.myInfo);
+      changed = true;
+    }
+
+    if (changed) {
+      _deviceStates[deviceId] = currentState;
     }
   }
 

@@ -976,8 +976,8 @@ class MeshtasticMappers {
         }
       case port.PortNum.ADMIN_APP:
         try {
-          final _ = admin.AdminMessage.fromBuffer(bytes);
-          return const AdminPayloadDto();
+          final a = admin.AdminMessage.fromBuffer(bytes);
+          return AdminPayloadDto(variant: a.whichPayloadVariant().name);
         } catch (_) {
           return RawPayloadDto(portInternal, bytes);
         }

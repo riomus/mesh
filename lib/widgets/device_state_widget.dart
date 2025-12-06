@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/device_state.dart';
 import '../meshtastic/model/meshtastic_models.dart';
 import '../l10n/app_localizations.dart';
+import '../utils/text_sanitize.dart';
 
 class DeviceStateWidget extends StatelessWidget {
   final DeviceState state;
@@ -183,9 +184,11 @@ class DeviceStateWidget extends StatelessWidget {
                     title: Text(() {
                       final name = c.settings?.name;
                       if (name != null && name.isNotEmpty) return name;
-                      return c.index == 0
-                          ? AppLocalizations.of(context).defaultChannel
-                          : '${AppLocalizations.of(context).channel} ${c.index}';
+                      return safeText(
+                        c.index == 0
+                            ? AppLocalizations.of(context).defaultChannel
+                            : '${AppLocalizations.of(context).channel} ${c.index}',
+                      );
                     }()),
                     subtitle: Text(
                       AppLocalizations.of(
@@ -205,7 +208,11 @@ class DeviceStateWidget extends StatelessWidget {
               ListTile(
                 title: Text(AppLocalizations.of(context).knownNodes),
                 subtitle: Text(
-                  state.nodes.map((n) => n.user?.shortName ?? n.num).join(', '),
+                  safeText(
+                    state.nodes
+                        .map((n) => n.user?.shortName ?? n.num)
+                        .join(', '),
+                  ),
                 ),
               ),
             ],
@@ -766,7 +773,7 @@ class DeviceStateWidget extends StatelessWidget {
     return ListTile(
       dense: true,
       title: Text(key),
-      subtitle: Text(value?.toString() ?? 'N/A'),
+      subtitle: Text(safeText(value?.toString() ?? 'N/A')),
     );
   }
 }

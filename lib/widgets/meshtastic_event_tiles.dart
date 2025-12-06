@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
+import '../utils/text_sanitize.dart';
 
 import '../meshtastic/model/meshtastic_event.dart';
 import '../meshtastic/model/meshtastic_models.dart';
@@ -232,8 +233,8 @@ class _PacketTile extends StatelessWidget {
       ),
       child: ListTile(
         leading: Text(emoji, style: const TextStyle(fontSize: 20)),
-        title: Text(title),
-        subtitle: sub.isNotEmpty ? Text(sub) : null,
+        title: Text(safeText(title)),
+        subtitle: sub.isNotEmpty ? Text(safeText(sub)) : null,
         trailing: trailing,
         dense: true,
       ),
@@ -352,9 +353,9 @@ class _SimpleTile extends StatelessWidget {
       ),
       child: ListTile(
         leading: Text(emoji, style: const TextStyle(fontSize: 20)),
-        title: Text(title),
+        title: Text(safeText(title)),
         subtitle: (subtitle != null && subtitle!.isNotEmpty)
-            ? Text(subtitle!)
+            ? Text(safeText(subtitle!))
             : null,
         dense: true,
       ),
@@ -423,9 +424,11 @@ class _LogTile extends StatelessWidget {
       child: ListTile(
         leading: Text(emoji, style: const TextStyle(fontSize: 20)),
         title: Text(
-          src.isNotEmpty ? src : AppLocalizations.of(context).logRecord,
+          safeText(
+            src.isNotEmpty ? src : AppLocalizations.of(context).logRecord,
+          ),
         ),
-        subtitle: Text(msg),
+        subtitle: Text(safeText(msg)),
         dense: true,
       ),
     );

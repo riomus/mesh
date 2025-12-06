@@ -1,12 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../blocs/nodes/nodes_bloc.dart';
 
 import '../models/trace_models.dart';
 import '../services/traceroute_service.dart';
-import '../services/nodes_service.dart';
+import '../models/mesh_node_view.dart';
 import '../services/device_status_store.dart';
 import '../l10n/app_localizations.dart';
+import '../utils/text_sanitize.dart';
 import 'nodes_page.dart';
 
 /// Page to display all traceroute history and initiate new traces.
@@ -19,7 +22,6 @@ class TracesPage extends StatefulWidget {
 
 class _TracesPageState extends State<TracesPage> {
   final _tracerouteService = TracerouteService.instance;
-  final _nodesService = NodesService.instance;
   StreamSubscription<List<TraceResult>>? _traceSub;
   List<TraceResult> _traces = [];
 
@@ -141,7 +143,7 @@ class _TracesPageState extends State<TracesPage> {
                           ? Icons.usb
                           : Icons.bluetooth,
                     ),
-                    title: Text(deviceName),
+                    title: Text(safeText(deviceName)),
                     subtitle: Text(deviceId),
                     onTap: () => Navigator.of(context).pop(deviceId),
                   );
@@ -165,8 +167,8 @@ class _TracesPageState extends State<TracesPage> {
     if (selectedDeviceId == null) return;
     if (!mounted) return;
 
-    // Now get nodes for this device and let user select target node
-    final nodes = await _nodesService.listenAll().first;
+    // Now get nodes for this device using NodesBloc
+    final nodes = context.read<NodesBloc>().state.nodes;
 
     if (!mounted) return;
 
@@ -198,7 +200,7 @@ class _TracesPageState extends State<TracesPage> {
                           : '?',
                     ),
                   ),
-                  title: Text(node.displayName),
+                  title: Text(safeText(node.displayName)),
                   subtitle: Text('ID: ${node.num}'),
                   onTap: () => Navigator.of(context).pop(node),
                 );
@@ -377,36 +379,104 @@ class _TraceCardState extends State<_TraceCard> {
   }
 
   Widget _buildEventTile(BuildContext context, TraceEvent event) {
+    final hasData = event.data != null && event.data!.isNotEmpty;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            _getEventIcon(event.type),
-            size: 16,
-            color: _getEventColor(event.type),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                _getEventIcon(event.type),
+                size: 16,
+                color: _getEventColor(event.type),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      event.description,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    Text(
+                      _formatTime(event.timestamp),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.grey,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          if (hasData)
+            Padding(
+              padding: const EdgeInsets.only(left: 24, top: 4),
+              child: _buildEventData(context, event.data!),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEventData(BuildContext context, Map<String, dynamic> data) {
+    final entries = data.entries.where((e) {
+      // Filter out complex objects we don't want to show in the simple list
+      // or that are already shown elsewhere (like route/routeBack)
+      return !['route', 'routeBack', 'snrTowards', 'snrBack'].contains(e.key);
+    }).toList();
+
+    if (entries.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: entries.map((e) {
+          String valueStr = e.value.toString();
+          if (e.key == 'rxRssi' || e.key == 'rxSnr') {
+            // Add units if missing
+            if (e.key == 'rxRssi') valueStr += ' dBm';
+            if (e.key == 'rxSnr') valueStr += ' dB';
+          }
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 2),
+            child: Row(
               children: [
                 Text(
-                  event.description,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-                Text(
-                  _formatTime(event.timestamp),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.grey,
+                  '${e.key}: ',
+                  style: const TextStyle(
                     fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey,
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    valueStr,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontFamily: 'Monospace',
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
             ),
-          ),
-        ],
+          );
+        }).toList(),
       ),
     );
   }

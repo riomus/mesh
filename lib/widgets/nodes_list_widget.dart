@@ -3,7 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
-import '../services/nodes_service.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../blocs/nodes/nodes_bloc.dart';
+import '../blocs/nodes/nodes_state.dart';
+import '../models/mesh_node_view.dart';
 import '../pages/node_details_page.dart';
 import '../utils/text_sanitize.dart';
 import '../l10n/app_localizations.dart';
@@ -31,8 +34,6 @@ class NodesListWidget extends StatefulWidget {
 
 class _NodesListWidgetState extends State<NodesListWidget>
     with AutomaticKeepAliveClientMixin {
-  final _svc = NodesService.instance;
-  StreamSubscription<List<MeshNodeView>>? _sub;
   final List<MeshNodeView> _nodes = <MeshNodeView>[];
 
   // Logs-like filtering schema using chips added from a modal
@@ -58,32 +59,27 @@ class _NodesListWidgetState extends State<NodesListWidget>
   @override
   void initState() {
     super.initState();
-    _sub = _svc.listenAll().listen((list) {
-      setState(() {
-        _nodes
-          ..clear()
-          ..addAll(list);
-        // collect keys/values for modal suggestions
-        for (final n in list) {
-          for (final entry in n.tags.entries) {
-            _seenKeys.add(entry.key);
-            final set = _seenValuesByKey.putIfAbsent(
-              entry.key,
-              () => <String>{},
-            );
-            set.addAll(entry.value);
-          }
-        }
-      });
-    });
   }
 
   @override
   void dispose() {
-    _sub?.cancel();
     _searchCtrl.dispose();
     _searchFocus.dispose();
     super.dispose();
+  }
+
+  void _updateNodes(List<MeshNodeView> list) {
+    _nodes
+      ..clear()
+      ..addAll(list);
+    // collect keys/values for modal suggestions
+    for (final n in list) {
+      for (final entry in n.tags.entries) {
+        _seenKeys.add(entry.key);
+        final set = _seenValuesByKey.putIfAbsent(entry.key, () => <String>{});
+        set.addAll(entry.value);
+      }
+    }
   }
 
   bool _matches(MeshNodeView n) {
@@ -140,56 +136,65 @@ class _NodesListWidgetState extends State<NodesListWidget>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final filtered = _nodes.where(_matches).toList()
-      ..sort((a, b) => _compareNodes(a, b));
 
-    return Column(
-      children: [
-        _buildTopBar(context),
-        const SizedBox(height: 8),
-        Expanded(
-          child: ListView.separated(
-            itemCount: filtered.length,
-            separatorBuilder: (_, index2) => const Divider(height: 1),
-            itemBuilder: (context, index) {
-              final n = filtered[index];
-              // hopsAway is nullable. We only highlight if explicitly 0 (direct connection).
-              // Unset (null) values are ignored.
-              final isHop0 = n.hopsAway == 0;
-              return ListTile(
-                tileColor: isHop0
-                    ? Theme.of(
-                        context,
-                      ).colorScheme.primaryContainer.withOpacity(0.2)
-                    : null,
-                leading: CircleAvatar(child: Text(safeInitial(n.displayName))),
-                title: Text(safeText(n.displayName)),
-                subtitle: _buildSubtitle(n),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (n.isFavorite == true)
-                      const Icon(Icons.star, color: Colors.amber),
-                    if (n.viaMqtt == true)
-                      const Padding(
-                        padding: EdgeInsets.only(left: 6),
-                        child: Icon(Icons.cloud, color: Colors.blueAccent),
-                      ),
-                  ],
-                ),
-                onTap: () {
-                  if (n.num == null) return;
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => NodeDetailsPage(nodeNum: n.num!),
+    return BlocBuilder<NodesBloc, NodesState>(
+      builder: (context, state) {
+        _updateNodes(state.nodes);
+
+        final filtered = _nodes.where(_matches).toList()
+          ..sort((a, b) => _compareNodes(a, b, state));
+
+        return Column(
+          children: [
+            _buildTopBar(context),
+            const SizedBox(height: 8),
+            Expanded(
+              child: ListView.separated(
+                itemCount: filtered.length,
+                separatorBuilder: (_, index2) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final n = filtered[index];
+                  // hopsAway is nullable. We only highlight if explicitly 0 (direct connection).
+                  // Unset (null) values are ignored.
+                  final isHop0 = n.hopsAway == 0;
+                  return ListTile(
+                    tileColor: isHop0
+                        ? Theme.of(
+                            context,
+                          ).colorScheme.primaryContainer.withOpacity(0.2)
+                        : null,
+                    leading: CircleAvatar(
+                      child: Text(safeInitial(n.displayName)),
                     ),
+                    title: Text(safeText(n.displayName)),
+                    subtitle: _buildSubtitle(n),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (n.isFavorite == true)
+                          const Icon(Icons.star, color: Colors.amber),
+                        if (n.viaMqtt == true)
+                          const Padding(
+                            padding: EdgeInsets.only(left: 6),
+                            child: Icon(Icons.cloud, color: Colors.blueAccent),
+                          ),
+                      ],
+                    ),
+                    onTap: () {
+                      if (n.num == null) return;
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => NodeDetailsPage(nodeNum: n.num!),
+                        ),
+                      );
+                    },
                   );
                 },
-              );
-            },
-          ),
-        ),
-      ],
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -564,7 +569,7 @@ class _NodesListWidgetState extends State<NodesListWidget>
   }
 
   // ===== Sorting helpers =====
-  int _compareNodes(MeshNodeView a, MeshNodeView b) {
+  int _compareNodes(MeshNodeView a, MeshNodeView b, NodesState state) {
     // Always show hop 0 nodes first.
     // Note: hopsAway is nullable. If null (unset), it is not 0, so it won't be prioritized.
     final aIsHop0 = a.hopsAway == 0;
@@ -581,8 +586,8 @@ class _NodesListWidgetState extends State<NodesListWidget>
           r = fa.compareTo(fb);
           break;
         case _SortField.distance:
-          final da = _distanceMeters(a);
-          final db = _distanceMeters(b);
+          final da = _distanceMeters(a, state);
+          final db = _distanceMeters(b, state);
           r = _nullSafeCompare(da, db);
           break;
         case _SortField.snr:
@@ -624,8 +629,8 @@ class _NodesListWidgetState extends State<NodesListWidget>
     return a.toLowerCase().compareTo(b.toLowerCase());
   }
 
-  double? _distanceMeters(MeshNodeView n) {
-    final ref = _svc.effectiveDistanceReference;
+  double? _distanceMeters(MeshNodeView n, NodesState state) {
+    final ref = _getEffectiveDistanceReference(state);
     final p = n.position;
     if (ref == null || p?.latitudeI == null || p?.longitudeI == null)
       return null;
@@ -642,6 +647,24 @@ class _NodesListWidgetState extends State<NodesListWidget>
         2 * math.atan2(math.sqrt(a.toDouble()), math.sqrt(1 - a.toDouble()));
     const R = 6371000.0; // meters
     return R * c;
+  }
+
+  (double, double)? _getEffectiveDistanceReference(NodesState state) {
+    if (state.customRefLat != null && state.customRefLon != null) {
+      return (state.customRefLat!, state.customRefLon!);
+    }
+    final localId = state.localNodeId;
+    if (localId != null) {
+      final node = state.nodes.firstWhereOrNull((n) => n.num == localId);
+      if (node?.position?.latitudeI != null &&
+          node?.position?.longitudeI != null) {
+        return (
+          node!.position!.latitudeI! / 1e7,
+          node.position!.longitudeI! / 1e7,
+        );
+      }
+    }
+    return null;
   }
 
   // Format lastHeard (age seconds) per rule:
@@ -798,39 +821,22 @@ class _NodesListWidgetState extends State<NodesListWidget>
                           ),
                         ),
                         TextButton(
+                          onPressed: () => Navigator.of(context).maybePop(),
+                          child: Text(AppLocalizations.of(context).cancel),
+                        ),
+                        FilledButton(
                           onPressed: () {
-                            _svc.setCustomDistanceReference(
-                              lat: null,
-                              lon: null,
-                            );
+                            setState(() => _sorters = local);
                             Navigator.of(context).maybePop();
                           },
-                          child: Text(
-                            AppLocalizations.of(context).useSourceAsRef,
-                          ),
+                          child: Text(AppLocalizations.of(context).apply),
                         ),
-                        Text(AppLocalizations.of(context).tipSetCustomRef),
                       ],
                     ),
                   ),
                 ],
               ),
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text(AppLocalizations.of(context).cancel),
-              ),
-              FilledButton(
-                onPressed: () {
-                  setState(() {
-                    _sorters = List<_SortEntry>.from(local);
-                  });
-                  Navigator.of(context).pop();
-                },
-                child: Text(AppLocalizations.of(context).apply),
-              ),
-            ],
           );
         },
       ),
@@ -852,19 +858,20 @@ class _NodesListWidgetState extends State<NodesListWidget>
       case _SortField.name:
         return AppLocalizations.of(context).name;
     }
-    // Fallback (should be unreachable)
-    return AppLocalizations.of(context).unknownState;
   }
 
   bool _addChipUnique(_NodeChipFilter c) {
-    final exists = _chips.any(
-      (x) => x.key == c.key && x.value == c.value && x.op == c.op,
-    );
-    if (!exists) {
-      _chips.add(c);
-      return true;
+    // avoid duplicates
+    if (_chips.any(
+      (existing) =>
+          existing.key == c.key &&
+          existing.value == c.value &&
+          existing.op == c.op,
+    )) {
+      return false;
     }
-    return false;
+    _chips.add(c);
+    return true;
   }
 }
 
@@ -875,4 +882,13 @@ class _SortEntry {
   final bool asc;
   const _SortEntry(this.field, this.asc);
   _SortEntry toggle() => _SortEntry(field, !asc);
+}
+
+extension _IterableExtension<T> on Iterable<T> {
+  T? firstWhereOrNull(bool Function(T element) test) {
+    for (final element in this) {
+      if (test(element)) return element;
+    }
+    return null;
+  }
 }

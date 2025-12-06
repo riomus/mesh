@@ -16,4 +16,7 @@ abstract class ChattingDevice {
   /// [targetNodeId] is the destination node to trace the route to.
   /// Returns the packet ID for tracking the response.
   Future<int> sendTraceroute(int targetNodeId);
+
+  /// Returns the node ID (nodeNum) of this device, if available.
+  Future<int?> getMyNodeNum();
 }

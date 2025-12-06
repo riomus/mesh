@@ -10,6 +10,7 @@ import '../config/manufacturer_db.dart';
 import '../services/device_status_store.dart';
 
 import '../l10n/app_localizations.dart';
+import '../utils/text_sanitize.dart';
 
 class DeviceTile extends StatefulWidget {
   final ScanResult result;
@@ -133,7 +134,11 @@ class _DeviceTileState extends State<DeviceTile> {
         title: Row(
           children: [
             Expanded(
-              child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis),
+              child: Text(
+                safeText(name),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
             if (lora) ...[
               const SizedBox(width: 8),

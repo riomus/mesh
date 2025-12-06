@@ -10,6 +10,9 @@ import 'pages/traces_page.dart';
 import 'services/device_state_service.dart';
 import 'services/notification_service.dart';
 import 'services/traceroute_service.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'blocs/device/device_bloc.dart';
+import 'blocs/nodes/nodes_bloc.dart';
 
 import 'l10n/app_localizations.dart';
 
@@ -70,35 +73,41 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     final baseSeed = Colors.indigo;
-    return MaterialApp(
-      navigatorKey: navigatorKey,
-      onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
-      themeMode: _themeMode,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: baseSeed,
-          brightness: Brightness.light,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => DeviceBloc()),
+        BlocProvider(create: (context) => NodesBloc()),
+      ],
+      child: MaterialApp(
+        navigatorKey: navigatorKey,
+        onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
+        themeMode: _themeMode,
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: baseSeed,
+            brightness: Brightness.light,
+          ),
+          useMaterial3: true,
         ),
-        useMaterial3: true,
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: baseSeed,
-          brightness: Brightness.dark,
+        darkTheme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: baseSeed,
+            brightness: Brightness.dark,
+          ),
+          useMaterial3: true,
         ),
-        useMaterial3: true,
+        locale: _settingsData.locale,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: !_loaded
+            ? const Scaffold(body: Center(child: CircularProgressIndicator()))
+            : Home(
+                settings: _settingsData,
+                onUpdateSettings: _updateSettings,
+                toggleTheme: _toggleTheme,
+                themeMode: _themeMode,
+              ),
       ),
-      locale: _settingsData.locale,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: !_loaded
-          ? const Scaffold(body: Center(child: CircularProgressIndicator()))
-          : Home(
-              settings: _settingsData,
-              onUpdateSettings: _updateSettings,
-              toggleTheme: _toggleTheme,
-              themeMode: _themeMode,
-            ),
     );
   }
 }

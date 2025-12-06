@@ -48,6 +48,9 @@ class DeviceStateService {
     return _controller.stream.where((s) => s.deviceId == deviceId);
   }
 
+  /// Stream of all state updates.
+  Stream<DeviceState> get streamAll => _controller.stream;
+
   /// Stream of state updates for a specific device, starting with the current state.
   Stream<DeviceState> streamWithCurrent(String deviceId) {
     // Create a broadcast stream that emits current then follows the broadcast stream
@@ -165,6 +168,38 @@ class DeviceStateService {
       } else if (meshEvent is DeviceMetadataEvent) {
         state = state.copyWith(metadata: meshEvent.metadata);
         changed = true;
+      } else if (meshEvent is MeshPacketEvent) {
+        final decoded = meshEvent.decoded;
+        final from = meshEvent.packet.from;
+
+        if (decoded is PositionPayloadDto && from != null) {
+          final newPosition = decoded.position;
+          final nodes = List<NodeInfoDto>.from(state.nodes);
+          final index = nodes.indexWhere((n) => n.num == from);
+
+          if (index >= 0) {
+            // Update existing node
+            nodes[index] = NodeInfoDto(
+              num: nodes[index].num,
+              user: nodes[index].user,
+              position: newPosition,
+              snr: nodes[index].snr,
+              lastHeard: nodes[index].lastHeard,
+              deviceMetrics: nodes[index].deviceMetrics,
+              channel: nodes[index].channel,
+              viaMqtt: nodes[index].viaMqtt,
+              hopsAway: nodes[index].hopsAway,
+              isFavorite: nodes[index].isFavorite,
+              isIgnored: nodes[index].isIgnored,
+              isKeyManuallyVerified: nodes[index].isKeyManuallyVerified,
+            );
+          } else {
+            // Add new node (minimal info)
+            nodes.add(NodeInfoDto(num: from, position: newPosition));
+          }
+          state = state.copyWith(nodes: nodes);
+          changed = true;
+        }
       }
 
       if (changed) {

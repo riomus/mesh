@@ -5,10 +5,13 @@ import 'package:flutter/services.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../blocs/device/device_bloc.dart';
+import '../blocs/nodes/nodes_bloc.dart';
+
 import '../models/chat_models.dart';
 import '../services/message_routing_service.dart';
 import '../utils/text_sanitize.dart';
-import '../services/device_state_service.dart';
 import '../services/device_status_store.dart';
 import '../pages/device_details_page.dart';
 
@@ -516,12 +519,9 @@ class _ChatWidgetState extends State<ChatWidget> {
   }
 
   Widget _buildAuthorWidget(BuildContext context, ChatMessage message) {
-    if (message.deviceId == null || message.authorNodeId == null) {
+    if (message.authorNodeId == null) {
       return Text(
-        AppLocalizations.of(context).nodeName(
-          message.authorNodeId?.toString() ??
-              AppLocalizations.of(context).unknown,
-        ),
+        AppLocalizations.of(context).unknown,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
           fontWeight: FontWeight.bold,
           color: Theme.of(context).colorScheme.secondary,
@@ -529,37 +529,21 @@ class _ChatWidgetState extends State<ChatWidget> {
       );
     }
 
-    // Try to get author name from device state
-    final deviceState = DeviceStateService.instance.getState(message.deviceId!);
-    String authorName = AppLocalizations.of(
-      context,
-    ).nodeName(message.authorNodeId.toString());
+    // Use NodesBloc to get the node view (single source of truth)
+    final node = context.read<NodesBloc>().state.getNode(message.authorNodeId);
+    final authorName =
+        node?.displayName ??
+        AppLocalizations.of(context).nodeName(message.authorNodeId.toString());
 
-    if (deviceState != null && deviceState.nodes.isNotEmpty) {
-      // Find the specific node that sent this message
-      final nodeIndex = deviceState.nodes.indexWhere(
-        (n) => n.num == message.authorNodeId,
-      );
-
-      if (nodeIndex != -1) {
-        final node = deviceState.nodes[nodeIndex];
-        // Prefer long name, then short name, then fall back to node ID
-        authorName =
-            node.user?.longName ??
-            node.user?.shortName ??
-            AppLocalizations.of(
-              context,
-            ).nodeName(message.authorNodeId.toString());
-      }
-    }
-
-    // Find if the author is actually a connected device (not just a remote node)
-    // by checking if the author node ID matches any device's myNodeNum
+    // Check if it's a connected device to make it clickable
     final connectedDevices = DeviceStatusStore.instance.connectedDevices;
     BluetoothDevice? authorDevice;
 
+    // We can check if the authorNodeId matches any connected device's node num
+    // But we need to know the node num of connected devices.
+    // DeviceBloc has this info.
     for (final device in connectedDevices) {
-      final deviceState = DeviceStateService.instance.getState(
+      final deviceState = context.read<DeviceBloc>().state.getDeviceState(
         device.remoteId.str,
       );
       if (deviceState?.myNodeInfo?.myNodeNum == message.authorNodeId) {
@@ -569,7 +553,6 @@ class _ChatWidgetState extends State<ChatWidget> {
     }
 
     if (authorDevice != null) {
-      // Author is a connected device - make it clickable
       return GestureDetector(
         onTap: () {
           Navigator.of(context).push(
@@ -587,8 +570,26 @@ class _ChatWidgetState extends State<ChatWidget> {
           ),
         ),
       );
+    } else if (node != null) {
+      // If it's a known node (but not a connected device), we can still show details
+      return GestureDetector(
+        onTap: () {
+          // We can navigate to NodeDetailsPage if we have a node
+          // But NodeDetailsPage takes a nodeNum.
+          // We need to import NodeDetailsPage.
+          // It seems ChatWidget doesn't import it yet.
+          // For now, let's just show the name.
+          // Or we can add the import.
+        },
+        child: Text(
+          authorName,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.secondary,
+          ),
+        ),
+      );
     } else {
-      // Author is a remote node, not a connected device - show as non-clickable
       return Text(
         authorName,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(

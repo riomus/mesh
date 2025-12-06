@@ -152,4 +152,10 @@ class UsbMeshtasticDevice implements ChattingDevice {
     await client.sendMeshPacket(packet);
     return packet.id;
   }
+
+  @override
+  Future<int?> getMyNodeNum() async {
+    final state = DeviceStateService.instance.getState(_deviceId);
+    return state?.myNodeInfo?.myNodeNum;
+  }
 }

@@ -8,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../services/logging_service.dart';
 import '../l10n/app_localizations.dart';
+import '../utils/text_sanitize.dart';
 
 /// A reusable logs viewer widget with rich filtering, searching and formatting.
 ///
@@ -437,7 +438,7 @@ class _LogsViewerState extends State<LogsViewer> {
         ? (chip.value.isEmpty ? chip.key : '${chip.key}=${chip.value}')
         : '${chip.key}~/${chip.value}/i';
     return InputChip(
-      label: Text(label),
+      label: Text(safeText(label)),
       onDeleted: () => setState(() => _chips.removeAt(index)),
     );
   }
@@ -535,7 +536,7 @@ class _LogsViewerState extends State<LogsViewer> {
                               if (draftKey != null)
                                 DropdownMenuItem(
                                   value: draftKey,
-                                  child: Text(draftKey!),
+                                  child: Text(safeText(draftKey!)),
                                 ),
                               ..._seenKeys
                                   .where((k) => k != draftKey)
@@ -543,7 +544,7 @@ class _LogsViewerState extends State<LogsViewer> {
                                   .map(
                                     (k) => DropdownMenuItem(
                                       value: k,
-                                      child: Text(k),
+                                      child: Text(safeText(k)),
                                     ),
                                   ),
                             ],
@@ -596,7 +597,7 @@ class _LogsViewerState extends State<LogsViewer> {
                                             const <String>{})
                                         .take(18))
                                   ActionChip(
-                                    label: Text(v),
+                                    label: Text(safeText(v)),
                                     onPressed: () =>
                                         setDlg(() => draftValue = v),
                                   ),
@@ -917,13 +918,13 @@ class _LogTile extends StatelessWidget {
             ),
             const TextSpan(text: '  '),
             TextSpan(
-              text: srcDisplay,
+              text: safeText(srcDisplay),
               style: TextStyle(color: Theme.of(context).colorScheme.secondary),
             ),
           ],
         ),
       ),
-      subtitle: Text(event.message),
+      subtitle: Text(safeText(event.message)),
     );
   }
 

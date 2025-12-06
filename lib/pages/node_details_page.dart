@@ -1,10 +1,11 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as latlng;
 
-import '../services/nodes_service.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../blocs/nodes/nodes_bloc.dart';
+import '../blocs/nodes/nodes_state.dart';
+import '../models/mesh_node_view.dart';
 import '../utils/text_sanitize.dart';
 
 import '../services/device_status_store.dart';
@@ -23,204 +24,156 @@ class NodeDetailsPage extends StatefulWidget {
 }
 
 class _NodeDetailsPageState extends State<NodeDetailsPage> {
-  final _svc = NodesService.instance;
-  StreamSubscription<List<MeshNodeView>>? _sub;
-  MeshNodeView? _node;
   late final MapController _mapController = MapController();
 
   @override
   void initState() {
     super.initState();
-    // Prefill immediately from current snapshot so we don't show an indefinite
-    // loader when the node is already known.
-    _prefillFromSnapshot();
-    _sub = _svc.listenAll().listen((list) {
-      if (!mounted) return;
-      final match = list.firstWhere(
-        (n) => n.num == widget.nodeNum,
-        orElse: () => const MeshNodeView(
-          num: null,
-          user: null,
-          position: null,
-          snr: null,
-          lastHeard: null,
-          deviceMetrics: null,
-          hopsAway: null,
-          isFavorite: null,
-          isIgnored: null,
-          viaMqtt: null,
-          tags: <String, List<String>>{},
-        ),
-      );
-      setState(() {
-        _node = match.num == null ? null : match;
-      });
-    });
-  }
-
-  void _prefillFromSnapshot() {
-    final list = _svc.snapshot;
-    if (list.isEmpty) return;
-    final match = list.firstWhere(
-      (n) => n.num == widget.nodeNum,
-      orElse: () => const MeshNodeView(
-        num: null,
-        user: null,
-        position: null,
-        snr: null,
-        lastHeard: null,
-        deviceMetrics: null,
-        hopsAway: null,
-        isFavorite: null,
-        isIgnored: null,
-        viaMqtt: null,
-        tags: <String, List<String>>{},
-      ),
-    );
-    if (match.num != null && mounted) {
-      setState(() {
-        _node = match;
-      });
-    }
   }
 
   @override
   void dispose() {
-    _sub?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final n = _node;
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          n != null
-              ? safeText(n.displayName)
-              : AppLocalizations.of(
-                  context,
-                ).nodeTitleHex(widget.nodeNum.toRadixString(16)),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.chat),
-            tooltip: AppLocalizations.of(context).chat,
-            onPressed: () {
-              final device = DeviceStatusStore.instance.connectedDevice;
-              if (device != null) {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => DeviceChatPage(
-                      deviceId: device.remoteId.str,
-                      toNodeId: widget.nodeNum,
-                      chatTitle:
-                          n?.displayName ??
-                          AppLocalizations.of(
-                            context,
-                          ).nodeTitleHex(widget.nodeNum.toRadixString(16)),
-                    ),
-                  ),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      AppLocalizations.of(context).meshtasticConnectFailed,
-                    ),
-                  ),
-                );
-              }
-            },
-          ),
-        ],
-      ),
-      body: n == null
-          ? const Center(
-              child: Padding(
-                padding: EdgeInsets.all(24),
-                child: CircularProgressIndicator(),
-              ),
-            )
-          : Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 800),
-                child: ListView(
-                  padding: const EdgeInsets.all(12),
-                  children: [
-                    Card(
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          child: Text(safeInitial(n.displayName)),
-                        ),
-                        title: Text(safeText(n.displayName)),
-                        subtitle: Text(
-                          AppLocalizations.of(
-                            context,
-                          ).nodeIdHex(n.num!.toRadixString(16)),
-                        ),
-                      ),
-                    ),
-                    Card(
-                      child: Column(
-                        children: [
-                          _infoTile(
-                            Icons.badge,
-                            AppLocalizations.of(context).role,
-                            n.user?.role,
-                          ),
-                          const Divider(height: 1),
-                          _infoTile(
-                            Icons.alt_route,
-                            AppLocalizations.of(context).hopsAway,
-                            n.hopsAway?.toString(),
-                          ),
-                          const Divider(height: 1),
-                          _infoTile(
-                            Icons.network_cell,
-                            AppLocalizations.of(context).snrLabel,
-                            n.snr?.toStringAsFixed(1),
-                          ),
-                          const Divider(height: 1),
-                          _infoTile(
-                            Icons.cloud,
-                            AppLocalizations.of(context).viaMqtt,
-                            n.viaMqtt == true
-                                ? AppLocalizations.of(context).yes
-                                : (n.viaMqtt == false
-                                      ? AppLocalizations.of(context).no
-                                      : null),
-                          ),
-                          const Divider(height: 1),
-                          _infoTile(
-                            Icons.battery_full,
-                            AppLocalizations.of(context).battery,
-                            _batteryText(n),
-                          ),
-                          const Divider(height: 1),
-                          _infoTile(
-                            Icons.access_time,
-                            AppLocalizations.of(context).lastSeenLabel,
-                            n.lastHeard != null
-                                ? _formatLastHeard(n.lastHeard!)
-                                : null,
-                          ),
-                        ],
-                      ),
-                    ),
-                    _buildLocationSection(n),
-                    Card(
-                      child: ListTile(
-                        leading: const Icon(Icons.route),
-                        title: Text(AppLocalizations.of(context).sourceDevice),
-                        subtitle: Text(_sourceDeviceLine(n)),
-                      ),
-                    ),
-                    TelemetryWidget(nodeId: widget.nodeNum),
-                  ],
-                ),
-              ),
+    return BlocBuilder<NodesBloc, NodesState>(
+      builder: (context, state) {
+        final n = state.nodes.firstWhereOrNull((n) => n.num == widget.nodeNum);
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(
+              n != null
+                  ? safeText(n.displayName)
+                  : AppLocalizations.of(
+                      context,
+                    ).nodeTitleHex(widget.nodeNum.toRadixString(16)),
             ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.chat),
+                tooltip: AppLocalizations.of(context).chat,
+                onPressed: () {
+                  final device = DeviceStatusStore.instance.connectedDevice;
+                  if (device != null) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => DeviceChatPage(
+                          deviceId: device.remoteId.str,
+                          toNodeId: widget.nodeNum,
+                          chatTitle:
+                              n?.displayName ??
+                              AppLocalizations.of(
+                                context,
+                              ).nodeTitleHex(widget.nodeNum.toRadixString(16)),
+                        ),
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          AppLocalizations.of(context).meshtasticConnectFailed,
+                        ),
+                      ),
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
+          body: n == null
+              ? const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: CircularProgressIndicator(),
+                  ),
+                )
+              : Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 800),
+                    child: ListView(
+                      padding: const EdgeInsets.all(12),
+                      children: [
+                        Card(
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              child: Text(safeInitial(n.displayName)),
+                            ),
+                            title: Text(safeText(n.displayName)),
+                            subtitle: Text(
+                              AppLocalizations.of(
+                                context,
+                              ).nodeIdHex(n.num!.toRadixString(16)),
+                            ),
+                          ),
+                        ),
+                        Card(
+                          child: Column(
+                            children: [
+                              _infoTile(
+                                Icons.badge,
+                                AppLocalizations.of(context).role,
+                                n.user?.role,
+                              ),
+                              const Divider(height: 1),
+                              _infoTile(
+                                Icons.alt_route,
+                                AppLocalizations.of(context).hopsAway,
+                                n.hopsAway?.toString(),
+                              ),
+                              const Divider(height: 1),
+                              _infoTile(
+                                Icons.network_cell,
+                                AppLocalizations.of(context).snrLabel,
+                                n.snr?.toStringAsFixed(1),
+                              ),
+                              const Divider(height: 1),
+                              _infoTile(
+                                Icons.cloud,
+                                AppLocalizations.of(context).viaMqtt,
+                                n.viaMqtt == true
+                                    ? AppLocalizations.of(context).yes
+                                    : (n.viaMqtt == false
+                                          ? AppLocalizations.of(context).no
+                                          : null),
+                              ),
+                              const Divider(height: 1),
+                              _infoTile(
+                                Icons.battery_full,
+                                AppLocalizations.of(context).battery,
+                                _batteryText(n),
+                              ),
+                              const Divider(height: 1),
+                              _infoTile(
+                                Icons.access_time,
+                                AppLocalizations.of(context).lastSeenLabel,
+                                n.lastHeard != null
+                                    ? _formatLastHeard(n.lastHeard!)
+                                    : null,
+                              ),
+                            ],
+                          ),
+                        ),
+                        _buildLocationSection(n),
+                        Card(
+                          child: ListTile(
+                            leading: const Icon(Icons.route),
+                            title: Text(
+                              AppLocalizations.of(context).sourceDevice,
+                            ),
+                            subtitle: Text(safeText(_sourceDeviceLine(n))),
+                          ),
+                        ),
+                        TelemetryWidget(nodeId: widget.nodeNum),
+                      ],
+                    ),
+                  ),
+                ),
+        );
+      },
     );
   }
 
@@ -228,7 +181,7 @@ class _NodeDetailsPageState extends State<NodeDetailsPage> {
     return ListTile(
       leading: Icon(icon),
       title: Text(title),
-      subtitle: Text(value ?? '—'),
+      subtitle: Text(safeText(value ?? '—')),
     );
   }
 
@@ -362,5 +315,14 @@ class _NodeDetailsPageState extends State<NodeDetailsPage> {
     final dateStr =
         '${dt.year}-${two(dt.month)}-${two(dt.day)} ${two(dt.hour)}:${two(dt.minute)}:${two(dt.second)}';
     return '$dateStr (${AppLocalizations.of(context).agoDays(relDays)})';
+  }
+}
+
+extension _IterableExtension<T> on Iterable<T> {
+  T? firstWhereOrNull(bool Function(T element) test) {
+    for (final element in this) {
+      if (test(element)) return element;
+    }
+    return null;
   }
 }

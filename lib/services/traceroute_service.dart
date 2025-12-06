@@ -107,6 +107,14 @@ class TracerouteService {
     // to the TRACEROUTE_APP portnum with the destination set
     final packetId = await _sendTraceroutePacket(device, targetNodeId);
 
+    // Get source node ID from device
+    int? sourceNodeId;
+    try {
+      sourceNodeId = await device.getMyNodeNum();
+    } catch (e) {
+      print('[TracerouteService] Failed to get source node ID: $e');
+    }
+
     // Create trace request
     final request = TraceRequest(
       id: requestId,
@@ -135,6 +143,7 @@ class TracerouteService {
       status: TraceStatus.pending,
       lastUpdated: now,
       deviceId: deviceId,
+      sourceNodeId: sourceNodeId,
     );
 
     _traceHistory[requestId] = result;
@@ -307,6 +316,13 @@ class TracerouteService {
         'snrBack': traceroute.snrBack,
         'rxSnr': packet.rxSnr,
         'rxRssi': packet.rxRssi,
+        'hopLimit': packet.hopLimit,
+        'hopStart': packet.hopStart,
+        'priority': packet.priority,
+        'rxTime': packet.rxTime,
+        'packetId': packet.id,
+        'from': packet.from,
+        'to': packet.to,
       },
     );
 
@@ -380,7 +396,18 @@ class TracerouteService {
           description: hasError
               ? 'Trace request failed: ${routing.errorReason}'
               : 'Trace request acknowledged by node ${packet.from}',
-          data: {'from': packet.from, 'errorReason': routing.errorReason},
+          data: {
+            'from': packet.from,
+            'errorReason': routing.errorReason,
+            'rxSnr': packet.rxSnr,
+            'rxRssi': packet.rxRssi,
+            'hopLimit': packet.hopLimit,
+            'hopStart': packet.hopStart,
+            'priority': packet.priority,
+            'rxTime': packet.rxTime,
+            'packetId': packet.id,
+            'variant': routing.variant,
+          },
         );
 
         final updatedEvents = List<TraceEvent>.from(result.events)..add(event);
@@ -388,6 +415,8 @@ class TracerouteService {
         // If this is a successful ACK (not an error), add the acknowledging node
         // to the list of theoretical participants
         var updatedAckNodeIds = result.ackNodeIds;
+        var newStatus = hasError ? TraceStatus.failed : result.status;
+
         if (!hasError && packet.from != null) {
           final ackNodeId = packet.from!;
 
@@ -400,12 +429,38 @@ class TracerouteService {
               '[TracerouteService] Added ACK node $ackNodeId to trace ${entry.key}',
             );
           }
+
+          // If the ACK is from the target node, the trace is successful!
+          if (ackNodeId == result.targetNodeId) {
+            print(
+              '[TracerouteService] Target node $ackNodeId ACKed! Marking trace as completed.',
+            );
+            newStatus = TraceStatus.completed;
+
+            // Add a completion event if not already present
+            final completionEvent = TraceEvent(
+              timestamp: now,
+              type: 'completed',
+              description: 'Trace completed: target node acknowledged request',
+            );
+            updatedEvents.add(completionEvent);
+
+            // Also update the pending request status so we stop tracking it
+            _pendingTraces[entry.key] = request.copyWith(
+              status: TraceStatus.completed,
+            );
+
+            // Clean up pending after a delay
+            Future.delayed(const Duration(seconds: 5), () {
+              _pendingTraces.remove(entry.key);
+            });
+          }
         }
 
         final updatedResult = result.copyWith(
           events: updatedEvents,
           ackNodeIds: updatedAckNodeIds,
-          status: hasError ? TraceStatus.failed : result.status,
+          status: newStatus,
           lastUpdated: now,
         );
 

@@ -9,6 +9,7 @@ import '../services/device_communication_event_service.dart';
 import 'meshtastic_event_tiles.dart';
 import '../pages/event_details_page.dart';
 import '../l10n/app_localizations.dart';
+import '../utils/text_sanitize.dart';
 
 // Logs-like filter primitives (private to this file)
 enum _EventChipOp { exact, regex }
@@ -324,7 +325,7 @@ class _EventsListWidgetState extends State<EventsListWidget> {
         .entries
         .map(
           (entry) => InputChip(
-            label: Text(entry.value.label),
+            label: Text(safeText(entry.value.label)),
             onDeleted: () => setState(() => _chips.removeAt(entry.key)),
           ),
         )
@@ -572,7 +573,7 @@ class _EventsListWidgetState extends State<EventsListWidget> {
                               .map(
                                 (k) => DropdownMenuItem<String>(
                                   value: k,
-                                  child: Text(k),
+                                  child: Text(safeText(k)),
                                 ),
                               )
                               .toList();
@@ -619,7 +620,7 @@ class _EventsListWidgetState extends State<EventsListWidget> {
                             ),
                             ...valuesSorted.map(
                               (v) => FilterChip(
-                                label: Text(v),
+                                label: Text(safeText(v)),
                                 selected: selectedValues.contains(v),
                                 onSelected: (sel) => setDlg(() {
                                   if (sel) {
@@ -720,8 +721,8 @@ class _EventTile extends StatelessWidget {
         AppLocalizations.of(context).puzzleEmoji,
         style: const TextStyle(fontSize: 18),
       ),
-      title: Text(e.summary ?? AppLocalizations.of(context).event),
-      subtitle: Text(_tagsSummary(e.tags)),
+      title: Text(safeText(e.summary ?? AppLocalizations.of(context).event)),
+      subtitle: Text(safeText(_tagsSummary(e.tags))),
       dense: true,
       onTap: () => Navigator.of(
         context,

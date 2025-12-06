@@ -5,9 +5,15 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:latlong2/latlong.dart' as latlng;
 
-import '../services/nodes_service.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../blocs/nodes/nodes_bloc.dart';
+import '../blocs/nodes/nodes_state.dart';
+import '../blocs/nodes/nodes_event.dart';
+import '../models/mesh_node_view.dart'; // For MeshNodeView
 import '../services/device_status_store.dart';
+import '../services/device_state_service.dart';
 import '../services/traceroute_service.dart';
+import '../meshtastic/model/meshtastic_models.dart';
 import '../utils/text_sanitize.dart';
 import '../pages/node_details_page.dart';
 import '../l10n/app_localizations.dart';
@@ -30,14 +36,12 @@ class NodesMapWidget extends StatefulWidget {
 
 class _NodesMapWidgetState extends State<NodesMapWidget>
     with AutomaticKeepAliveClientMixin {
-  final _svc = NodesService.instance;
   late final MapController _controller = MapController();
 
   @override
   bool get wantKeepAlive => true;
 
   List<MeshNodeView> _nodes = const <MeshNodeView>[];
-  StreamSubscription<List<MeshNodeView>>? _sub;
   StreamSubscription<List<TraceResult>>? _traceSub;
   TraceResult? _activeTrace;
   bool _didAutoFit = false;
@@ -61,41 +65,6 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
         }
       });
     }
-
-    // Prefill from current snapshot so we don't flash an empty map when
-    // nodes are already known (e.g., coming from the List tab)
-    final snap = _svc.snapshot;
-    if (snap.isNotEmpty) {
-      _nodes = snap;
-      // If we already have points from the snapshot, schedule an initial fit
-      // to make the view immediately useful.
-      if (_nodePoints.isNotEmpty) {
-        _didAutoFit = true;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          _fitBounds();
-        });
-      }
-    }
-    _sub = _svc.listenAll().listen((value) {
-      // Guard against setState after dispose if an event lands late
-      if (!mounted) return;
-      setState(() {
-        _nodes = value;
-      });
-      // One-time auto-fit when first non-empty set of nodes with location arrives
-      if (!_didAutoFit) {
-        final hasAny = _nodePoints.isNotEmpty;
-        if (hasAny) {
-          _didAutoFit = true;
-          // Schedule after this frame so controller is ready
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted) return;
-            _fitBounds();
-          });
-        }
-      }
-    });
   }
 
   @override
@@ -105,14 +74,11 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
       setState(() {
         _activeTrace = widget.highlightedTrace;
       });
-      // Re-subscribe if needed (simplified: just keep existing sub or recreate if strictly needed,
-      // but usually the ID stays same for the same trace view. If switching traces, we might want to reset.)
     }
   }
 
   @override
   void dispose() {
-    _sub?.cancel();
     _traceSub?.cancel();
     super.dispose();
   }
@@ -120,7 +86,7 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
   Iterable<(MeshNodeView node, double lat, double lon)> get _nodePoints sync* {
     // If we have a highlighted trace and showAllNodes is false, filter to only those nodes
     final traceNodeIds = <int>{};
-    if (_activeTrace != null && !widget.showAllNodes) {
+    if (_activeTrace != null) {
       final trace = _activeTrace!;
 
       // Add target node (always show target for trace context)
@@ -151,30 +117,94 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
           traceNodeIds.add(event.data!['from'] as int);
         }
       }
-
-      // For 0-hop traces, we also need to include the source/local node
-      // Since we don't explicitly store it, we'll include all nodes that aren't the target
-      // This is a heuristic - in practice, for 0-hop there will be very few nodes shown
     }
 
-    for (final n in _nodes) {
-      // If filtering by trace, skip nodes not in the trace
-      if (traceNodeIds.isNotEmpty &&
-          n.num != null &&
-          !traceNodeIds.contains(n.num!)) {
-        continue;
+    if (widget.showAllNodes) {
+      // Yield all nodes from the main list
+      for (final n in _nodes) {
+        final p = n.position;
+        if (p?.latitudeI != null && p?.longitudeI != null) {
+          final lat = p!.latitudeI! / 1e7;
+          final lon = p.longitudeI! / 1e7;
+          if (lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+            yield (n, lat, lon);
+          }
+        }
       }
-
-      final p = n.position;
-      if (p?.latitudeI != null && p?.longitudeI != null) {
-        final lat = p!.latitudeI! / 1e7;
-        final lon = p.longitudeI! / 1e7;
-        // Defensive filtering: ignore impossible coordinates
-        if (lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
-          yield (n, lat, lon);
+      // Also yield any trace nodes that are NOT in the main list
+      for (final id in traceNodeIds) {
+        if (_nodes.any((n) => n.num == id)) continue;
+        final view = _getNodeView(id);
+        if (view != null) {
+          final p = view.position;
+          if (p?.latitudeI != null && p?.longitudeI != null) {
+            final lat = p!.latitudeI! / 1e7;
+            final lon = p.longitudeI! / 1e7;
+            if (lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+              yield (view, lat, lon);
+            }
+          }
+        }
+      }
+    } else {
+      // Only yield trace nodes
+      for (final id in traceNodeIds) {
+        final view = _getNodeView(id);
+        if (view != null) {
+          final p = view.position;
+          if (p?.latitudeI != null && p?.longitudeI != null) {
+            final lat = p!.latitudeI! / 1e7;
+            final lon = p.longitudeI! / 1e7;
+            if (lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+              yield (view, lat, lon);
+            }
+          }
         }
       }
     }
+  }
+
+  /// Helper to find a node view, checking local list first then connected devices
+  MeshNodeView? _getNodeView(int nodeId) {
+    // 1. Check main node list
+    final existing = _nodes.firstWhereOrNull((n) => n.num == nodeId);
+    if (existing != null) return existing;
+
+    // 2. Check connected devices via DeviceStateService
+    // Iterate over all connected devices to see if any of them IS this node
+    // or has info about this node (though usually we only have info about the device itself)
+    final connectedIds = DeviceStatusStore.instance.connectedDeviceIds;
+    for (final deviceId in connectedIds) {
+      final state = DeviceStateService.instance.getState(deviceId);
+      if (state == null) continue;
+
+      // Check if this device IS the node we are looking for
+      if (state.myNodeInfo?.myNodeNum == nodeId) {
+        // Try to find full node info in the device's node list
+        final selfNode = state.nodes.firstWhereOrNull((n) => n.num == nodeId);
+        if (selfNode != null) {
+          return MeshNodeView(
+            num: nodeId,
+            user: selfNode.user,
+            position: selfNode.position,
+            lastHeard: 0,
+            snr: 0,
+            deviceMetrics: selfNode.deviceMetrics,
+          );
+        }
+
+        // Fallback if not in node list (minimal info)
+        return MeshNodeView(
+          num: nodeId,
+          user: const UserDto(longName: 'Local Device', shortName: 'ME'),
+          position: null,
+          lastHeard: 0,
+          snr: 0,
+        );
+      }
+    }
+
+    return null;
   }
 
   Color _getTraceStatusColor(TraceStatus status) {
@@ -191,6 +221,9 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
   }
 
   int? _getSourceNodeId(TraceResult trace) {
+    if (trace.sourceNodeId != null) {
+      return trace.sourceNodeId;
+    }
     if (trace.deviceId != null) {
       debugPrint('_getSourceNodeId: trace.deviceId=${trace.deviceId}');
 
@@ -203,7 +236,7 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
       debugPrint('_getSourceNodeId: connectedIds=$connectedIds');
 
       if (connectedIds.contains(trace.deviceId)) {
-        final localId = NodesService.instance.localNodeId;
+        final localId = context.read<NodesBloc>().state.localNodeId;
         debugPrint(
           '_getSourceNodeId: Match found in connectedIds. localId=$localId',
         );
@@ -220,7 +253,7 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
         debugPrint(
           '_getSourceNodeId: Match found by user ID. nodeNum=${sourceNodeByUser!.num}',
         );
-        return sourceNodeByUser!.num;
+        return sourceNodeByUser.num;
       }
 
       // Try matching by parsing device ID (e.g. !12345678 -> 0x12345678)
@@ -247,37 +280,31 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
         debugPrint(
           '_getSourceNodeId: Match found by tag. nodeNum=${sourceNodeByTag!.num}',
         );
-        return sourceNodeByTag!.num;
+        return sourceNodeByTag.num;
       }
     }
     // Fallback to local node if deviceId is null or not found
     // (Assuming trace was initiated locally if we can't find the remote source)
-    final localId = NodesService.instance.localNodeId;
+    final localId = context.read<NodesBloc>().state.localNodeId;
     debugPrint('_getSourceNodeId: Fallback to localId=$localId');
     return localId;
   }
 
   // Helper to find node position
   (double, double)? _getPos(int nodeId) {
-    final node = _nodes.firstWhereOrNull((n) => n.num == nodeId);
+    final node = _getNodeView(nodeId);
     if (node == null) {
       if (_activeTrace != null && nodeId == _activeTrace!.targetNodeId) {
         debugPrint(
-          '_getPos: Target Node $nodeId NOT FOUND in _nodes list (count: ${_nodes.length})',
+          '_getPos: Target Node $nodeId NOT FOUND in _nodes list or connected devices',
         );
-        // Print some available nodes to see what we have
-        if (_nodes.isNotEmpty) {
-          debugPrint(
-            'Available nodes sample: ${_nodes.take(3).map((n) => n.num).toList()}',
-          );
-        }
       }
       return null;
     }
     if (node.position?.latitudeI == null || node.position?.longitudeI == null) {
       if (_activeTrace != null && nodeId == _activeTrace!.targetNodeId) {
         debugPrint(
-          '_getPos: Target Node $nodeId FOUND but has NO POSITION data (lat=${node.position?.latitudeI}, lon=${node.position?.longitudeI})',
+          '_getPos: Target Node $nodeId FOUND but has NO POSITION data',
         );
       }
       return null;
@@ -322,7 +349,9 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
   }
 
   void _onLongPress(TapPosition tapPosition, latlng.LatLng point) {
-    _svc.setCustomDistanceReference(lat: point.latitude, lon: point.longitude);
+    context.read<NodesBloc>().add(
+      NodesDistanceReferenceUpdated(lat: point.latitude, lon: point.longitude),
+    );
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -359,6 +388,17 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final state = context.watch<NodesBloc>().state;
+    _nodes = state.nodes;
+
+    if (!_didAutoFit && _nodePoints.isNotEmpty) {
+      _didAutoFit = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _fitBounds();
+      });
+    }
+
     final points = _nodePoints.toList(growable: false);
 
     // Deterministic color per node for clarity
@@ -527,7 +567,9 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
                     ),
                     FilledButton.tonalIcon(
                       onPressed: () {
-                        _svc.setCustomDistanceReference(lat: lat, lon: lon);
+                        context.read<NodesBloc>().add(
+                          NodesDistanceReferenceUpdated(lat: lat, lon: lon),
+                        );
                         Navigator.of(ctx).maybePop();
                       },
                       icon: const Icon(Icons.my_location),
@@ -537,17 +579,12 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
                       onPressed: n.num == null
                           ? null
                           : () {
-                              // Close the bottom sheet first, then open details
-                              Navigator.of(ctx).maybePop();
-                              Future.microtask(() {
-                                if (!mounted) return;
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        NodeDetailsPage(nodeNum: n.num!),
-                                  ),
-                                );
-                              });
+                              Navigator.of(ctx).push(
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      NodeDetailsPage(nodeNum: n.num!),
+                                ),
+                              );
                             },
                       icon: const Icon(Icons.open_in_new),
                       label: Text(AppLocalizations.of(ctx).details),
@@ -600,7 +637,7 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
     if (_activeTrace != null && sourceNodeId != null) {
       final isSourceRendered = points.any((p) => p.$1.num == sourceNodeId);
       if (!isSourceRendered) {
-        final eff = _svc.effectiveDistanceReference;
+        final eff = _getEffectiveDistanceReference(state);
         if (eff != null) {
           markers.add(
             Marker(
@@ -625,7 +662,7 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
         ? _buildTraceEdgeMarkers(_activeTrace!)
         : <Marker>[];
 
-    final eff = _svc.effectiveDistanceReference;
+    final eff = _getEffectiveDistanceReference(state);
 
     return Column(
       children: [
@@ -643,8 +680,12 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
                     ),
                     const SizedBox(width: 8),
                     TextButton.icon(
-                      onPressed: () =>
-                          _svc.setCustomDistanceReference(lat: null, lon: null),
+                      onPressed: () => context.read<NodesBloc>().add(
+                        const NodesDistanceReferenceUpdated(
+                          lat: null,
+                          lon: null,
+                        ),
+                      ),
                       icon: const Icon(Icons.clear),
                       label: Text(AppLocalizations.of(context).clearRef),
                     ),
@@ -730,7 +771,7 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
 
     final localPos =
         (sourceNodeId != null ? _getPos(sourceNodeId) : null) ??
-        NodesService.instance.effectiveDistanceReference;
+        _getEffectiveDistanceReference(context.read<NodesBloc>().state);
 
     if (localPos != null) {
       var currentPos = localPos;
@@ -834,7 +875,6 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
         }
       }
     }
-
     return markers;
   }
 
@@ -846,7 +886,7 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
 
     final localPos =
         (sourceNodeId != null ? _getPos(sourceNodeId) : null) ??
-        NodesService.instance.effectiveDistanceReference;
+        _getEffectiveDistanceReference(context.read<NodesBloc>().state);
 
     // Debug logs
     debugPrint(
@@ -941,10 +981,19 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
       }
 
       // Draw dashed lines to acknowledging nodes (theoretical participants)
+      debugPrint(
+        'Polyline Debug: Processing ${trace.ackNodeIds.length} ACK nodes',
+      );
       for (final ackNodeId in trace.ackNodeIds) {
-        if (ackNodeId == sourceNodeId) continue;
+        // We draw ACK lines even if it's the source node (though it will be a zero-length line)
+        // or if it's in the route, to explicitly show the ACK relationship.
         final ackPos = _getPos(ackNodeId);
+        debugPrint('Polyline Debug: ACK node $ackNodeId, pos=$ackPos');
+
         if (ackPos != null) {
+          debugPrint(
+            'Polyline Debug: Adding ACK line from $localPos to $ackPos',
+          );
           polylines.add(
             Polyline(
               points: [
@@ -952,15 +1001,39 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
                 latlng.LatLng(ackPos.$1, ackPos.$2),
               ],
               strokeWidth: 2.0,
-              color: Colors.orange.withOpacity(0.6),
+              color: Colors.green.withOpacity(
+                0.6,
+              ), // Green for ACKs as requested
               pattern: const StrokePattern.dotted(),
             ),
+          );
+        } else {
+          debugPrint(
+            'Polyline Debug: Skipping ACK line for $ackNodeId because position is null',
           );
         }
       }
     }
 
     return PolylineLayer(polylines: polylines);
+  }
+
+  (double, double)? _getEffectiveDistanceReference(NodesState state) {
+    if (state.customRefLat != null && state.customRefLon != null) {
+      return (state.customRefLat!, state.customRefLon!);
+    }
+    final localId = state.localNodeId;
+    if (localId != null) {
+      final node = state.nodes.firstWhereOrNull((n) => n.num == localId);
+      if (node?.position?.latitudeI != null &&
+          node?.position?.longitudeI != null) {
+        return (
+          node!.position!.latitudeI! / 1e7,
+          node.position!.longitudeI! / 1e7,
+        );
+      }
+    }
+    return null;
   }
 }
 

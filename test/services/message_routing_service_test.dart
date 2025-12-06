@@ -23,6 +23,11 @@ class MockChattingDevice implements ChattingDevice {
   Future<int> sendTraceroute(int targetNodeId) async {
     return 67890; // Mock trace packet ID
   }
+
+  @override
+  Future<int?> getMyNodeNum() async {
+    return 123456789; // Mock local node ID
+  }
 }
 
 class MockTransportLayer implements TransportLayer {

@@ -15,10 +15,13 @@ import '../widgets/events_list_widget.dart';
 import '../utils/text_sanitize.dart';
 import '../services/device_status_store.dart';
 import 'device_chat_page.dart';
-import '../services/device_state_service.dart';
 import '../widgets/device_state_widget.dart';
-import '../models/device_state.dart';
+
 import '../widgets/telemetry_widget.dart';
+
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../blocs/device/device_bloc.dart';
+import '../blocs/device/device_state.dart' as bloc_state;
 
 class DeviceDetailsPage extends StatefulWidget {
   final BluetoothDevice device;
@@ -74,7 +77,9 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
   Future<void> _checkAndRefreshConfig() async {
     final id = widget.device.remoteId.str;
     final isConnected = DeviceStatusStore.instance.isConnected(id);
-    final hasState = DeviceStateService.instance.getState(id) != null;
+    // Use BLoC to check if we have state
+    final hasState =
+        context.read<DeviceBloc>().state.getDeviceState(id) != null;
 
     if (isConnected && !hasState) {
       LoggingService.instance.push(
@@ -334,16 +339,15 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                 ],
               ),
               // Channels Section
-              StreamBuilder<DeviceState>(
-                stream: DeviceStateService.instance.streamWithCurrent(
-                  widget.device.remoteId.str,
-                ),
-                builder: (context, snapshot) {
-                  final state = snapshot.data;
-                  if (state == null || state.channels.isEmpty) {
+              BlocBuilder<DeviceBloc, bloc_state.DevicesState>(
+                builder: (context, state) {
+                  final deviceState = state.getDeviceState(
+                    widget.device.remoteId.str,
+                  );
+                  if (deviceState == null || deviceState.channels.isEmpty) {
                     return const SizedBox.shrink();
                   }
-                  final channels = state.channels
+                  final channels = deviceState.channels
                       .where((c) => c.role != null && c.role != 'DISABLED')
                       .toList();
 
@@ -390,13 +394,13 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                 },
               ),
               // Device State Section
-              StreamBuilder<DeviceState>(
-                stream: DeviceStateService.instance.streamWithCurrent(
-                  widget.device.remoteId.str,
-                ),
-                builder: (context, snapshot) {
-                  final state = snapshot.data;
-                  if (state == null && _connected) {
+              BlocBuilder<DeviceBloc, bloc_state.DevicesState>(
+                builder: (context, state) {
+                  final deviceState = state.getDeviceState(
+                    widget.device.remoteId.str,
+                  );
+
+                  if (deviceState == null && _connected) {
                     // Connected but no state? Try to request it if we haven't recently.
                     // Or just show a manual refresh button.
                     // Auto-refresh if we haven't tried recently (simple debounce could be added here,
@@ -425,7 +429,7 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                         ),
                       ],
                     );
-                  } else if (state == null) {
+                  } else if (deviceState == null) {
                     return _Section(
                       title: AppLocalizations.of(context).deviceState,
                       children: [
@@ -443,9 +447,11 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                   }
                   return Column(
                     children: [
-                      DeviceStateWidget(state: state),
-                      if (state.myNodeInfo?.myNodeNum != null)
-                        TelemetryWidget(nodeId: state.myNodeInfo!.myNodeNum!),
+                      DeviceStateWidget(state: deviceState),
+                      if (deviceState.myNodeInfo?.myNodeNum != null)
+                        TelemetryWidget(
+                          nodeId: deviceState.myNodeInfo!.myNodeNum!,
+                        ),
                     ],
                   );
                 },
@@ -692,8 +698,3 @@ class _ExpandableMap<T> extends StatelessWidget {
     );
   }
 }
-
-// Removed legacy FromRadioDetails widget that exposed protobufs. Events are now
-// rendered using MeshtasticEventTile with internal DTOs only.
-
-// Legacy summary removed; events are rendered by MeshtasticEventTile

@@ -439,15 +439,19 @@ class _MeshtasticEventDetails extends StatelessWidget {
           'isUnmessagable': u.user.isUnmessagable,
         }),
       ),
-      RoutingPayloadDto _ => _Section(
+      RoutingPayloadDto r => _Section(
         emoji: '🧭',
         title: AppLocalizations.of(context).routing,
-        child: Text(AppLocalizations.of(context).routingPayload),
+        child: _kvTable(context, {
+          'variant': r.variant,
+          'errorReason': r.errorReason,
+          'requestId': r.requestId,
+        }),
       ),
       AdminPayloadDto a => _Section(
         emoji: '🛠️',
         title: AppLocalizations.of(context).admin,
-        child: Text(a.toString()),
+        child: _kvTable(context, {'variant': a.variant}),
       ),
       RemoteHardwarePayloadDto rh => _Section(
         emoji: '🔧',
@@ -503,7 +507,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
       TelemetryPayloadDto t => _Section(
         emoji: '📊',
         title: AppLocalizations.of(context).telemetry,
-        child: _kvTable(context, {'variant': t.variant}),
+        child: _telemetryDetails(context, t),
       ),
       PaxcounterPayloadDto p => _Section(
         emoji: '👥',
@@ -547,6 +551,139 @@ class _MeshtasticEventDetails extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [header, decodedSection],
+    );
+  }
+
+  Widget _telemetryDetails(BuildContext context, TelemetryPayloadDto t) {
+    final children = <Widget>[
+      _kvTable(context, {'variant': t.variant, 'time': t.time}),
+    ];
+
+    if (t.deviceMetrics != null) {
+      children.add(_Subheader('Device Metrics'));
+      children.add(
+        _kvTable(context, {
+          'batteryLevel': t.deviceMetrics!.batteryLevel,
+          'voltage': t.deviceMetrics!.voltage,
+          'channelUtilization': t.deviceMetrics!.channelUtilization,
+          'airUtilTx': t.deviceMetrics!.airUtilTx,
+          'uptimeSeconds': t.deviceMetrics!.uptimeSeconds,
+        }),
+      );
+    }
+
+    if (t.environmentMetrics != null) {
+      children.add(_Subheader('Environment Metrics'));
+      children.add(
+        _kvTable(context, {
+          'temperature': t.environmentMetrics!.temperature,
+          'relativeHumidity': t.environmentMetrics!.relativeHumidity,
+          'barometricPressure': t.environmentMetrics!.barometricPressure,
+          'gasResistance': t.environmentMetrics!.gasResistance,
+          'voltage': t.environmentMetrics!.voltage,
+          'current': t.environmentMetrics!.current,
+          'iaq': t.environmentMetrics!.iaq,
+          'distance': t.environmentMetrics!.distance,
+          'lux': t.environmentMetrics!.lux,
+          'whiteLux': t.environmentMetrics!.whiteLux,
+          'irLux': t.environmentMetrics!.irLux,
+          'uvLux': t.environmentMetrics!.uvLux,
+          'windDirection': t.environmentMetrics!.windDirection,
+          'windSpeed': t.environmentMetrics!.windSpeed,
+          'weight': t.environmentMetrics!.weight,
+          'windGust': t.environmentMetrics!.windGust,
+          'windLull': t.environmentMetrics!.windLull,
+        }),
+      );
+    }
+
+    if (t.airQualityMetrics != null) {
+      children.add(_Subheader('Air Quality Metrics'));
+      children.add(
+        _kvTable(context, {
+          'pm10Standard': t.airQualityMetrics!.pm10Standard,
+          'pm25Standard': t.airQualityMetrics!.pm25Standard,
+          'pm100Standard': t.airQualityMetrics!.pm100Standard,
+          'pm10Environmental': t.airQualityMetrics!.pm10Environmental,
+          'pm25Environmental': t.airQualityMetrics!.pm25Environmental,
+          'pm100Environmental': t.airQualityMetrics!.pm100Environmental,
+          'particles03um': t.airQualityMetrics!.particles03um,
+          'particles05um': t.airQualityMetrics!.particles05um,
+          'particles10um': t.airQualityMetrics!.particles10um,
+          'particles25um': t.airQualityMetrics!.particles25um,
+          'particles50um': t.airQualityMetrics!.particles50um,
+          'particles100um': t.airQualityMetrics!.particles100um,
+          'co2': t.airQualityMetrics!.co2,
+          'co2Temperature': t.airQualityMetrics!.co2Temperature,
+          'co2Humidity': t.airQualityMetrics!.co2Humidity,
+          'formFormaldehyde': t.airQualityMetrics!.formFormaldehyde,
+          'formHumidity': t.airQualityMetrics!.formHumidity,
+          'formTemperature': t.airQualityMetrics!.formTemperature,
+          'pm40Standard': t.airQualityMetrics!.pm40Standard,
+        }),
+      );
+    }
+
+    if (t.powerMetrics != null) {
+      children.add(_Subheader('Power Metrics'));
+      children.add(
+        _kvTable(context, {
+          'ch1Voltage': t.powerMetrics!.ch1Voltage,
+          'ch1Current': t.powerMetrics!.ch1Current,
+          'ch2Voltage': t.powerMetrics!.ch2Voltage,
+          'ch2Current': t.powerMetrics!.ch2Current,
+          'ch3Voltage': t.powerMetrics!.ch3Voltage,
+          'ch3Current': t.powerMetrics!.ch3Current,
+        }),
+      );
+    }
+
+    if (t.localStats != null) {
+      children.add(_Subheader('Local Stats'));
+      children.add(
+        _kvTable(context, {
+          'uptimeSeconds': t.localStats!.uptimeSeconds,
+          'channelUtilization': t.localStats!.channelUtilization,
+          'airUtilTx': t.localStats!.airUtilTx,
+          'numPacketsTx': t.localStats!.numPacketsTx,
+          'numPacketsRx': t.localStats!.numPacketsRx,
+          'numPacketsRxBad': t.localStats!.numPacketsRxBad,
+          'numOnlineNodes': t.localStats!.numOnlineNodes,
+        }),
+      );
+    }
+
+    if (t.healthMetrics != null) {
+      children.add(_Subheader('Health Metrics'));
+      children.add(
+        _kvTable(context, {
+          'heartBpm': t.healthMetrics!.heartBpm,
+          'spO2': t.healthMetrics!.spO2,
+          'temperature': t.healthMetrics!.temperature,
+        }),
+      );
+    }
+
+    if (t.hostMetrics != null) {
+      children.add(_Subheader('Host Metrics'));
+      children.add(
+        _kvTable(context, {
+          'uptimeSeconds': t.hostMetrics!.uptimeSeconds,
+          'freememBytes': t.hostMetrics!.freememBytes,
+          'diskfree1Bytes': t.hostMetrics!.diskfree1Bytes,
+          'diskfree2Bytes': t.hostMetrics!.diskfree2Bytes,
+          'diskfree3Bytes': t.hostMetrics!.diskfree3Bytes,
+          'load1': t.hostMetrics!.load1,
+          'load5': t.hostMetrics!.load5,
+          'load15': t.hostMetrics!.load15,
+          'userString': t.hostMetrics!.userString,
+        }),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: children,
     );
   }
 
