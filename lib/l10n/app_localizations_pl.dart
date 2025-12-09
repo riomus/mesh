@@ -1631,4 +1631,88 @@ class AppLocalizationsPl extends AppLocalizations {
   @override
   String get configTimeoutDescription =>
       'Maksymalny czas bez aktywności podczas pobierania konfiguracji urządzenia (w sekundach)';
+
+  @override
+  String get nodesWithoutLocation => 'Węzły bez lokalizacji';
+
+  @override
+  String targetNodeNoLocation(Object id) {
+    return 'Węzeł docelowy $id nie ma danych lokalizacyjnych. Linia śledzenia nie może zostać narysowana.';
+  }
+
+  @override
+  String get startLocal => 'Start (Lokalny)';
+
+  @override
+  String get traceTooltip => 'Ślad';
+
+  @override
+  String get ackTooltip => 'Potw.';
+
+  @override
+  String get localDevice => 'Urządzenie Lokalne';
+
+  @override
+  String get deviceMetricsTitle => 'Metryki Urządzenia';
+
+  @override
+  String get environmentMetricsTitle => 'Metryki Środowiskowe';
+
+  @override
+  String get airQualityMetricsTitle => 'Metryki Jakości Powietrza';
+
+  @override
+  String get powerMetricsTitle => 'Metryki Zasilania';
+
+  @override
+  String get localStatsTitle => 'Statystyki Lokalne';
+
+  @override
+  String get healthMetricsTitle => 'Metryki Zdrowia';
+
+  @override
+  String get hostMetricsTitle => 'Metryki Hosta';
+
+  @override
+  String errorPrefix(Object error) {
+    return 'Błąd: $error';
+  }
+
+  @override
+  String get tabBle => 'BLE';
+
+  @override
+  String get tabIp => 'IP';
+
+  @override
+  String get tabUsb => 'USB';
+
+  @override
+  String get tabSim => 'Sim';
+
+  @override
+  String get simulationEnvironment => 'Środowisko Symulacji';
+
+  @override
+  String get simulationDescription =>
+      'Połącz się z symulowanym urządzeniem, aby przetestować komponenty interfejsu z fałszywymi danymi (węzły, czat, ślady itp.).';
+
+  @override
+  String get startSimulation => 'Rozpocznij Symulację';
+
+  @override
+  String get connectedToSimulation => 'Połączono z Urządzeniem Symulacyjnym';
+
+  @override
+  String simulationFailed(Object error) {
+    return 'Symulacja nieudana: $error';
+  }
+
+  @override
+  String get statusHistory => 'Historia Statusu';
+
+  @override
+  String sourceNodePrefix(Object name) {
+    return 'Źródło: $name';
+  }
 }

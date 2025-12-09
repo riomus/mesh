@@ -14,7 +14,9 @@ import 'nodes_page.dart';
 
 /// Page to display all traceroute history and initiate new traces.
 class TracesPage extends StatefulWidget {
-  const TracesPage({super.key});
+  final String? focusTraceId;
+
+  const TracesPage({super.key, this.focusTraceId});
 
   @override
   State<TracesPage> createState() => _TracesPageState();
@@ -68,7 +70,11 @@ class _TracesPageState extends State<TracesPage> {
               padding: const EdgeInsets.all(8),
               itemCount: _traces.length,
               itemBuilder: (context, index) {
-                return _TraceCard(trace: _traces[index]);
+                final trace = _traces[index];
+                return _TraceCard(
+                  trace: trace,
+                  initiallyExpanded: trace.requestId == widget.focusTraceId,
+                );
               },
             ),
       floatingActionButton: FloatingActionButton.extended(
@@ -201,7 +207,9 @@ class _TracesPageState extends State<TracesPage> {
                     ),
                   ),
                   title: Text(safeText(node.displayName)),
-                  subtitle: Text('ID: ${node.num}'),
+                  subtitle: Text(
+                    '${AppLocalizations.of(context).idTitle}: ${node.num}',
+                  ),
                   onTap: () => Navigator.of(context).pop(node),
                 );
               },
@@ -236,7 +244,12 @@ class _TracesPageState extends State<TracesPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context).errorPrefix(e.toString()),
+            ),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -246,15 +259,22 @@ class _TracesPageState extends State<TracesPage> {
 /// Card widget to display a single trace result
 class _TraceCard extends StatefulWidget {
   final TraceResult trace;
+  final bool initiallyExpanded;
 
-  const _TraceCard({required this.trace});
+  const _TraceCard({required this.trace, this.initiallyExpanded = false});
 
   @override
   State<_TraceCard> createState() => _TraceCardState();
 }
 
 class _TraceCardState extends State<_TraceCard> {
-  bool _expanded = false;
+  late bool _expanded;
+
+  @override
+  void initState() {
+    super.initState();
+    _expanded = widget.initiallyExpanded;
+  }
 
   @override
   Widget build(BuildContext context) {

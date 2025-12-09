@@ -432,7 +432,7 @@ class _ChatWidgetState extends State<ChatWidget> {
               if (message.statusHistory.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 Text(
-                  'Status History', // TODO: Localize
+                  AppLocalizations.of(context).statusHistory,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
@@ -495,7 +495,11 @@ class _ChatWidgetState extends State<ChatWidget> {
                           Padding(
                             padding: const EdgeInsets.only(left: 24.0),
                             child: Text(
-                              'Source: ${AppLocalizations.of(context).nodeName(entry.sourceNodeId.toString())}',
+                              AppLocalizations.of(context).sourceNodePrefix(
+                                AppLocalizations.of(
+                                  context,
+                                ).nodeName(entry.sourceNodeId.toString()),
+                              ),
                               style: Theme.of(context).textTheme.labelSmall
                                   ?.copyWith(fontStyle: FontStyle.italic),
                             ),

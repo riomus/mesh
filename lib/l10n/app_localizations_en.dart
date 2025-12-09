@@ -1626,4 +1626,88 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get configTimeoutDescription =>
       'Maximum time without activity when downloading device configuration (in seconds)';
+
+  @override
+  String get nodesWithoutLocation => 'Nodes without location';
+
+  @override
+  String targetNodeNoLocation(Object id) {
+    return 'Target node $id has no location data. Trace line cannot be drawn.';
+  }
+
+  @override
+  String get startLocal => 'Start (Local)';
+
+  @override
+  String get traceTooltip => 'Trace';
+
+  @override
+  String get ackTooltip => 'Ack';
+
+  @override
+  String get localDevice => 'Local Device';
+
+  @override
+  String get deviceMetricsTitle => 'Device Metrics';
+
+  @override
+  String get environmentMetricsTitle => 'Environment Metrics';
+
+  @override
+  String get airQualityMetricsTitle => 'Air Quality Metrics';
+
+  @override
+  String get powerMetricsTitle => 'Power Metrics';
+
+  @override
+  String get localStatsTitle => 'Local Stats';
+
+  @override
+  String get healthMetricsTitle => 'Health Metrics';
+
+  @override
+  String get hostMetricsTitle => 'Host Metrics';
+
+  @override
+  String errorPrefix(Object error) {
+    return 'Error: $error';
+  }
+
+  @override
+  String get tabBle => 'BLE';
+
+  @override
+  String get tabIp => 'IP';
+
+  @override
+  String get tabUsb => 'USB';
+
+  @override
+  String get tabSim => 'Sim';
+
+  @override
+  String get simulationEnvironment => 'Simulation Environment';
+
+  @override
+  String get simulationDescription =>
+      'Connect to a simulated device to test UI components with fake data (nodes, chat, traces, etc).';
+
+  @override
+  String get startSimulation => 'Start Simulation';
+
+  @override
+  String get connectedToSimulation => 'Connected to Simulation Device';
+
+  @override
+  String simulationFailed(Object error) {
+    return 'Simulation failed: $error';
+  }
+
+  @override
+  String get statusHistory => 'Status History';
+
+  @override
+  String sourceNodePrefix(Object name) {
+    return 'Source: $name';
+  }
 }

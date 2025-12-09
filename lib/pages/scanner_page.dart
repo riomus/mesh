@@ -220,11 +220,11 @@ class _ScannerPageState extends State<ScannerPage> {
           onOpenSettings: widget.onOpenSettings,
           bottom: TabBar(
             tabs: [
-              const Tab(text: 'BLE', icon: Icon(Icons.bluetooth)),
-              const Tab(text: 'IP', icon: Icon(Icons.wifi)),
-              if (supportsUsb) const Tab(text: 'USB', icon: Icon(Icons.usb)),
+              Tab(text: t.tabBle, icon: const Icon(Icons.bluetooth)),
+              Tab(text: t.tabIp, icon: const Icon(Icons.wifi)),
+              if (supportsUsb) Tab(text: t.tabUsb, icon: const Icon(Icons.usb)),
               if (kDebugMode || const bool.fromEnvironment('ENABLE_SIMULATION'))
-                const Tab(text: 'Sim', icon: Icon(Icons.bug_report)),
+                Tab(text: t.tabSim, icon: const Icon(Icons.bug_report)),
             ],
           ),
           extraActions: [
@@ -584,19 +584,20 @@ class _ScannerPageState extends State<ScannerPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text(
-                  'Simulation Environment',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Text(
+                  t.simulationEnvironment,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'Connect to a simulated device to test UI components with fake data (nodes, chat, traces, etc).',
-                ),
+                Text(t.simulationDescription),
                 const SizedBox(height: 24),
                 ElevatedButton.icon(
                   onPressed: _connectSimulation,
                   icon: const Icon(Icons.bug_report),
-                  label: const Text('Start Simulation'),
+                  label: Text(t.startSimulation),
                 ),
               ],
             ),
@@ -611,14 +612,20 @@ class _ScannerPageState extends State<ScannerPage> {
       await DeviceStatusStore.instance.connectSimulation();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Connected to Simulation Device')),
+          SnackBar(
+            content: Text(AppLocalizations.of(context).connectedToSimulation),
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Simulation failed: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context).simulationFailed(e.toString()),
+            ),
+          ),
+        );
       }
     }
   }

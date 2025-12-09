@@ -3139,6 +3139,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Maximum time without activity when downloading device configuration (in seconds)'**
   String get configTimeoutDescription;
+
+  /// No description provided for @nodesWithoutLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Nodes without location'**
+  String get nodesWithoutLocation;
+
+  /// No description provided for @targetNodeNoLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Target node {id} has no location data. Trace line cannot be drawn.'**
+  String targetNodeNoLocation(Object id);
+
+  /// No description provided for @startLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'Start (Local)'**
+  String get startLocal;
+
+  /// No description provided for @traceTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Trace'**
+  String get traceTooltip;
+
+  /// No description provided for @ackTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Ack'**
+  String get ackTooltip;
+
+  /// No description provided for @localDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Local Device'**
+  String get localDevice;
+
+  /// No description provided for @deviceMetricsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Device Metrics'**
+  String get deviceMetricsTitle;
+
+  /// No description provided for @environmentMetricsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Environment Metrics'**
+  String get environmentMetricsTitle;
+
+  /// No description provided for @airQualityMetricsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Air Quality Metrics'**
+  String get airQualityMetricsTitle;
+
+  /// No description provided for @powerMetricsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Power Metrics'**
+  String get powerMetricsTitle;
+
+  /// No description provided for @localStatsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Local Stats'**
+  String get localStatsTitle;
+
+  /// No description provided for @healthMetricsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Metrics'**
+  String get healthMetricsTitle;
+
+  /// No description provided for @hostMetricsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Host Metrics'**
+  String get hostMetricsTitle;
+
+  /// No description provided for @errorPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String errorPrefix(Object error);
+
+  /// No description provided for @tabBle.
+  ///
+  /// In en, this message translates to:
+  /// **'BLE'**
+  String get tabBle;
+
+  /// No description provided for @tabIp.
+  ///
+  /// In en, this message translates to:
+  /// **'IP'**
+  String get tabIp;
+
+  /// No description provided for @tabUsb.
+  ///
+  /// In en, this message translates to:
+  /// **'USB'**
+  String get tabUsb;
+
+  /// No description provided for @tabSim.
+  ///
+  /// In en, this message translates to:
+  /// **'Sim'**
+  String get tabSim;
+
+  /// No description provided for @simulationEnvironment.
+  ///
+  /// In en, this message translates to:
+  /// **'Simulation Environment'**
+  String get simulationEnvironment;
+
+  /// No description provided for @simulationDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to a simulated device to test UI components with fake data (nodes, chat, traces, etc).'**
+  String get simulationDescription;
+
+  /// No description provided for @startSimulation.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Simulation'**
+  String get startSimulation;
+
+  /// No description provided for @connectedToSimulation.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected to Simulation Device'**
+  String get connectedToSimulation;
+
+  /// No description provided for @simulationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Simulation failed: {error}'**
+  String simulationFailed(Object error);
+
+  /// No description provided for @statusHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Status History'**
+  String get statusHistory;
+
+  /// No description provided for @sourceNodePrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Source: {name}'**
+  String sourceNodePrefix(Object name);
 }
 
 class _AppLocalizationsDelegate

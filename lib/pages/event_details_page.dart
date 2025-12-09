@@ -560,7 +560,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
     ];
 
     if (t.deviceMetrics != null) {
-      children.add(_Subheader('Device Metrics'));
+      children.add(_Subheader(AppLocalizations.of(context).deviceMetricsTitle));
       children.add(
         _kvTable(context, {
           'batteryLevel': t.deviceMetrics!.batteryLevel,
@@ -573,7 +573,9 @@ class _MeshtasticEventDetails extends StatelessWidget {
     }
 
     if (t.environmentMetrics != null) {
-      children.add(_Subheader('Environment Metrics'));
+      children.add(
+        _Subheader(AppLocalizations.of(context).environmentMetricsTitle),
+      );
       children.add(
         _kvTable(context, {
           'temperature': t.environmentMetrics!.temperature,
@@ -598,7 +600,9 @@ class _MeshtasticEventDetails extends StatelessWidget {
     }
 
     if (t.airQualityMetrics != null) {
-      children.add(_Subheader('Air Quality Metrics'));
+      children.add(
+        _Subheader(AppLocalizations.of(context).airQualityMetricsTitle),
+      );
       children.add(
         _kvTable(context, {
           'pm10Standard': t.airQualityMetrics!.pm10Standard,
@@ -625,7 +629,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
     }
 
     if (t.powerMetrics != null) {
-      children.add(_Subheader('Power Metrics'));
+      children.add(_Subheader(AppLocalizations.of(context).powerMetricsTitle));
       children.add(
         _kvTable(context, {
           'ch1Voltage': t.powerMetrics!.ch1Voltage,
@@ -639,7 +643,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
     }
 
     if (t.localStats != null) {
-      children.add(_Subheader('Local Stats'));
+      children.add(_Subheader(AppLocalizations.of(context).localStatsTitle));
       children.add(
         _kvTable(context, {
           'uptimeSeconds': t.localStats!.uptimeSeconds,
@@ -654,7 +658,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
     }
 
     if (t.healthMetrics != null) {
-      children.add(_Subheader('Health Metrics'));
+      children.add(_Subheader(AppLocalizations.of(context).healthMetricsTitle));
       children.add(
         _kvTable(context, {
           'heartBpm': t.healthMetrics!.heartBpm,
@@ -665,7 +669,7 @@ class _MeshtasticEventDetails extends StatelessWidget {
     }
 
     if (t.hostMetrics != null) {
-      children.add(_Subheader('Host Metrics'));
+      children.add(_Subheader(AppLocalizations.of(context).hostMetricsTitle));
       children.add(
         _kvTable(context, {
           'uptimeSeconds': t.hostMetrics!.uptimeSeconds,

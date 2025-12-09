@@ -196,7 +196,10 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
         // Fallback if not in node list (minimal info)
         return MeshNodeView(
           num: nodeId,
-          user: const UserDto(longName: 'Local Device', shortName: 'ME'),
+          user: UserDto(
+            longName: AppLocalizations.of(context).localDevice,
+            shortName: 'ME',
+          ),
           position: null,
           lastHeard: 0,
           snr: 0,
@@ -385,11 +388,51 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
     return '$dateStr (${AppLocalizations.of(context).agoDays(relDays)})';
   }
 
+  List<MeshNodeView> _getMissingLocationNodes() {
+    if (_activeTrace == null) return [];
+    final trace = _activeTrace!;
+    final traceNodeIds = <int>{};
+
+    traceNodeIds.add(trace.targetNodeId);
+    if (trace.route != null) traceNodeIds.addAll(trace.route!);
+    if (trace.routeBack != null) traceNodeIds.addAll(trace.routeBack!);
+    traceNodeIds.addAll(trace.ackNodeIds);
+
+    final sourceNodeId = _getSourceNodeId(trace);
+    if (sourceNodeId != null) traceNodeIds.add(sourceNodeId);
+
+    final missing = <MeshNodeView>[];
+    for (final id in traceNodeIds) {
+      if (_getPos(id) == null) {
+        var node = _getNodeView(id);
+        if (node == null) {
+          node = MeshNodeView(
+            num: id,
+            user: UserDto(
+              id: '!${id.toRadixString(16)}',
+              longName: 'Node 0x${id.toRadixString(16)}',
+              shortName: '0x${id.toRadixString(16)}',
+            ),
+            position: null,
+          );
+        }
+        missing.add(node);
+      }
+    }
+
+    final unique = <int, MeshNodeView>{};
+    for (final n in missing) {
+      if (n.num != null) unique[n.num!] = n;
+    }
+    return unique.values.toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
     final state = context.watch<NodesBloc>().state;
     _nodes = state.nodes;
+    final missingNodes = _getMissingLocationNodes();
 
     if (!_didAutoFit && _nodePoints.isNotEmpty) {
       _didAutoFit = true;
@@ -480,7 +523,9 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'Target node ${_activeTrace!.targetNodeId} has no location data. Trace line cannot be drawn.',
+                AppLocalizations.of(
+                  context,
+                ).targetNodeNoLocation(_activeTrace!.targetNodeId.toString()),
               ),
               duration: const Duration(seconds: 3),
               backgroundColor: Colors.orange,
@@ -645,7 +690,7 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
               width: 44,
               height: 44,
               child: Tooltip(
-                message: 'Start (Local)',
+                message: AppLocalizations.of(context).startLocal,
                 child: Icon(
                   Icons.play_circle_fill,
                   size: 36,
@@ -701,62 +746,142 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
           ],
         ),
         Expanded(
-          child: points.isEmpty
-              ? _EmptyMapState(
-                  controller: _controller,
-                  onLongPress: _onLongPress,
-                )
-              : FlutterMap(
-                  mapController: _controller,
-                  options: MapOptions(
-                    initialCenter: points.isNotEmpty
-                        ? latlng.LatLng(points.first.$2, points.first.$3)
-                        : const latlng.LatLng(0, 0),
-                    initialZoom: 3,
-                    onLongPress: _onLongPress,
-                  ),
-                  children: [
-                    TileLayer(
-                      urlTemplate:
-                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      userAgentPackageName: 'ai.bartusiak.mesh.app',
+          child: Stack(
+            children: [
+              points.isEmpty
+                  ? _EmptyMapState(
+                      controller: _controller,
+                      onLongPress: _onLongPress,
+                    )
+                  : FlutterMap(
+                      mapController: _controller,
+                      options: MapOptions(
+                        initialCenter: points.isNotEmpty
+                            ? latlng.LatLng(points.first.$2, points.first.$3)
+                            : const latlng.LatLng(0, 0),
+                        initialZoom: 3,
+                        onLongPress: _onLongPress,
+                      ),
+                      children: [
+                        TileLayer(
+                          urlTemplate:
+                              'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                          userAgentPackageName: 'ai.bartusiak.mesh.app',
+                        ),
+                        // Render trace polylines if we have a highlighted trace
+                        if (_activeTrace != null)
+                          _buildTracePolylineLayer(_activeTrace!),
+                        // Trace edge markers (tooltips) - render before nodes so nodes are on top
+                        MarkerLayer(markers: edgeMarkers),
+                        // Cluster markers that are close to each other for better readability
+                        MarkerClusterLayerWidget(
+                          options: MarkerClusterLayerOptions(
+                            maxClusterRadius: 45,
+                            size: const Size(40, 40),
+                            alignment: Alignment.center,
+                            padding: const EdgeInsets.all(50),
+                            maxZoom: 15,
+                            markers: markers,
+                            builder: (context, clustered) {
+                              return Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  color: Colors.blue,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    clustered.length.toString(),
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        MapZoomControls(
+                          controller: _controller,
+                          padding: const EdgeInsets.only(right: 16, bottom: 16),
+                        ),
+                      ],
                     ),
-                    // Render trace polylines if we have a highlighted trace
-                    if (_activeTrace != null)
-                      _buildTracePolylineLayer(_activeTrace!),
-                    // Trace edge markers (tooltips) - render before nodes so nodes are on top
-                    MarkerLayer(markers: edgeMarkers),
-                    // Cluster markers that are close to each other for better readability
-                    MarkerClusterLayerWidget(
-                      options: MarkerClusterLayerOptions(
-                        maxClusterRadius: 45,
-                        size: const Size(40, 40),
-                        alignment: Alignment.center,
-                        padding: const EdgeInsets.all(50),
-                        maxZoom: 15,
-                        markers: markers,
-                        builder: (context, clustered) {
-                          return Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              color: Colors.blue,
+              if (missingNodes.isNotEmpty)
+                Positioned(
+                  top: 16,
+                  left: 16,
+                  right:
+                      64, // Leave space for zoom controls/fit button if needed, though they are usually bottom/top-right
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: Card(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest.withOpacity(0.9),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxHeight: 200),
+                          child: SingleChildScrollView(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  AppLocalizations.of(
+                                    context,
+                                  ).nodesWithoutLocation,
+                                  style: Theme.of(context).textTheme.labelMedium
+                                      ?.copyWith(fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 4),
+                                ...missingNodes.map(
+                                  (n) => InkWell(
+                                    onTap: () {
+                                      if (n.num != null) {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (_) => NodeDetailsPage(
+                                              nodeNum: n.num!,
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 4.0,
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.help_outline,
+                                            size: 16,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.secondary,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Flexible(
+                                            child: Text(
+                                              safeText(n.displayName),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                            child: Center(
-                              child: Text(
-                                clustered.length.toString(),
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                            ),
-                          );
-                        },
+                          ),
+                        ),
                       ),
                     ),
-                    MapZoomControls(
-                      controller: _controller,
-                      padding: const EdgeInsets.only(right: 16, bottom: 16),
-                    ),
-                  ],
+                  ),
                 ),
+            ],
+          ),
         ),
       ],
     );
@@ -789,7 +914,7 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
                 width: 20,
                 height: 20,
                 child: Tooltip(
-                  message: 'Trace',
+                  message: AppLocalizations.of(context).traceTooltip,
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.5),
@@ -824,7 +949,7 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
                 width: 20,
                 height: 20,
                 child: Tooltip(
-                  message: 'Trace',
+                  message: AppLocalizations.of(context).traceTooltip,
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.5),
@@ -856,7 +981,7 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
               width: 20,
               height: 20,
               child: Tooltip(
-                message: 'Ack',
+                message: AppLocalizations.of(context).ackTooltip,
                 child: Container(
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.5),

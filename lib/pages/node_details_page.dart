@@ -7,9 +7,11 @@ import '../blocs/nodes/nodes_bloc.dart';
 import '../blocs/nodes/nodes_state.dart';
 import '../models/mesh_node_view.dart';
 import '../utils/text_sanitize.dart';
+import '../services/traceroute_service.dart';
 
 import '../services/device_status_store.dart';
 import 'device_chat_page.dart';
+import 'traces_page.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/map_zoom_controls.dart';
 import '../widgets/telemetry_widget.dart';
@@ -52,6 +54,59 @@ class _NodeDetailsPageState extends State<NodeDetailsPage> {
                     ).nodeTitleHex(widget.nodeNum.toRadixString(16)),
             ),
             actions: [
+              IconButton(
+                icon: const Icon(Icons.route),
+                tooltip: AppLocalizations.of(context).startTrace,
+                onPressed: () async {
+                  final device = DeviceStatusStore.instance.connectedDevice;
+                  if (device != null) {
+                    try {
+                      final requestId = await TracerouteService.instance
+                          .sendTraceRequest(
+                            device.remoteId.str,
+                            widget.nodeNum,
+                          );
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              AppLocalizations.of(context).traceSent,
+                            ),
+                          ),
+                        );
+                        // Navigate to TracesPage and focus on the new trace
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                TracesPage(focusTraceId: requestId),
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              AppLocalizations.of(
+                                context,
+                              ).errorPrefix(e.toString()),
+                            ),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    }
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          AppLocalizations.of(context).meshtasticConnectFailed,
+                        ),
+                      ),
+                    );
+                  }
+                },
+              ),
               IconButton(
                 icon: const Icon(Icons.chat),
                 tooltip: AppLocalizations.of(context).chat,
