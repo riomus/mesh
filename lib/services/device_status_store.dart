@@ -8,6 +8,7 @@ import 'meshtastic_ble_client.dart';
 import 'meshtastic_ip_client.dart';
 import 'meshtastic_usb_client.dart';
 import 'meshtastic_client.dart';
+import 'simulation_meshtastic_device.dart';
 import 'device_communication_event_service.dart';
 import 'recent_devices_service.dart';
 import 'settings_service.dart';
@@ -332,6 +333,52 @@ class DeviceStatusStore {
     }
   }
 
+  Future<MeshtasticClient> connectSimulation() async {
+    const deviceId = 'SIM-DEVICE-001';
+    final entry = _entries.putIfAbsent(
+      deviceId,
+      () => _Entry.simulation(deviceId),
+    );
+    entry.deviceName = 'Simulation Device';
+
+    if (entry.client != null &&
+        entry.status?.state == DeviceConnectionState.connected) {
+      return entry.client!;
+    }
+    if (entry.connecting != null) {
+      return await entry.connecting!;
+    }
+
+    entry._update(DeviceConnectionState.connecting);
+
+    final completer = Completer<MeshtasticClient>();
+    entry.connecting = completer.future;
+
+    try {
+      final client = SimulationMeshtasticDevice();
+      await client.connect();
+      entry.client = client;
+
+      entry._update(DeviceConnectionState.connected);
+      entry._subscribeClientRssi();
+      _log(deviceId, 'Connected via Simulation');
+      completer.complete(client);
+      return client;
+    } catch (e) {
+      try {
+        await entry.client?.dispose();
+      } catch (_) {}
+      entry.client = null;
+      entry._update(DeviceConnectionState.error, error: e);
+      entry._scheduleErrorRemoval();
+      _log(deviceId, 'Connect Simulation failed: $e', level: 'error');
+      completer.completeError(e);
+      rethrow;
+    } finally {
+      entry.connecting = null;
+    }
+  }
+
   /// Connect to a device by its ID if it is already known to the store.
   Future<MeshtasticClient?> connectToId(String deviceId) async {
     final entry = _entries[deviceId];
@@ -489,6 +536,13 @@ class _Entry {
       );
 
   _Entry.usb(this.deviceId)
+    : device = null,
+      status = DeviceStatus(
+        deviceId: deviceId,
+        state: DeviceConnectionState.disconnected,
+      );
+
+  _Entry.simulation(this.deviceId)
     : device = null,
       status = DeviceStatus(
         deviceId: deviceId,

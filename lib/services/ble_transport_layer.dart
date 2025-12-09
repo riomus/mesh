@@ -6,6 +6,14 @@ import 'device_status_store.dart';
 class BleTransportLayer implements TransportLayer {
   @override
   Future<ChattingDevice?> getDevice(String deviceId) async {
+    // Check for simulation device
+    if (deviceId == 'SIM-DEVICE-001') {
+      final client = await DeviceStatusStore.instance.connectToId(deviceId);
+      if (client is ChattingDevice) {
+        return client as ChattingDevice;
+      }
+    }
+
     // Check if the device is connected via DeviceStatusStore
     if (DeviceStatusStore.instance.isConnected(deviceId)) {
       // We need the BluetoothDevice object to create BleMeshtasticDevice.

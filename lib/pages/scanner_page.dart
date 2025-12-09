@@ -206,7 +206,7 @@ class _ScannerPageState extends State<ScannerPage> {
       });
 
     final supportsUsb = !kIsWeb;
-    final tabCount = supportsUsb ? 3 : 2;
+    final tabCount = supportsUsb ? 4 : 3;
 
     return DefaultTabController(
       length: tabCount,
@@ -221,6 +221,7 @@ class _ScannerPageState extends State<ScannerPage> {
               const Tab(text: 'BLE', icon: Icon(Icons.bluetooth)),
               const Tab(text: 'IP', icon: Icon(Icons.wifi)),
               if (supportsUsb) const Tab(text: 'USB', icon: Icon(Icons.usb)),
+              const Tab(text: 'Sim', icon: Icon(Icons.bug_report)),
             ],
           ),
           extraActions: [
@@ -255,6 +256,7 @@ class _ScannerPageState extends State<ScannerPage> {
             _buildBleTab(context, t, devices),
             _buildIpTab(context, t),
             if (supportsUsb) _buildUsbTab(context, t),
+            _buildSimulationTab(context, t),
           ],
         ),
         floatingActionButton: FloatingActionButton.extended(
@@ -564,6 +566,53 @@ class _ScannerPageState extends State<ScannerPage> {
     } finally {
       if (mounted) {
         setState(() => _usbConnecting = false);
+      }
+    }
+  }
+
+  Widget _buildSimulationTab(BuildContext context, AppLocalizations t) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 600),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Simulation Environment',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Connect to a simulated device to test UI components with fake data (nodes, chat, traces, etc).',
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: _connectSimulation,
+                icon: const Icon(Icons.bug_report),
+                label: const Text('Start Simulation'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _connectSimulation() async {
+    try {
+      await DeviceStatusStore.instance.connectSimulation();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Connected to Simulation Device')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Simulation failed: $e')));
       }
     }
   }

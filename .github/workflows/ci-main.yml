@@ -61,7 +61,7 @@ jobs:
           mkdir -p test-results
           flutter test --platform chrome test/widget_test.dart 2>&1 | tee test-results/web-smoke.txt
       - name: Upload web smoke logs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: web-smoke-logs
           path: test-results/web-smoke.txt
@@ -105,7 +105,7 @@ jobs:
           mkdir -p test-results
           ./scripts/run_integration.sh web 2>&1 | tee test-results/web-integration.txt
       - name: Upload web integration logs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: web-integration-logs
           path: test-results/web-integration.txt
@@ -164,7 +164,7 @@ jobs:
             ./scripts/run_integration.sh android 2>&1 | tee test-results/android-integration.txt
       - name: Upload Android integration logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: android-integration-logs
           path: test-results/android-integration.txt
@@ -210,7 +210,7 @@ jobs:
           ./scripts/run_integration.sh macos 2>&1 | tee test-results/macos-integration.txt
       - name: Upload macOS integration logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: macos-integration-logs
           path: test-results/macos-integration.txt

@@ -44,6 +44,6 @@
   - Input should have a send button
   - Input should allow a size limit - by computing message size in bytes and comparing it to the limit
   - Current size should be shown and color of it should be updated based on the limit (green, yellow, red)
-- [ ] On node connection - remember it so next time we can connect to it without a need to look for it on the list 
+- [x] On node connection - remember it so next time we can connect to it without a need to look for it on the list 
 - [ ] All the app data like chats, node lists - should be kept in the app db - use drift 2.29.0 for it
-- [ ] Investigate /Users/romanbartusiak/git/meshtastic-python for IP based communication - abstract away meshtastic communication logic and allow to use it for both IP/BLE/USB
+- [x] Investigate /Users/romanbartusiak/git/meshtastic-python for IP based communication - abstract away meshtastic communication logic and allow to use it for both IP/BLE/USB
