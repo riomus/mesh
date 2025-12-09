@@ -334,6 +334,9 @@ class DeviceStatusStore {
   }
 
   Future<MeshtasticClient> connectSimulation() async {
+    if (!kDebugMode && !const bool.fromEnvironment('ENABLE_SIMULATION')) {
+      throw Exception('Simulation not enabled in this build');
+    }
     const deviceId = 'SIM-DEVICE-001';
     final entry = _entries.putIfAbsent(
       deviceId,
@@ -362,6 +365,24 @@ class DeviceStatusStore {
       entry._update(DeviceConnectionState.connected);
       entry._subscribeClientRssi();
       _log(deviceId, 'Connected via Simulation');
+
+      // Add to recent devices list so it appears in the UI
+      final scanResult = ScanResult(
+        device: BluetoothDevice(remoteId: DeviceIdentifier(deviceId)),
+        advertisementData: AdvertisementData(
+          advName: 'Simulation Device',
+          txPowerLevel: null,
+          connectable: true,
+          manufacturerData: {},
+          serviceData: {},
+          serviceUuids: [],
+          appearance: null,
+        ),
+        rssi: -50,
+        timeStamp: DateTime.now(),
+      );
+      await RecentDevicesService.instance.add(scanResult);
+
       completer.complete(client);
       return client;
     } catch (e) {

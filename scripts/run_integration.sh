@@ -21,7 +21,12 @@ if [[ "$PLATFORM" == "web" ]]; then
   # Ensure localization files are generated where the app expects them
   echo "Generating localizations (flutter gen-l10n)"
   flutter gen-l10n
+  
+  echo "Running Functional Tests..."
   flutter drive -d chrome --driver "$DRIVER" --target "$TARGET"
+  
+  echo "Running Simulation Tests..."
+  flutter drive -d chrome --driver "$DRIVER" --target "integration_test/simulation_test.dart" --dart-define=ENABLE_SIMULATION=true
   exit $?
 fi
 
@@ -36,7 +41,12 @@ if [[ "$PLATFORM" == "android" ]]; then
     exit 2
   fi
   echo "Using device: $DEVICE_ID"
+  
+  echo "Running Functional Tests..."
   flutter drive -d "$DEVICE_ID" --driver "$DRIVER" --target "$TARGET"
+  
+  echo "Running Simulation Tests..."
+  flutter drive -d "$DEVICE_ID" --driver "$DRIVER" --target "integration_test/simulation_test.dart" --dart-define=ENABLE_SIMULATION=true
   exit $?
 fi
 
@@ -47,8 +57,12 @@ if [[ "$PLATFORM" == "macos" ]]; then
   flutter gen-l10n
   # Ensure macOS desktop is enabled (no-op if already enabled)
   flutter config --enable-macos-desktop || true
-  # Run the Integration Test on macOS device target
+  
+  echo "Running Functional Tests..."
   flutter test -d macos "$TARGET"
+  
+  echo "Running Simulation Tests..."
+  flutter test -d macos "integration_test/simulation_test.dart" --dart-define=ENABLE_SIMULATION=true
   exit $?
 fi
 

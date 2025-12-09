@@ -146,4 +146,10 @@ class RecentDevicesService {
     final jsonString = jsonEncode(_devices.map((d) => d.toJson()).toList());
     await prefs.setString(_prefsKey, jsonString);
   }
+
+  Future<void> clear() async {
+    _devices.clear();
+    _controller.add(_devices);
+    await _save();
+  }
 }
