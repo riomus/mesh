@@ -8,6 +8,8 @@ import '../pages/device_details_page.dart';
 import '../config/lora_config.dart';
 import '../config/manufacturer_db.dart';
 import '../services/device_status_store.dart';
+import '../services/ble_exceptions.dart';
+import '../utils/device_type_helper.dart';
 
 import '../l10n/app_localizations.dart';
 import '../utils/text_sanitize.dart';
@@ -75,7 +77,7 @@ class _DeviceTileState extends State<DeviceTile> {
             });
           },
           onError: (e) {
-            print('[DeviceTile] Error in status stream for $id: $e');
+            debugPrint('[DeviceTile] Error in status stream for $id: $e');
             if (mounted) {
               setState(() {
                 _connecting = false;
@@ -157,6 +159,26 @@ class _DeviceTileState extends State<DeviceTile> {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
+            // Show device type badge if connected
+            if (_connected) ...[
+              const SizedBox(width: 8),
+              FutureBuilder(
+                future: DeviceStatusStore.instance.connectToId(
+                  device.remoteId.str,
+                ),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData && snapshot.data != null) {
+                    final client = snapshot.data!;
+                    return DeviceTypeHelper.buildBadge(
+                      client.deviceType,
+                      size: 16,
+                      showLabel: true,
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
+            ],
             if (lora) ...[
               const SizedBox(width: 8),
               const Icon(Icons.sensors, size: 16, color: Colors.deepOrange),
@@ -192,13 +214,23 @@ class _DeviceTileState extends State<DeviceTile> {
                     ),
                   if (_connecting) const SizedBox(width: 8),
                   Tooltip(
-                    message: _connected ? t.disconnect : t.connect,
+                    message: _connecting
+                        ? t.stop
+                        : (_connected ? t.disconnect : t.connect),
                     child: FilledButton.tonalIcon(
                       onPressed: _connecting
-                          ? null
+                          ? _disconnect
                           : (_connected ? _disconnect : _connect),
-                      icon: Icon(_connected ? Icons.link_off : Icons.link),
-                      label: Text(_connected ? t.disconnect : t.connect),
+                      icon: Icon(
+                        _connecting
+                            ? Icons.stop
+                            : (_connected ? Icons.link_off : Icons.link),
+                      ),
+                      label: Text(
+                        _connecting
+                            ? t.stop
+                            : (_connected ? t.disconnect : t.connect),
+                      ),
                     ),
                   ),
                 ],

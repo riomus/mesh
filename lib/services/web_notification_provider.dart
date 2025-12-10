@@ -1,5 +1,7 @@
+// ignore_for_file: avoid_web_libraries_in_flutter, deprecated_member_use
 import 'dart:html' as html;
 import 'package:flutter_web_notification_platform/flutter_web_notification_platform.dart';
+import 'package:flutter/foundation.dart';
 import 'package:mesh/services/notification_provider.dart';
 
 class WebNotificationProvider implements NotificationProvider {
@@ -13,14 +15,14 @@ class WebNotificationProvider implements NotificationProvider {
 
   @override
   Future<void> requestPermissions() async {
-    print('WebNotificationProvider: Requesting permissions...');
+    debugPrint('WebNotificationProvider: Requesting permissions...');
     try {
       _notificationPlatform.requestPermission();
-      print(
+      debugPrint(
         'WebNotificationProvider: Permission request completed. Current status: ${html.Notification.permission}',
       );
     } catch (e) {
-      print('WebNotificationProvider: Error requesting permissions: $e');
+      debugPrint('WebNotificationProvider: Error requesting permissions: $e');
     }
   }
 
@@ -32,12 +34,12 @@ class WebNotificationProvider implements NotificationProvider {
     String? payload,
   ) async {
     final permission = html.Notification.permission;
-    print(
+    debugPrint(
       'WebNotificationProvider: Showing notification: $title - $body. Permission status: $permission',
     );
 
     if (permission != 'granted') {
-      print(
+      debugPrint(
         'WebNotificationProvider: Cannot show notification because permission is $permission',
       );
       return;
@@ -47,12 +49,12 @@ class WebNotificationProvider implements NotificationProvider {
       // Try using the plugin first
       _notificationPlatform.sendNotification(title, body);
     } catch (e) {
-      print('WebNotificationProvider: Error using plugin: $e');
+      debugPrint('WebNotificationProvider: Error using plugin: $e');
       // Fallback to direct html notification if plugin fails
       try {
         html.Notification(title, body: body);
       } catch (e2) {
-        print('WebNotificationProvider: Error using fallback: $e2');
+        debugPrint('WebNotificationProvider: Error using fallback: $e2');
       }
     }
   }

@@ -2,6 +2,7 @@ import 'dart:async';
 import '../generated/meshtastic/meshtastic/mesh.pb.dart' as mesh;
 import 'meshtastic_client.dart';
 import '../meshtastic/model/meshtastic_event.dart';
+import '../meshtastic/model/device_type.dart';
 
 /// Stub implementation of MeshtasticUsbClient for web platform.
 /// USB serial communication is not supported on web.
@@ -14,6 +15,9 @@ class MeshtasticUsbClient extends MeshtasticClient {
   final StreamController<int> _rssiController = StreamController.broadcast();
 
   MeshtasticUsbClient({required this.portName, required this.deviceId});
+
+  @override
+  DeviceType get deviceType => DeviceType.meshtastic;
 
   @override
   Stream<MeshtasticEvent> get events => _eventsController.stream;

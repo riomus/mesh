@@ -549,6 +549,13 @@
   "tracerouteMinIntervalDescription": "Minimum seconds between traceroute requests to the same node. The firmware also enforces rate limits to prevent network congestion.",
   "configTimeout": "Config Download Timeout",
   "configTimeoutDescription": "Maximum time without activity when downloading device configuration (in seconds)",
+  "autoReconnect": "Automatic Reconnection",
+  "autoReconnectDescription": "Automatically reconnect when Bluetooth connection is lost unexpectedly",
+  "autoReconnectEnabled": "Enable Auto-Reconnect",
+  "maxReconnectAttempts": "Max Reconnect Attempts",
+  "maxReconnectAttemptsDescription": "Maximum number of reconnection attempts (1-10)",
+  "reconnectBaseDelay": "Reconnect Base Delay",
+  "reconnectBaseDelayDescription": "Base delay for exponential backoff in seconds (backoff: 1s, 2s, 4s, 8s, 16s...)",
   "nodesWithoutLocation": "Nodes without location",
   "targetNodeNoLocation": "Target node {id} has no location data. Trace line cannot be drawn.",
   "startLocal": "Start (Local)",
@@ -1026,5 +1033,7 @@
   "smartBroadcastMinDistanceLabel": "Smart Broadcast Min Distance",
   "smartBroadcastMinIntervalLabel": "Smart Broadcast Min Interval (seconds)",
   "gpsEnableGpioLabel": "GPS Enable GPIO",
-  "gpsModeLabel": "GPS Mode"
+  "gpsModeLabel": "GPS Mode",
+  "deviceRemoved": "Device removed",
+  "undo": "Undo"
 }

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mesh/models/chat_models.dart';
+
 import 'package:mesh/services/chatting_device.dart';
 import 'package:mesh/services/message_routing_service.dart';
 import 'package:mesh/services/transport_layer.dart';

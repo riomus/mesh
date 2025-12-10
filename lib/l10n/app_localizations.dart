@@ -3164,6 +3164,48 @@ abstract class AppLocalizations {
   /// **'Maximum time without activity when downloading device configuration (in seconds)'**
   String get configTimeoutDescription;
 
+  /// No description provided for @autoReconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic Reconnection'**
+  String get autoReconnect;
+
+  /// No description provided for @autoReconnectDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically reconnect when Bluetooth connection is lost unexpectedly'**
+  String get autoReconnectDescription;
+
+  /// No description provided for @autoReconnectEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Auto-Reconnect'**
+  String get autoReconnectEnabled;
+
+  /// No description provided for @maxReconnectAttempts.
+  ///
+  /// In en, this message translates to:
+  /// **'Max Reconnect Attempts'**
+  String get maxReconnectAttempts;
+
+  /// No description provided for @maxReconnectAttemptsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum number of reconnection attempts (1-10)'**
+  String get maxReconnectAttemptsDescription;
+
+  /// No description provided for @reconnectBaseDelay.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect Base Delay'**
+  String get reconnectBaseDelay;
+
+  /// No description provided for @reconnectBaseDelayDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Base delay for exponential backoff in seconds (backoff: 1s, 2s, 4s, 8s, 16s...)'**
+  String get reconnectBaseDelayDescription;
+
   /// No description provided for @nodesWithoutLocation.
   ///
   /// In en, this message translates to:
@@ -5407,6 +5449,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'GPS Mode'**
   String get gpsModeLabel;
+
+  /// No description provided for @deviceRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Device removed'**
+  String get deviceRemoved;
+
+  /// No description provided for @undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get undo;
 }
 
 class _AppLocalizationsDelegate

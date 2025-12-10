@@ -39,7 +39,7 @@ class AppSettings {
     this.configTimeoutSeconds = 15,
     this.tracerouteMinIntervalSeconds = 30,
     this.autoReconnectEnabled = true,
-    this.maxReconnectAttempts = 3,
+    this.maxReconnectAttempts = 5,
     this.reconnectBaseDelaySeconds = 1,
   });
 
@@ -96,7 +96,7 @@ class SettingsService {
     final autoReconnectEnabled =
         prefs.getBool(_PrefsKeys.autoReconnectEnabled) ?? true;
     final maxReconnectAttempts =
-        prefs.getInt(_PrefsKeys.maxReconnectAttempts) ?? 3;
+        prefs.getInt(_PrefsKeys.maxReconnectAttempts) ?? 5;
     final reconnectBaseDelaySeconds =
         prefs.getInt(_PrefsKeys.reconnectBaseDelaySeconds) ?? 1;
 

@@ -5,6 +5,7 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 import 'logging_service.dart';
 import 'meshtastic_ble_client.dart';
+import 'meshcore_ble_client.dart';
 import 'meshtastic_ip_client.dart';
 import 'meshtastic_usb_client.dart';
 import 'meshtastic_client.dart';
@@ -14,6 +15,8 @@ import 'recent_devices_service.dart';
 import 'settings_service.dart';
 import 'ble_exceptions.dart';
 import '../meshtastic/model/meshtastic_event.dart';
+import '../meshtastic/model/meshcore_constants.dart';
+import '../meshtastic/model/device_type.dart';
 
 /// Represents the connection state for a device along with optional error.
 @immutable
@@ -26,11 +29,15 @@ class DeviceStatus {
   /// Latest known RSSI (dBm) for this device while connected. Null if unknown.
   final int? rssi;
 
+  /// The type of protocol this device uses.
+  final DeviceType? deviceType;
+
   DeviceStatus({
     required this.deviceId,
     required this.state,
     this.error,
     this.rssi,
+    this.deviceType,
     DateTime? updatedAt,
   }) : updatedAt = updatedAt ?? DateTime.now();
 
@@ -38,11 +45,13 @@ class DeviceStatus {
     DeviceConnectionState? state,
     Object? error = _sentinel,
     int? rssi = _rssiSentinel,
+    DeviceType? deviceType,
   }) => DeviceStatus(
     deviceId: deviceId,
     state: state ?? this.state,
     error: identical(error, _sentinel) ? this.error : error,
     rssi: identical(rssi, _rssiSentinel) ? this.rssi : rssi,
+    deviceType: deviceType ?? this.deviceType,
   );
 }
 
@@ -108,6 +117,12 @@ class DeviceStatusStore {
     _connectedDevicesController.add(connectedDevices);
     final completer = Completer<MeshtasticClient>();
     entry.connecting = completer.future;
+
+    // Monitor bond state for pairing failures (bonding -> none)
+    // Declaring here so it is visible in catch/finally blocks
+    bool pairingFailureDetected = false;
+    StreamSubscription<BluetoothBondState>? bondStateSub;
+
     try {
       // Get heartbeat interval from settings if not explicitly provided
       final effectiveHeartbeat = heartbeatInterval != const Duration(minutes: 1)
@@ -121,10 +136,71 @@ class DeviceStatusStore {
                   60,
             );
 
-      final client = MeshtasticBleClient(
-        device,
-        heartbeatInterval: effectiveHeartbeat,
-      );
+      // Ensure connection before discovering services
+      _log(id, 'Ensuring BLE connection...');
+      await device.connect(license: License.free);
+
+      // We only care about this check on Android usually, as iOS handles pairing differently (OS level).
+      // But flutter_blue_plus exposes bondState which might be useful cross-platform or just Android.
+      // We'll listen anyway.
+      try {
+        BluetoothBondState? previousState;
+        bondStateSub = device.bondState.listen((state) {
+          if (previousState == BluetoothBondState.bonding &&
+              state == BluetoothBondState.none) {
+            pairingFailureDetected = true;
+            _log(
+              id,
+              'Detected pairing failure (bonding -> none)',
+              level: 'warn',
+            );
+          }
+          previousState = state;
+        });
+      } catch (e) {
+        _log(id, 'Failed to listen to bondState: $e', level: 'warn');
+      }
+
+      // Discover services to detect protocol (Meshtastic vs MeshCore)
+      _log(id, 'Discovering services to detect protocol...');
+      List<BluetoothService> services;
+      try {
+        services = await device.discoverServices();
+      } catch (e) {
+        _log(
+          id,
+          'Service discovery for protocol detection failed: $e',
+          level: 'error',
+        );
+        await bondStateSub?.cancel();
+        throw StateError('Failed to discover services for protocol detection');
+      }
+
+      // Check for MeshCore protocol (Nordic UART Service)
+      bool isMeshCore = false;
+      for (final service in services) {
+        if (service.uuid.str.toLowerCase() == MeshCoreConstants.serviceUuid) {
+          isMeshCore = true;
+          break;
+        }
+      }
+
+      entry.deviceType = isMeshCore
+          ? DeviceType.meshcore
+          : DeviceType.meshtastic;
+
+      // Instantiate the appropriate client
+      final MeshtasticClient client;
+      if (isMeshCore) {
+        _log(id, 'Detected MeshCore protocol device');
+        client = MeshCoreBleClient(device);
+      } else {
+        _log(id, 'Detected Meshtastic protocol device');
+        client = MeshtasticBleClient(
+          device,
+          heartbeatInterval: effectiveHeartbeat,
+        );
+      }
 
       // Wait for ConfigCompleteEvent to ensure we have full state
       final configCompleter = Completer<void>();
@@ -186,6 +262,7 @@ class DeviceStatusStore {
       } finally {
         activityTimer?.cancel();
         configSub.cancel();
+        bondStateSub?.cancel();
       }
 
       // Begin listening for OS/device connection state changes
@@ -195,28 +272,39 @@ class DeviceStatusStore {
       _connectedDevicesController.add(connectedDevices);
       _log(id, 'Connected');
 
-      // Add to recent devices list
-      final scanResult = ScanResult(
-        device: device,
-        advertisementData: AdvertisementData(
-          advName: device.platformName,
-          txPowerLevel: null,
-          connectable: true,
-          manufacturerData:
-              {}, // We might miss this, but it's okay for basic listing
-          serviceData: {},
-          serviceUuids: [],
-          appearance: null,
-        ),
-        rssi: 0, // Unknown
-        timeStamp: DateTime.now(),
-      );
-      RecentDevicesService.instance.add(scanResult);
+      // Add to recent devices list ONLY if pairing didn't fail
+      if (!pairingFailureDetected) {
+        final scanResult = ScanResult(
+          device: device,
+          advertisementData: AdvertisementData(
+            advName: device.platformName,
+            txPowerLevel: null,
+            connectable: true,
+            manufacturerData:
+                {}, // We might miss this, but it's okay for basic listing
+            serviceData: {},
+            serviceUuids: [],
+            appearance: null,
+          ),
+          rssi: 0, // Unknown
+          timeStamp: DateTime.now(),
+        );
+        RecentDevicesService.instance.add(scanResult);
+      } else {
+        _log(
+          id,
+          'Pairing failure detected, not adding to recent devices',
+          level: 'warn',
+        );
+      }
 
       completer.complete(client);
       return client;
     } catch (e) {
       // If we failed to connect, we should probably disconnect to clean up
+      try {
+        await bondStateSub?.cancel(); // Ensure cleanup on error
+      } catch (_) {}
       try {
         await entry.client?.dispose();
       } catch (_) {}
@@ -269,6 +357,9 @@ class DeviceStatusStore {
         deviceId: deviceId,
       );
 
+      entry.deviceType =
+          DeviceType.meshtastic; // IP clients are Meshtastic for now
+
       // Wait for ConfigCompleteEvent? IP might be faster, but let's stick to pattern if needed.
       // For now, just connect.
 
@@ -319,6 +410,10 @@ class DeviceStatusStore {
         portName: portName,
         deviceId: deviceId,
       );
+
+      entry.deviceType =
+          DeviceType.meshtastic; // USB clients are Meshtastic for now
+
       await client.connect();
       entry.client = client;
 
@@ -368,6 +463,7 @@ class DeviceStatusStore {
 
     try {
       final client = SimulationMeshtasticDevice();
+      entry.deviceType = DeviceType.meshtastic;
       await client.connect();
       entry.client = client;
 
@@ -458,7 +554,20 @@ class DeviceStatusStore {
         } catch (_) {
           // Proceed with teardown regardless of failures
         }
+      } else if (entry.device != null) {
+        // If we don't have a client yet (e.g. still connecting), disconnect the raw device
+        // This stops the connection attempt if it's in the "connecting" state at the BLE level
+        try {
+          // Check if we are actually connected or connecting before calling disconnect
+          // to avoid unnecessary errors, although disconnect() is usually idempotent-ish safe.
+          // Note: connectionState might be useful but sometimes async disconnect is safer to just call.
+          _log(deviceId, 'Cancelling/Disconnecting raw BLE device...');
+          await entry.device!.disconnect();
+        } catch (e) {
+          _log(deviceId, 'Error disconnecting raw device: $e', level: 'warn');
+        }
       }
+
       entry._unsubscribeClientRssi();
       await entry.connStateSub?.cancel();
     } catch (_) {}
@@ -466,6 +575,7 @@ class DeviceStatusStore {
       await entry.client?.dispose();
     } catch (_) {}
     entry.client = null;
+    entry.connecting = null; // Clear any pending connection future
     entry._update(DeviceConnectionState.disconnected);
     _connectedDevicesController.add(connectedDevices);
     _log(deviceId, 'Disconnected');
@@ -476,6 +586,9 @@ class DeviceStatusStore {
 
   /// Get the stored device name for a given device ID.
   String? getDeviceName(String deviceId) => _entries[deviceId]?.deviceName;
+
+  /// Get the stored device type for a given device ID.
+  DeviceType? getDeviceType(String deviceId) => _entries[deviceId]?.deviceType;
 
   /// A stream of status updates for a given device that first replays the last
   /// known status (if any) and then emits live updates.
@@ -523,6 +636,9 @@ class DeviceStatusStore {
         .toList();
   }
 
+  /// Get the MeshtasticClient for a given device ID.
+  MeshtasticClient? getClient(String deviceId) => _entries[deviceId]?.client;
+
   /// Dispose all clients (e.g., on app shutdown).
   Future<void> disposeAll() async {
     for (final e in _entries.values) {
@@ -539,9 +655,16 @@ class DeviceStatusStore {
   }
 
   static void _log(String deviceId, String msg, {String level = 'info'}) {
-    final tags = MeshtasticBleClient.logTagsForDeviceId(deviceId);
+    final entry = instance._entries[deviceId];
+    // Default to meshtastic if unknown, or use the stored device type
+    final network = entry?.deviceType?.name ?? 'meshtastic';
+
     LoggingService.instance.push(
-      tags: tags,
+      tags: {
+        'network': network,
+        'deviceId': deviceId,
+        'class': 'DeviceStatusStore',
+      },
       level: level,
       message: '[DeviceStatusStore] $msg',
     );
@@ -552,6 +675,8 @@ class _Entry {
   final String deviceId;
   BluetoothDevice? device; // Nullable for IP/USB devices
   MeshtasticClient? client;
+  DeviceType? deviceType; // Track the protocol type
+
   Future<MeshtasticClient>? connecting;
   final StreamController<DeviceStatus> controller =
       StreamController<DeviceStatus>.broadcast();
@@ -608,6 +733,7 @@ class _Entry {
       state: state,
       error: error,
       rssi: rssi ?? status?.rssi,
+      deviceType: deviceType,
     );
     status = s;
     controller.add(s);
@@ -665,7 +791,7 @@ class _Entry {
           try {
             DeviceCommunicationEventService.instance.push(
               tags: {
-                'network': 'meshtastic',
+                'network': deviceType?.name ?? 'meshtastic',
                 'deviceId': deviceId,
                 'class': 'DeviceStatusStore',
               },
@@ -697,7 +823,7 @@ class _Entry {
       try {
         DeviceCommunicationEventService.instance.push(
           tags: {
-            'network': 'meshtastic',
+            'network': deviceType?.name ?? 'meshtastic',
             'deviceId': deviceId,
             'class': 'DeviceStatusStore',
           },
@@ -708,101 +834,48 @@ class _Entry {
     }
 
     _reconnectAttempts++;
-
-    // Calculate exponential backoff delay
     final delaySeconds = baseDelay * (1 << (_reconnectAttempts - 1));
     final delay = Duration(seconds: delaySeconds);
 
     DeviceStatusStore._log(
       deviceId,
-      'Scheduling reconnection attempt $_reconnectAttempts/$maxAttempts in ${delaySeconds}s',
+      'Scheduling reconnection attempt $_reconnectAttempts in ${delay.inSeconds}s',
     );
 
-    // Notify user about reconnection attempt
+    // Notify user about reconnection attempt via event service
     try {
       DeviceCommunicationEventService.instance.push(
         tags: {
-          'network': 'meshtastic',
+          'network': deviceType?.name ?? 'meshtastic',
           'deviceId': deviceId,
           'class': 'DeviceStatusStore',
         },
-        summary: 'Reconnecting (attempt $_reconnectAttempts/$maxAttempts)...',
+        summary:
+            'Reconnecting in ${delay.inSeconds}s (Attempt $_reconnectAttempts)',
       );
     } catch (_) {}
 
     _reconnectTimer = Timer(delay, () async {
-      if (device == null) {
-        DeviceStatusStore._log(
-          deviceId,
-          'Device is null, cannot reconnect',
-          level: 'error',
-        );
-        return;
-      }
-
       DeviceStatusStore._log(
         deviceId,
-        'Executing reconnection attempt $_reconnectAttempts/$maxAttempts',
+        'Executing reconnection attempt $_reconnectAttempts',
       );
-
-      try {
-        // Attempt to reconnect
-        await DeviceStatusStore.instance.connect(
-          device!,
-          deviceName: deviceName,
-        );
-
-        // Success! Reset attempts
-        DeviceStatusStore._log(deviceId, 'Reconnection successful');
-        _reconnectAttempts = 0;
-        _userDisconnect = false;
-
-        // Notify user of successful reconnection
+      if (device != null) {
         try {
-          DeviceCommunicationEventService.instance.push(
-            tags: {
-              'network': 'meshtastic',
-              'deviceId': deviceId,
-              'class': 'DeviceStatusStore',
-            },
-            summary: 'Reconnected successfully',
-          );
-        } catch (_) {}
-      } catch (e) {
-        DeviceStatusStore._log(
-          deviceId,
-          'Reconnection attempt $_reconnectAttempts failed: $e',
-          level: 'warn',
-        );
-
-        // Check if this is a permanent error
-        if (e is BlePermanentException) {
+          await DeviceStatusStore.instance.connect(device!);
+        } catch (e) {
           DeviceStatusStore._log(
             deviceId,
-            'Permanent error detected, stopping reconnection attempts',
-            level: 'error',
+            'Reconnection attempt $_reconnectAttempts failed: $e',
+            level: 'warn',
           );
-          _reconnectAttempts = 0;
-          try {
-            DeviceCommunicationEventService.instance.push(
-              tags: {
-                'network': 'meshtastic',
-                'deviceId': deviceId,
-                'class': 'DeviceStatusStore',
-              },
-              summary: 'Reconnection failed: ${e.toString()}',
-            );
-          } catch (_) {}
-          return;
+          // Recursively schedule next attempt if we failed
+          _attemptReconnection();
         }
-
-        // Schedule next attempt
-        await _attemptReconnection();
       }
     });
   }
 
-  /// Cancel any pending reconnection attempts.
   void _cancelReconnection() {
     _reconnectTimer?.cancel();
     _reconnectTimer = null;
@@ -810,27 +883,18 @@ class _Entry {
   }
 
   void _subscribeClientRssi() {
-    _clientRssiSub?.cancel();
-    final c = client;
-    if (c == null) return;
-    _clientRssiSub = c.rssi.listen((value) {
-      try {
-        _update(status?.state ?? DeviceConnectionState.connected, rssi: value);
-      } catch (_) {}
-    });
-    DeviceStatusStore._log(deviceId, 'Subscribed to client RSSI');
+    _unsubscribeClientRssi();
+    // Forward client RSSI updates to our subject
+    if (client != null) {
+      _clientRssiSub = client!.rssi.listen((rssi) {
+        // Update just the RSSI without changing state
+        _update(status!.state, rssi: rssi);
+      });
+    }
   }
 
   void _unsubscribeClientRssi() {
-    try {
-      _clientRssiSub?.cancel();
-    } catch (_) {}
+    _clientRssiSub?.cancel();
     _clientRssiSub = null;
-    DeviceStatusStore._log(deviceId, 'Unsubscribed from client RSSI');
   }
-}
-
-class ScanRequiredException implements Exception {
-  @override
-  String toString() => 'ScanRequiredException';
 }

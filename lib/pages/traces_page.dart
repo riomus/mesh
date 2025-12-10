@@ -41,7 +41,7 @@ class _TracesPageState extends State<TracesPage> {
         });
       },
       onError: (e) {
-        print('[TracesPage] Error in trace stream: $e');
+        debugPrint('[TracesPage] Error in trace stream: $e');
       },
     );
   }
@@ -176,14 +176,16 @@ class _TracesPageState extends State<TracesPage> {
     }
 
     if (selectedDeviceId == null) return;
-    if (!mounted) return;
+    if (!context.mounted) return;
 
     // Now get nodes for this device using NodesBloc
+    if (!context.mounted) return;
     final nodes = context.read<NodesBloc>().state.nodes;
 
-    if (!mounted) return;
+    if (!context.mounted) return;
 
     if (nodes.isEmpty) {
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context).noNodesAvailable)),
       );
@@ -232,7 +234,7 @@ class _TracesPageState extends State<TracesPage> {
 
     if (selectedNode == null || selectedNode.num == null) return;
 
-    if (!mounted) return;
+    if (!context.mounted) return;
 
     // Send trace request with selected device and node
     try {
@@ -241,22 +243,18 @@ class _TracesPageState extends State<TracesPage> {
         selectedNode.num!,
       );
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context).traceSent)),
-        );
-      }
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context).traceSent)),
+      );
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppLocalizations.of(context).errorPrefix(e.toString()),
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context).errorPrefix(e.toString())),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 }
@@ -464,7 +462,7 @@ class _TraceCardState extends State<_TraceCard> {
       decoration: BoxDecoration(
         color: Theme.of(
           context,
-        ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Column(

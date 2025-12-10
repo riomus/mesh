@@ -10,6 +10,7 @@ import 'ble_exceptions.dart';
 import '../generated/meshtastic/meshtastic/mesh.pb.dart' as mesh;
 import '../meshtastic/model/meshtastic_event.dart';
 import '../meshtastic/model/meshtastic_mappers.dart';
+import '../meshtastic/model/device_type.dart';
 
 import 'meshtastic_client.dart';
 
@@ -77,6 +78,9 @@ class MeshtasticBleClient extends MeshtasticClient {
   /// Live RSSI updates (dBm) while connected. Emits when values change.
   @override
   Stream<int> get rssi => _rssiController.stream;
+
+  @override
+  DeviceType get deviceType => DeviceType.meshtastic;
 
   @override
   Future<void> connect({Duration timeout = const Duration(seconds: 20)}) async {

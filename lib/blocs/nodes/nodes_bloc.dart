@@ -74,11 +74,11 @@ class NodesBloc extends Bloc<NodesEvent, NodesState> {
     Emitter<NodesState> emit,
   ) {
     final info = evt.nodeInfo;
-    final num = info.num;
-    if (num != null) {
-      final existing = _nodesMap[num];
+    final nodeNum = info.num;
+    if (nodeNum != null) {
+      final existing = _nodesMap[nodeNum];
 
-      int? _normalizeLastHeard(int? v) {
+      int? normalizeLastHeard(int? v) {
         if (v == null) return null;
         final nowSec = DateTime.now().millisecondsSinceEpoch ~/ 1000;
         const threshold = 6 * 365 * 24 * 60 * 60;
@@ -87,7 +87,7 @@ class NodesBloc extends Bloc<NodesEvent, NodesState> {
         return age;
       }
 
-      final nodeHexId = num.toRadixString(16).toLowerCase();
+      final nodeHexId = nodeNum.toRadixString(16).toLowerCase();
       final tags = <String, List<String>>{};
       if (existing?.tags.isNotEmpty == true) {
         for (final e in existing!.tags.entries) {
@@ -126,8 +126,8 @@ class NodesBloc extends Bloc<NodesEvent, NodesState> {
         }
       }
 
-      _nodesMap[num] = MeshNodeView(
-        num: num,
+      _nodesMap[nodeNum] = MeshNodeView(
+        num: nodeNum,
         user: info.user ?? existing?.user,
         position:
             (info.position?.latitudeI != null &&
@@ -135,7 +135,7 @@ class NodesBloc extends Bloc<NodesEvent, NodesState> {
             ? info.position
             : (existing?.position ?? info.position),
         snr: info.snr ?? existing?.snr,
-        lastHeard: _normalizeLastHeard(info.lastHeard) ?? existing?.lastHeard,
+        lastHeard: normalizeLastHeard(info.lastHeard) ?? existing?.lastHeard,
         deviceMetrics: info.deviceMetrics ?? existing?.deviceMetrics,
         hopsAway: info.hopsAway ?? existing?.hopsAway,
         isFavorite: info.isFavorite ?? existing?.isFavorite,
@@ -151,26 +151,26 @@ class NodesBloc extends Bloc<NodesEvent, NodesState> {
   void _handleMeshPacketEvent(MeshPacketEvent evt, Emitter<NodesState> emit) {
     final decoded = evt.decoded;
     if (decoded is PositionPayloadDto) {
-      final from = evt.packet.from;
-      if (from != null) {
-        final existing = _nodesMap[from];
+      final fromNodeNum = evt.packet.from;
+      if (fromNodeNum != null) {
+        final existing = _nodesMap[fromNodeNum];
         final pos = decoded.position;
 
-        int? _ageFromEpochSeconds(int? epochSec) {
+        int? ageFromEpochSeconds(int? epochSec) {
           if (epochSec == null) return null;
           final nowSec = DateTime.now().millisecondsSinceEpoch ~/ 1000;
           final age = nowSec - epochSec;
           return age < 0 ? 0 : age;
         }
 
-        final hexId = from.toRadixString(16).toLowerCase();
+        final hexId = fromNodeNum.toRadixString(16).toLowerCase();
         final merged = MeshNodeView(
-          num: from,
+          num: fromNodeNum,
           user: existing?.user,
           position: pos,
           snr: evt.packet.rxSnr ?? existing?.snr,
           lastHeard:
-              _ageFromEpochSeconds(evt.packet.rxTime) ?? existing?.lastHeard,
+              ageFromEpochSeconds(evt.packet.rxTime) ?? existing?.lastHeard,
           deviceMetrics: existing?.deviceMetrics,
           hopsAway: existing?.hopsAway,
           isFavorite: existing?.isFavorite,
@@ -184,7 +184,7 @@ class NodesBloc extends Bloc<NodesEvent, NodesState> {
                 'name': ['0x$hexId'],
               },
         );
-        _nodesMap[from] = merged;
+        _nodesMap[fromNodeNum] = merged;
         emit(state.copyWith(nodes: _nodesMap.values.toList(growable: false)));
       }
     }

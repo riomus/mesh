@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:convert';
-import 'dart:typed_data';
+
+import 'package:flutter/foundation.dart';
 
 import '../generated/meshtastic/meshtastic/mesh.pb.dart' as mesh;
 import '../generated/meshtastic/meshtastic/portnums.pbenum.dart' as port;
@@ -78,7 +79,7 @@ class UsbMeshtasticDevice implements ChattingDevice {
     } else if (toId != null) {
       packet.to = toId;
     } else {
-      print(
+      debugPrint(
         'UsbMeshtasticDevice: sendMessage: toId is null and channelIndex is null. Not sending message.',
       );
       return 0;
@@ -101,7 +102,7 @@ class UsbMeshtasticDevice implements ChattingDevice {
 
     // packet.from is intentionally NOT set.
 
-    print(packet);
+    debugPrint(packet.toString());
 
     await client.sendMeshPacket(packet);
     return packet.id;
@@ -145,7 +146,7 @@ class UsbMeshtasticDevice implements ChattingDevice {
     packet.priority = mesh.MeshPacket_Priority.RELIABLE;
     packet.id = _generatePacketId();
 
-    print(
+    debugPrint(
       'Sending traceroute packet to node $targetNodeId (USB device): $packet',
     );
 

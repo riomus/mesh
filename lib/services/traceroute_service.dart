@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 
 import '../meshtastic/model/meshtastic_event.dart';
 import '../meshtastic/model/meshtastic_models.dart';
@@ -98,7 +99,7 @@ class TracerouteService {
     final requestId = _generateTraceId();
     final now = DateTime.now();
 
-    print(
+    debugPrint(
       '[TracerouteService] Sending trace request to node $targetNodeId from device $deviceId',
     );
 
@@ -112,7 +113,7 @@ class TracerouteService {
     try {
       sourceNodeId = await device.getMyNodeNum();
     } catch (e) {
-      print('[TracerouteService] Failed to get source node ID: $e');
+      debugPrint('[TracerouteService] Failed to get source node ID: $e');
     }
 
     // Create trace request
@@ -182,8 +183,8 @@ class TracerouteService {
     DeviceCommunicationEventService.instance.listenAll().listen(
       _handleEvent,
       onError: (e, s) {
-        print('[TracerouteService] Error in event stream: $e');
-        print('[TracerouteService] Stack trace: $s');
+        debugPrint('[TracerouteService] Error in event stream: $e');
+        debugPrint('[TracerouteService] Stack trace: $s');
       },
     );
   }
@@ -202,23 +203,25 @@ class TracerouteService {
 
       // Handle traceroute responses
       if (decoded is TraceroutePayloadDto) {
-        print(
+        debugPrint(
           '[TracerouteService] Received TraceroutePayloadDto from node ${packet.from}',
         );
-        print(
+        debugPrint(
           '[TracerouteService] Route: ${decoded.route}, RouteBack: ${decoded.routeBack}',
         );
-        print('[TracerouteService] Pending traces: ${_pendingTraces.length}');
+        debugPrint(
+          '[TracerouteService] Pending traces: ${_pendingTraces.length}',
+        );
         _handleTracerouteResponse(packet, decoded);
       }
       // Handle routing ACKs for our trace requests
       else if (decoded is RoutingPayloadDto) {
-        print('[TracerouteService] Received RoutingPayloadDto');
+        debugPrint('[TracerouteService] Received RoutingPayloadDto');
         _handleRoutingAck(packet, decoded);
       }
     } catch (e, s) {
-      print('[TracerouteService] Error handling event: $e');
-      print('[TracerouteService] Stack trace: $s');
+      debugPrint('[TracerouteService] Error handling event: $e');
+      debugPrint('[TracerouteService] Stack trace: $s');
     }
   }
 
@@ -233,10 +236,10 @@ class TracerouteService {
     TraceRequest? matchingRequest;
     String? matchingRequestId;
 
-    print(
+    debugPrint(
       '[TracerouteService] Looking for matching trace for packet from node ${packet.from}, to: ${packet.to}',
     );
-    print(
+    debugPrint(
       '[TracerouteService] Pending traces target nodes: ${_pendingTraces.values.map((r) => r.targetNodeId).toList()}',
     );
 
@@ -248,7 +251,7 @@ class TracerouteService {
             request.status == TraceStatus.pending) {
           matchingRequest = request;
           matchingRequestId = entry.key;
-          print(
+          debugPrint(
             '[TracerouteService] MATCHED by packet ID: $matchingRequestId (packetId=${packet.id})',
           );
           break;
@@ -271,7 +274,7 @@ class TracerouteService {
           if (timeSinceSent.inSeconds <= 10) {
             matchingRequest = request;
             matchingRequestId = entry.key;
-            print(
+            debugPrint(
               '[TracerouteService] MATCHED by recent pending trace: $matchingRequestId (target=${request.targetNodeId})',
             );
             break;
@@ -282,7 +285,7 @@ class TracerouteService {
 
     if (matchingRequest == null || matchingRequestId == null) {
       // No matching pending request, might be an unsolicited trace
-      print(
+      debugPrint(
         '[TracerouteService] No matching trace request found for packet from ${packet.from}',
       );
       return;
@@ -292,7 +295,7 @@ class TracerouteService {
     final result = _traceHistory[matchingRequestId];
 
     if (result == null) {
-      print(
+      debugPrint(
         '[TracerouteService] ERROR: No trace result found for $matchingRequestId',
       );
       return;
@@ -310,7 +313,7 @@ class TracerouteService {
         ? traceroute.routeBack!.length
         : (hasRoute ? traceroute.route!.length : 0);
 
-    print(
+    debugPrint(
       '[TracerouteService] Processing trace response: $hopCount hops, hasRoute=$hasRoute, hasRouteBack=$hasRouteBack',
     );
 
@@ -371,7 +374,9 @@ class TracerouteService {
     );
     _pendingTraces[matchingRequestId] = updatedRequest;
 
-    print('[TracerouteService] Trace $matchingRequestId marked as completed');
+    debugPrint(
+      '[TracerouteService] Trace $matchingRequestId marked as completed',
+    );
 
     // Clean up pending after a delay
     Future.delayed(const Duration(seconds: 5), () {
@@ -385,7 +390,7 @@ class TracerouteService {
   void _handleRoutingAck(MeshPacketDto packet, RoutingPayloadDto routing) {
     if (routing.requestId == null || routing.requestId == 0) return;
 
-    print(
+    debugPrint(
       '[TracerouteService] Processing routing packet: from=${packet.from}, requestId=${routing.requestId}, error=${routing.errorReason}',
     );
 
@@ -436,14 +441,14 @@ class TracerouteService {
               ackNodeId != result.targetNodeId) {
             updatedAckNodeIds = List<int>.from(result.ackNodeIds)
               ..add(ackNodeId);
-            print(
+            debugPrint(
               '[TracerouteService] Added ACK node $ackNodeId to trace ${entry.key}',
             );
           }
 
           // If the ACK is from the target node, the trace is successful!
           if (ackNodeId == result.targetNodeId) {
-            print(
+            debugPrint(
               '[TracerouteService] Target node $ackNodeId ACKed! Marking trace as completed.',
             );
             newStatus = TraceStatus.completed;

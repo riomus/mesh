@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import '../generated/meshtastic/meshtastic/mesh.pb.dart' as mesh;
 import '../meshtastic/model/meshtastic_event.dart';
 import '../meshtastic/model/meshtastic_mappers.dart';
+import '../meshtastic/model/device_type.dart';
 import 'logging_service.dart';
 import 'meshtastic_client.dart';
 import 'device_communication_event_service.dart';
@@ -30,6 +31,9 @@ class MeshtasticIpClient extends MeshtasticClient {
     required this.port,
     required this.deviceId,
   });
+
+  @override
+  DeviceType get deviceType => DeviceType.meshtastic;
 
   @override
   Stream<MeshtasticEvent> get events => _eventsController.stream;

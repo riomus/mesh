@@ -1,13 +1,10 @@
-/// Utilities to make external text safe for Flutter `Text` rendering.
-library text_sanitize;
+/// Returns a safe version of [input] suitable for passing to `Text`.
 ///
 /// Some incoming strings (from BLE advertisements, protobufs, etc.) can contain
 /// lone surrogate code units, which cause Flutter to throw
 /// "Invalid argument(s): string is not well-formed UTF-16" when painting.
 /// These helpers replace malformed sequences with the Unicode replacement
 /// character (U+FFFD) while preserving valid characters, including emojis.
-
-/// Returns a safe version of [input] suitable for passing to `Text`.
 String safeText(String? input) {
   if (input == null || input.isEmpty) return '';
   final units = input.codeUnits;
@@ -55,7 +52,10 @@ String safeInitial(String? input) {
     // Skip whitespace and control
     if (r <= 0x20) continue;
     final ch = String.fromCharCode(r);
-    final isLetterOrDigit = RegExp(r'^[\p{L}\p{N}]$', unicode: true).hasMatch(ch);
+    final isLetterOrDigit = RegExp(
+      r'^[\p{L}\p{N}]$',
+      unicode: true,
+    ).hasMatch(ch);
     if (isLetterOrDigit) {
       return safeText(ch);
     }

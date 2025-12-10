@@ -1648,6 +1648,30 @@ class AppLocalizationsPl extends AppLocalizations {
       'Maksymalny czas bez aktywności podczas pobierania konfiguracji urządzenia (w sekundach)';
 
   @override
+  String get autoReconnect => 'Automatyczne Ponowne Łączenie';
+
+  @override
+  String get autoReconnectDescription =>
+      'Automatycznie łącz ponownie gdy połączenie Bluetooth zostanie nieoczekiwanie utracone';
+
+  @override
+  String get autoReconnectEnabled => 'Włącz Auto-Połączenie';
+
+  @override
+  String get maxReconnectAttempts => 'Maks. Prób Połączenia';
+
+  @override
+  String get maxReconnectAttemptsDescription =>
+      'Maksymalna liczba prób ponownego połączenia (1-10)';
+
+  @override
+  String get reconnectBaseDelay => 'Bazowe Opóźnienie Połączenia';
+
+  @override
+  String get reconnectBaseDelayDescription =>
+      'Bazowe opóźnienie dla wykładniczego backoff w sekundach (backoff: 1s, 2s, 4s, 8s, 16s...)';
+
+  @override
   String get nodesWithoutLocation => 'Węzły bez lokalizacji';
 
   @override
@@ -2829,4 +2853,10 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get gpsModeLabel => 'Tryb GPS';
+
+  @override
+  String get deviceRemoved => 'Urządzenie usunięte';
+
+  @override
+  String get undo => 'Cofnij';
 }

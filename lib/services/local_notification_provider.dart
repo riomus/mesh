@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:mesh/services/notification_provider.dart';
 import 'package:mesh/services/notification_service.dart';
@@ -38,7 +39,7 @@ class LocalNotificationProvider implements NotificationProvider {
 
   @override
   Future<void> requestPermissions() async {
-    print('LocalNotificationProvider: Requesting permissions...');
+    debugPrint('LocalNotificationProvider: Requesting permissions...');
     if (Platform.isAndroid) {
       final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
           _notificationsPlugin
@@ -47,22 +48,28 @@ class LocalNotificationProvider implements NotificationProvider {
               >();
       final bool? granted = await androidImplementation
           ?.requestNotificationsPermission();
-      print('LocalNotificationProvider: Android permissions granted: $granted');
+      debugPrint(
+        'LocalNotificationProvider: Android permissions granted: $granted',
+      );
     } else if (Platform.isIOS) {
       final bool? granted = await _notificationsPlugin
           .resolvePlatformSpecificImplementation<
             IOSFlutterLocalNotificationsPlugin
           >()
           ?.requestPermissions(alert: true, badge: true, sound: true);
-      print('LocalNotificationProvider: iOS permissions granted: $granted');
+      debugPrint(
+        'LocalNotificationProvider: iOS permissions granted: $granted',
+      );
     } else if (Platform.isMacOS) {
-      print('LocalNotificationProvider: Requesting macOS permissions...');
+      debugPrint('LocalNotificationProvider: Requesting macOS permissions...');
       final bool? result = await _notificationsPlugin
           .resolvePlatformSpecificImplementation<
             MacOSFlutterLocalNotificationsPlugin
           >()
           ?.requestPermissions(alert: true, badge: true, sound: true);
-      print('LocalNotificationProvider: macOS permissions result: $result');
+      debugPrint(
+        'LocalNotificationProvider: macOS permissions result: $result',
+      );
     }
   }
 

@@ -763,8 +763,9 @@ class _LogsViewerState extends State<LogsViewer> {
       // Level chips handling
       final levelChips = _chips.where((c) => c.isLevel).toList();
       if (levelChips.isEmpty) {
-        if (_levels.isNotEmpty && !_levels.contains(e.level))
+        if (_levels.isNotEmpty && !_levels.contains(e.level)) {
           return false; // legacy selection
+        }
       } else {
         bool anyLevelMatch = false;
         for (final c in levelChips) {

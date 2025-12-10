@@ -1,5 +1,6 @@
 import 'dart:async';
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
+
 import 'dart:math';
 
 import '../generated/meshtastic/meshtastic/mesh.pb.dart' as mesh;
@@ -8,10 +9,14 @@ import '../generated/meshtastic/meshtastic/portnums.pbenum.dart' as port;
 import '../meshtastic/model/meshtastic_event.dart';
 import '../meshtastic/model/meshtastic_models.dart';
 import '../meshtastic/model/meshtastic_mappers.dart';
+import '../meshtastic/model/device_type.dart';
 import 'logging_service.dart';
 
 /// Abstract base class for a Meshtastic client (BLE, IP, Serial, etc.).
 abstract class MeshtasticClient {
+  /// The protocol type of this client
+  DeviceType get deviceType;
+
   /// Stream of high-level Meshtastic events.
   Stream<MeshtasticEvent> get events;
 
@@ -35,7 +40,7 @@ abstract class MeshtasticClient {
 
   /// Request a session key (required for admin operations).
   Future<void> requestSessionKey(int? nodeId) async {
-    print('[MeshtasticClient] Requesting session key for node $nodeId');
+    debugPrint('[MeshtasticClient] Requesting session key for node $nodeId');
     final adminMsg = admin.AdminMessage(
       getConfigRequest: admin.AdminMessage_ConfigType.SESSIONKEY_CONFIG,
     );
@@ -55,7 +60,7 @@ abstract class MeshtasticClient {
       channel: 0,
     );
     await sendToRadio(mesh.ToRadio(packet: packet));
-    print('[MeshtasticClient] Session key request sent');
+    debugPrint('[MeshtasticClient] Session key request sent');
   }
 
   /// Begin a settings transaction (required before sending config updates).
@@ -63,7 +68,7 @@ abstract class MeshtasticClient {
     Uint8List? sessionPasskey,
     int? nodeId,
   }) async {
-    print(
+    debugPrint(
       '[MeshtasticClient] Beginning edit settings transaction for node $nodeId',
     );
     final adminMsg = admin.AdminMessage(beginEditSettings: true);
@@ -93,7 +98,7 @@ abstract class MeshtasticClient {
     Uint8List? sessionPasskey,
     int? nodeId,
   }) async {
-    print(
+    debugPrint(
       '[MeshtasticClient] Committing edit settings transaction for node $nodeId',
     );
     final adminMsg = admin.AdminMessage(commitEditSettings: true);
@@ -124,7 +129,7 @@ abstract class MeshtasticClient {
     Uint8List? sessionPasskey,
     int? nodeId,
   }) async {
-    print(
+    debugPrint(
       '[MeshtasticClient] Sending config to node $nodeId with passkey: ${sessionPasskey?.length ?? 0} bytes',
     );
     final cfg = MeshtasticMappers.toConfig(config);
@@ -156,7 +161,7 @@ abstract class MeshtasticClient {
     Uint8List? sessionPasskey,
     int? nodeId,
   }) async {
-    print(
+    debugPrint(
       '[MeshtasticClient] Sending module config to node $nodeId with passkey: ${sessionPasskey?.length ?? 0} bytes',
     );
     final cfg = MeshtasticMappers.toModuleConfig(config);
@@ -188,7 +193,7 @@ abstract class MeshtasticClient {
     Uint8List? sessionPasskey,
     int? nodeId,
   }) async {
-    print(
+    debugPrint(
       '[MeshtasticClient] Sending channel config to node $nodeId with passkey: ${sessionPasskey?.length ?? 0} bytes',
     );
     final cfg = MeshtasticMappers.toChannel(config);
@@ -233,7 +238,7 @@ abstract class MeshtasticClient {
     Uint8List? sessionPasskey,
     int? nodeId,
   }) async {
-    print('[MeshtasticClient] Setting owner for node $nodeId');
+    debugPrint('[MeshtasticClient] Setting owner for node $nodeId');
 
     final user = mesh.User();
 
@@ -300,7 +305,7 @@ abstract class MeshtasticClient {
     );
 
     await sendToRadio(mesh.ToRadio(packet: packet));
-    print('[MeshtasticClient] Owner update sent to node $nodeId');
+    debugPrint('[MeshtasticClient] Owner update sent to node $nodeId');
   }
 
   /// Send a device UI configuration update.

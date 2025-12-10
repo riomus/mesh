@@ -111,3 +111,21 @@ class XModemEvent extends MeshtasticEvent {
   final XModemDto xmodem;
   const XModemEvent(this.xmodem, {super.id});
 }
+
+/// MeshCore command response event.
+/// Emitted when the device sends a short command response (< 3 bytes).
+class MeshCoreCommandResponseEvent extends MeshtasticEvent {
+  final int responseCode;
+  final List<int>? additionalData;
+
+  const MeshCoreCommandResponseEvent({
+    required this.responseCode,
+    this.additionalData,
+    super.id,
+  });
+
+  String get responseDescription {
+    // Import is handled by package structure
+    return 'Response Code: 0x${responseCode.toRadixString(16).padLeft(2, '0')}';
+  }
+}

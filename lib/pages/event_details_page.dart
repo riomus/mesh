@@ -336,6 +336,19 @@ class _MeshtasticEventDetails extends StatelessWidget {
             AppLocalizations.of(context).buffer: e.xmodem.buffer?.length,
           }),
         );
+      case MeshCoreCommandResponseEvent e:
+        return _Section(
+          emoji: '📟',
+          title: 'MeshCore Command Response',
+          child: _kvTable(context, {
+            'Response Code':
+                '0x${e.responseCode.toRadixString(16).padLeft(2, '0')}',
+            'Description': e.responseDescription,
+            'Additional Data': e.additionalData
+                ?.map((b) => b.toRadixString(16).padLeft(2, '0'))
+                .join(' '),
+          }),
+        );
     }
   }
 

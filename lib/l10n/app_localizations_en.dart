@@ -1644,6 +1644,30 @@ class AppLocalizationsEn extends AppLocalizations {
       'Maximum time without activity when downloading device configuration (in seconds)';
 
   @override
+  String get autoReconnect => 'Automatic Reconnection';
+
+  @override
+  String get autoReconnectDescription =>
+      'Automatically reconnect when Bluetooth connection is lost unexpectedly';
+
+  @override
+  String get autoReconnectEnabled => 'Enable Auto-Reconnect';
+
+  @override
+  String get maxReconnectAttempts => 'Max Reconnect Attempts';
+
+  @override
+  String get maxReconnectAttemptsDescription =>
+      'Maximum number of reconnection attempts (1-10)';
+
+  @override
+  String get reconnectBaseDelay => 'Reconnect Base Delay';
+
+  @override
+  String get reconnectBaseDelayDescription =>
+      'Base delay for exponential backoff in seconds (backoff: 1s, 2s, 4s, 8s, 16s...)';
+
+  @override
   String get nodesWithoutLocation => 'Nodes without location';
 
   @override
@@ -2823,4 +2847,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gpsModeLabel => 'GPS Mode';
+
+  @override
+  String get deviceRemoved => 'Device removed';
+
+  @override
+  String get undo => 'Undo';
 }

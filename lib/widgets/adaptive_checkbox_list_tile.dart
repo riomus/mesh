@@ -23,7 +23,7 @@ class AdaptiveCheckboxListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PlatformWidget(
-      material: (_, __) => CheckboxListTile(
+      material: (context, platform) => CheckboxListTile(
         title: title,
         value: value,
         onChanged: onChanged,
@@ -31,7 +31,7 @@ class AdaptiveCheckboxListTile extends StatelessWidget {
         activeColor: activeColor,
         checkColor: checkColor,
       ),
-      cupertino: (_, __) => Container(
+      cupertino: (context, platform) => Container(
         color: CupertinoColors.systemBackground.resolveFrom(context),
         child: CupertinoListTile(
           title: title,
@@ -39,7 +39,8 @@ class AdaptiveCheckboxListTile extends StatelessWidget {
           trailing: CupertinoSwitch(
             value: value ?? false,
             onChanged: onChanged != null ? (v) => onChanged!(v) : null,
-            activeColor: activeColor ?? CupertinoTheme.of(context).primaryColor,
+            activeTrackColor:
+                activeColor ?? CupertinoTheme.of(context).primaryColor,
           ),
           onTap: onChanged != null ? () => onChanged!(!(value ?? false)) : null,
         ),
