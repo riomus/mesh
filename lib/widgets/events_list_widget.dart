@@ -127,7 +127,7 @@ class _EventsListWidgetState extends State<EventsListWidget> {
       _sub = _svc.listenAll().listen(
         _onEvent,
         onError: (e) {
-          print('[EventsListWidget] Error in events stream: $e');
+          debugPrint('[EventsListWidget] Error in events stream: $e');
         },
       );
       return;
@@ -146,7 +146,7 @@ class _EventsListWidgetState extends State<EventsListWidget> {
         .listen(
           _onEvent,
           onError: (e) {
-            print('[EventsListWidget] Error in events replay stream: $e');
+            debugPrint('[EventsListWidget] Error in events replay stream: $e');
           },
         );
   }

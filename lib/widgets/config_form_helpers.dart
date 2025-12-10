@@ -181,7 +181,7 @@ class ConfigFormHelpers {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: DropdownButtonFormField<String>(
-        value: value != null && options.contains(value) ? value : null,
+        initialValue: value != null && options.contains(value) ? value : null,
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,

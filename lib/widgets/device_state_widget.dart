@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../meshtastic/model/device_type.dart';
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import '../models/device_state.dart';
@@ -10,11 +11,19 @@ import '../services/device_status_store.dart';
 import 'config_form_helpers.dart';
 import 'owner_edit_dialog.dart';
 
+import '../services/meshcore_ble_client.dart';
+
 class DeviceStateWidget extends StatelessWidget {
   final DeviceState state;
   final String? deviceId;
+  final DeviceType? deviceTypeOverride;
 
-  const DeviceStateWidget({super.key, required this.state, this.deviceId});
+  const DeviceStateWidget({
+    super.key,
+    required this.state,
+    this.deviceId,
+    this.deviceTypeOverride,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +33,14 @@ class DeviceStateWidget extends StatelessWidget {
             (n) => n.num == state.myNodeInfo!.myNodeNum,
           )
         : null;
+
+    // Check device type
+    final deviceType =
+        deviceTypeOverride ??
+        (deviceId != null
+            ? DeviceStatusStore.instance.statusNow(deviceId!)?.deviceType
+            : null);
+    final isMeshCore = deviceType == DeviceType.meshcore;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -42,243 +59,278 @@ class DeviceStateWidget extends StatelessWidget {
               ),
             ],
           ),
-        // Device Configs - show all types
-        _buildConfigSection(
-          context,
-          AppLocalizations.of(context).deviceConfig,
-          state.config?.device,
-          (d) => _buildDeviceConfig(context, d),
-          onEdit: deviceId != null
-              ? () => _openDeviceConfigEdit(context)
-              : null,
-        ),
-        _buildConfigSection(
-          context,
-          AppLocalizations.of(context).positionConfig,
-          state.config?.position,
-          (p) => _buildPositionConfig(context, p),
-          onEdit: deviceId != null
-              ? () => _openPositionConfigEdit(context)
-              : null,
-        ),
-        _buildConfigSection(
-          context,
-          AppLocalizations.of(context).powerConfig,
-          state.config?.power,
-          (p) => _buildPowerConfig(context, p),
-          onEdit: deviceId != null ? () => _openPowerConfigEdit(context) : null,
-        ),
-        _buildConfigSection(
-          context,
-          AppLocalizations.of(context).networkConfig,
-          state.config?.network,
-          (n) => _buildNetworkConfig(context, n),
-          onEdit: deviceId != null
-              ? () => _openNetworkConfigEdit(context)
-              : null,
-        ),
-        _buildConfigSection(
-          context,
-          AppLocalizations.of(context).displayConfig,
-          state.config?.display,
-          (d) => _buildDisplayConfig(context, d),
-          onEdit: deviceId != null
-              ? () => _openDisplayConfigEdit(context)
-              : null,
-        ),
-        _buildConfigSection(
-          context,
-          AppLocalizations.of(context).loraConfig,
-          state.config?.lora,
-          (l) => _buildLoraConfig(context, l),
-          onEdit: deviceId != null ? () => _openLoraConfigEdit(context) : null,
-        ),
-        _buildConfigSection(
-          context,
-          AppLocalizations.of(context).bluetoothConfig,
-          state.config?.bluetooth,
-          (b) => _buildBluetoothConfig(context, b),
-          onEdit: deviceId != null
-              ? () => _openBluetoothConfigEdit(context)
-              : null,
-        ),
-        _buildConfigSection(
-          context,
-          AppLocalizations.of(context).securityConfig,
-          state.config?.security,
-          (s) => _buildSecurityConfig(context, s),
-          onEdit: deviceId != null
-              ? () => _openSecurityConfigEdit(context)
-              : null,
-        ),
 
-        // Module Configs - show all types
-        _buildConfigSection(
-          context,
-          AppLocalizations.of(context).mqttConfig,
-          state.moduleConfig?.mqtt,
-          (m) => _buildMqttConfig(context, m),
-          onEdit: deviceId != null ? () => _openMqttConfigEdit(context) : null,
-        ),
-        _buildConfigSection(
-          context,
-          AppLocalizations.of(context).telemetryConfig,
-          state.moduleConfig?.telemetry,
-          (t) => _buildTelemetryConfig(context, t),
-          onEdit: deviceId != null
-              ? () => _openTelemetryConfigEdit(context)
-              : null,
-        ),
-        _buildConfigSection(
-          context,
-          AppLocalizations.of(context).serialConfig,
-          state.moduleConfig?.serial,
-          (s) => _buildSerialConfig(context, s),
-          onEdit: deviceId != null
-              ? () => _openSerialConfigEdit(context)
-              : null,
-        ),
-        _buildConfigSection(
-          context,
-          AppLocalizations.of(context).storeForwardConfig,
-          state.moduleConfig?.storeForward,
-          (sf) => _buildStoreForwardConfig(context, sf),
-          onEdit: deviceId != null
-              ? () => _openStoreForwardConfigEdit(context)
-              : null,
-        ),
-        _buildConfigSection(
-          context,
-          AppLocalizations.of(context).rangeTestConfig,
-          state.moduleConfig?.rangeTest,
-          (rt) => _buildRangeTestConfig(context, rt),
-          onEdit: deviceId != null
-              ? () => _openRangeTestConfigEdit(context)
-              : null,
-        ),
-        _buildConfigSection(
-          context,
-          AppLocalizations.of(context).externalNotificationConfig,
-          state.moduleConfig?.externalNotification,
-          (en) => _buildExternalNotificationConfig(context, en),
-          onEdit: deviceId != null
-              ? () => _openExternalNotificationConfigEdit(context)
-              : null,
-        ),
-        _buildConfigSection(
-          context,
-          AppLocalizations.of(context).audioConfig,
-          state.moduleConfig?.audio,
-          (a) => _buildAudioConfig(context, a),
-          onEdit: deviceId != null ? () => _openAudioConfigEdit(context) : null,
-        ),
-        _buildConfigSection(
-          context,
-          AppLocalizations.of(context).neighborInfoConfig,
-          state.moduleConfig?.neighborInfo,
-          (ni) => _buildNeighborInfoConfig(context, ni),
-          onEdit: deviceId != null
-              ? () => _openNeighborInfoConfigEdit(context)
-              : null,
-        ),
-        _buildConfigSection(
-          context,
-          AppLocalizations.of(context).remoteHardwareConfig,
-          state.moduleConfig?.remoteHardware,
-          (rh) => _buildRemoteHardwareConfig(context, rh),
-          onEdit: deviceId != null
-              ? () => _openRemoteHardwareConfigEdit(context)
-              : null,
-        ),
-        _buildConfigSection(
-          context,
-          AppLocalizations.of(context).paxcounterConfig,
-          state.moduleConfig?.paxcounter,
-          (pc) => _buildPaxcounterConfig(context, pc),
-          onEdit: deviceId != null
-              ? () => _openPaxcounterConfigEdit(context)
-              : null,
-        ),
-        _buildConfigSection(
-          context,
-          AppLocalizations.of(context).cannedMessageConfig,
-          state.moduleConfig?.cannedMessage,
-          (cm) => _buildCannedMessageConfig(context, cm),
-          onEdit: deviceId != null
-              ? () => _openCannedMessageConfigEdit(context)
-              : null,
-        ),
-        _buildConfigSection(
-          context,
-          AppLocalizations.of(context).ambientLightingConfig,
-          state.moduleConfig?.ambientLighting,
-          (al) => _buildAmbientLightingConfig(context, al),
-          onEdit: deviceId != null
-              ? () => _openAmbientLightingConfigEdit(context)
-              : null,
-        ),
-        _buildConfigSection(
-          context,
-          AppLocalizations.of(context).detectionSensorConfig,
-          state.moduleConfig?.detectionSensor,
-          (ds) => _buildDetectionSensorConfig(context, ds),
-          onEdit: deviceId != null
-              ? () => _openDetectionSensorConfigEdit(context)
-              : null,
-        ),
-        _buildConfigSection(
-          context,
-          AppLocalizations.of(context).dtnOverlayConfig,
-          state.moduleConfig?.dtnOverlay,
-          (dtn) => _buildDtnOverlayConfig(context, dtn),
-          onEdit: deviceId != null
-              ? () => _openDtnOverlayConfigEdit(context)
-              : null,
-        ),
-        _buildConfigSection(
-          context,
-          AppLocalizations.of(context).broadcastAssistConfig,
-          state.moduleConfig?.broadcastAssist,
-          (ba) => _buildBroadcastAssistConfig(context, ba),
-          onEdit: deviceId != null
-              ? () => _openBroadcastAssistConfigEdit(context)
-              : null,
-        ),
-        _buildConfigSection(
-          context,
-          AppLocalizations.of(context).nodeModConfig,
-          state.moduleConfig?.nodeMod,
-          (nm) => _buildNodeModConfig(context, nm),
-          onEdit: deviceId != null
-              ? () => _openNodeModConfigEdit(context)
-              : null,
-        ),
-        _buildConfigSection(
-          context,
-          AppLocalizations.of(context).nodeModAdminConfig,
-          state.moduleConfig?.nodeModAdmin,
-          (nma) => _buildNodeModAdminConfig(context, nma),
-          onEdit: deviceId != null
-              ? () => _openNodeModAdminConfigEdit(context)
-              : null,
-        ),
-        _buildConfigSection(
-          context,
-          AppLocalizations.of(context).idleGameConfig,
-          state.moduleConfig?.idleGame,
-          (ig) => _buildIdleGameConfig(context, ig),
-          onEdit: deviceId != null
-              ? () => _openIdleGameConfigEdit(context)
-              : null,
-        ),
-        if (state.deviceUiConfig != null)
+        // Device Configs - show all types (only for non-MeshCore)
+        if (!isMeshCore) ...[
           _buildConfigSection(
             context,
-            AppLocalizations.of(context).deviceUiConfig,
-            state.deviceUiConfig,
-            (c) => _buildDeviceUiConfig(context, c),
-            // onEdit: null, // Read-only for now due to proto issues
+            AppLocalizations.of(context).deviceConfig,
+            state.config?.device,
+            (d) => _buildDeviceConfig(context, d),
+            onEdit: deviceId != null
+                ? () => _openDeviceConfigEdit(context)
+                : null,
           ),
+          _buildConfigSection(
+            context,
+            AppLocalizations.of(context).positionConfig,
+            state.config?.position,
+            (p) => _buildPositionConfig(context, p),
+            onEdit: deviceId != null
+                ? () => _openPositionConfigEdit(context)
+                : null,
+          ),
+          _buildConfigSection(
+            context,
+            AppLocalizations.of(context).powerConfig,
+            state.config?.power,
+            (p) => _buildPowerConfig(context, p),
+            onEdit: deviceId != null
+                ? () => _openPowerConfigEdit(context)
+                : null,
+          ),
+          _buildConfigSection(
+            context,
+            AppLocalizations.of(context).networkConfig,
+            state.config?.network,
+            (n) => _buildNetworkConfig(context, n),
+            onEdit: deviceId != null
+                ? () => _openNetworkConfigEdit(context)
+                : null,
+          ),
+          _buildConfigSection(
+            context,
+            AppLocalizations.of(context).displayConfig,
+            state.config?.display,
+            (d) => _buildDisplayConfig(context, d),
+            onEdit: deviceId != null
+                ? () => _openDisplayConfigEdit(context)
+                : null,
+          ),
+          _buildConfigSection(
+            context,
+            AppLocalizations.of(context).loraConfig,
+            state.config?.lora,
+            (l) => _buildLoraConfig(context, l),
+            onEdit: deviceId != null
+                ? () => _openLoraConfigEdit(context)
+                : null,
+          ),
+          _buildConfigSection(
+            context,
+            AppLocalizations.of(context).bluetoothConfig,
+            state.config?.bluetooth,
+            (b) => _buildBluetoothConfig(context, b),
+            onEdit: deviceId != null
+                ? () => _openBluetoothConfigEdit(context)
+                : null,
+          ),
+          _buildConfigSection(
+            context,
+            AppLocalizations.of(context).securityConfig,
+            state.config?.security,
+            (s) => _buildSecurityConfig(context, s),
+            onEdit: deviceId != null
+                ? () => _openSecurityConfigEdit(context)
+                : null,
+          ),
+        ],
+
+        // MeshCore Configs
+        if (isMeshCore) ...[
+          _buildConfigSection(
+            context,
+            AppLocalizations.of(context).loraConfig,
+            state.config?.lora,
+            (l) => _buildMeshCoreLoraConfig(context, l),
+            onEdit: deviceId != null
+                ? () => _openMeshCoreLoraConfigEdit(context, state.config?.lora)
+                : null,
+          ),
+          // MeshCore Channels
+          _buildMeshCoreChannelsSection(context),
+          if (state.deviceUiConfig != null)
+            _buildConfigSection(
+              context,
+              AppLocalizations.of(context).deviceUiConfig,
+              state.deviceUiConfig,
+              (c) => _buildDeviceUiConfig(context, c),
+            ),
+        ],
+
+        // Module Configs - show all types (only for non-MeshCore)
+        if (!isMeshCore) ...[
+          _buildConfigSection(
+            context,
+            AppLocalizations.of(context).mqttConfig,
+            state.moduleConfig?.mqtt,
+            (m) => _buildMqttConfig(context, m),
+            onEdit: deviceId != null
+                ? () => _openMqttConfigEdit(context)
+                : null,
+          ),
+          _buildConfigSection(
+            context,
+            AppLocalizations.of(context).telemetryConfig,
+            state.moduleConfig?.telemetry,
+            (t) => _buildTelemetryConfig(context, t),
+            onEdit: deviceId != null
+                ? () => _openTelemetryConfigEdit(context)
+                : null,
+          ),
+          _buildConfigSection(
+            context,
+            AppLocalizations.of(context).serialConfig,
+            state.moduleConfig?.serial,
+            (s) => _buildSerialConfig(context, s),
+            onEdit: deviceId != null
+                ? () => _openSerialConfigEdit(context)
+                : null,
+          ),
+          _buildConfigSection(
+            context,
+            AppLocalizations.of(context).storeForwardConfig,
+            state.moduleConfig?.storeForward,
+            (sf) => _buildStoreForwardConfig(context, sf),
+            onEdit: deviceId != null
+                ? () => _openStoreForwardConfigEdit(context)
+                : null,
+          ),
+          _buildConfigSection(
+            context,
+            AppLocalizations.of(context).rangeTestConfig,
+            state.moduleConfig?.rangeTest,
+            (rt) => _buildRangeTestConfig(context, rt),
+            onEdit: deviceId != null
+                ? () => _openRangeTestConfigEdit(context)
+                : null,
+          ),
+          _buildConfigSection(
+            context,
+            AppLocalizations.of(context).externalNotificationConfig,
+            state.moduleConfig?.externalNotification,
+            (en) => _buildExternalNotificationConfig(context, en),
+            onEdit: deviceId != null
+                ? () => _openExternalNotificationConfigEdit(context)
+                : null,
+          ),
+          _buildConfigSection(
+            context,
+            AppLocalizations.of(context).audioConfig,
+            state.moduleConfig?.audio,
+            (a) => _buildAudioConfig(context, a),
+            onEdit: deviceId != null
+                ? () => _openAudioConfigEdit(context)
+                : null,
+          ),
+          _buildConfigSection(
+            context,
+            AppLocalizations.of(context).neighborInfoConfig,
+            state.moduleConfig?.neighborInfo,
+            (ni) => _buildNeighborInfoConfig(context, ni),
+            onEdit: deviceId != null
+                ? () => _openNeighborInfoConfigEdit(context)
+                : null,
+          ),
+          _buildConfigSection(
+            context,
+            AppLocalizations.of(context).remoteHardwareConfig,
+            state.moduleConfig?.remoteHardware,
+            (rh) => _buildRemoteHardwareConfig(context, rh),
+            onEdit: deviceId != null
+                ? () => _openRemoteHardwareConfigEdit(context)
+                : null,
+          ),
+          _buildConfigSection(
+            context,
+            AppLocalizations.of(context).paxcounterConfig,
+            state.moduleConfig?.paxcounter,
+            (pc) => _buildPaxcounterConfig(context, pc),
+            onEdit: deviceId != null
+                ? () => _openPaxcounterConfigEdit(context)
+                : null,
+          ),
+          _buildConfigSection(
+            context,
+            AppLocalizations.of(context).cannedMessageConfig,
+            state.moduleConfig?.cannedMessage,
+            (cm) => _buildCannedMessageConfig(context, cm),
+            onEdit: deviceId != null
+                ? () => _openCannedMessageConfigEdit(context)
+                : null,
+          ),
+          _buildConfigSection(
+            context,
+            AppLocalizations.of(context).ambientLightingConfig,
+            state.moduleConfig?.ambientLighting,
+            (al) => _buildAmbientLightingConfig(context, al),
+            onEdit: deviceId != null
+                ? () => _openAmbientLightingConfigEdit(context)
+                : null,
+          ),
+          _buildConfigSection(
+            context,
+            AppLocalizations.of(context).detectionSensorConfig,
+            state.moduleConfig?.detectionSensor,
+            (ds) => _buildDetectionSensorConfig(context, ds),
+            onEdit: deviceId != null
+                ? () => _openDetectionSensorConfigEdit(context)
+                : null,
+          ),
+          _buildConfigSection(
+            context,
+            AppLocalizations.of(context).dtnOverlayConfig,
+            state.moduleConfig?.dtnOverlay,
+            (dtn) => _buildDtnOverlayConfig(context, dtn),
+            onEdit: deviceId != null
+                ? () => _openDtnOverlayConfigEdit(context)
+                : null,
+          ),
+          _buildConfigSection(
+            context,
+            AppLocalizations.of(context).broadcastAssistConfig,
+            state.moduleConfig?.broadcastAssist,
+            (ba) => _buildBroadcastAssistConfig(context, ba),
+            onEdit: deviceId != null
+                ? () => _openBroadcastAssistConfigEdit(context)
+                : null,
+          ),
+          _buildConfigSection(
+            context,
+            AppLocalizations.of(context).nodeModConfig,
+            state.moduleConfig?.nodeMod,
+            (nm) => _buildNodeModConfig(context, nm),
+            onEdit: deviceId != null
+                ? () => _openNodeModConfigEdit(context)
+                : null,
+          ),
+          _buildConfigSection(
+            context,
+            AppLocalizations.of(context).nodeModAdminConfig,
+            state.moduleConfig?.nodeModAdmin,
+            (nma) => _buildNodeModAdminConfig(context, nma),
+            onEdit: deviceId != null
+                ? () => _openNodeModAdminConfigEdit(context)
+                : null,
+          ),
+          _buildConfigSection(
+            context,
+            AppLocalizations.of(context).idleGameConfig,
+            state.moduleConfig?.idleGame,
+            (ig) => _buildIdleGameConfig(context, ig),
+            onEdit: deviceId != null
+                ? () => _openIdleGameConfigEdit(context)
+                : null,
+          ),
+          if (state.deviceUiConfig != null)
+            _buildConfigSection(
+              context,
+              AppLocalizations.of(context).deviceUiConfig,
+              state.deviceUiConfig,
+              (c) => _buildDeviceUiConfig(context, c),
+              // onEdit: null, // Read-only for now due to proto issues
+            ),
+        ],
 
         // Channels and Nodes
         if (state.channels.isNotEmpty)
@@ -613,6 +665,101 @@ class DeviceStateWidget extends StatelessWidget {
       _kv(context, AppLocalizations.of(context).txEnabled, lora.txEnabled),
       _kv(context, AppLocalizations.of(context).txPower, lora.txPower),
     ];
+  }
+
+  List<Widget> _buildMeshCoreLoraConfig(
+    BuildContext context,
+    LoRaConfigDto lora,
+  ) {
+    return [
+      _kv(
+        context,
+        'Frequency',
+        '${lora.overrideFrequency?.toStringAsFixed(3)} MHz',
+      ),
+      _kv(context, 'Bandwidth', '${lora.bandwidth} kHz'),
+      _kv(context, 'Spreading Factor', lora.spreadFactor),
+      _kv(context, 'Coding Rate', '4/${lora.codingRate}'),
+      _kv(context, 'TX Power', '${lora.txPower} dBm'),
+    ];
+  }
+
+  Widget _buildMeshCoreChannelsSection(BuildContext context) {
+    return _Section(
+      title: 'Channels',
+      children: [
+        // Query channels button
+        if (deviceId != null)
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ElevatedButton.icon(
+              icon: const Icon(Icons.refresh),
+              label: const Text('Query Channels'),
+              onPressed: () => _queryMeshCoreChannels(context),
+            ),
+          ),
+        // Channel list
+        ...state.channels.map((channel) {
+          final name = channel.settings?.name ?? 'Channel ${channel.index}';
+          final pskLength = channel.settings?.psk?.length ?? 0;
+          return ListTile(
+            dense: true,
+            leading: const Icon(Icons.radio),
+            title: Text(name),
+            subtitle: Text('Index: ${channel.index}, PSK: $pskLength bytes'),
+          );
+        }),
+        // Show message if no channels
+        if (state.channels.isEmpty)
+          const ListTile(
+            dense: true,
+            title: Text('No channels loaded'),
+            subtitle: Text('Click "Query Channels" to load from device'),
+          ),
+      ],
+    );
+  }
+
+  Future<void> _queryMeshCoreChannels(BuildContext context) async {
+    if (deviceId == null) return;
+
+    // Get the client directly from the store
+    final client = DeviceStatusStore.instance.getClient(deviceId!);
+
+    if (client is! MeshCoreBleClient) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Not a MeshCore device')));
+      }
+      return;
+    }
+
+    final meshcoreClient = client;
+
+    try {
+      // Show loading indicator
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Querying channels...')));
+      }
+
+      // Query all channels
+      final channels = await meshcoreClient.getAllChannels();
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Found ${channels.length} channels')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to query channels: $e')));
+      }
+    }
   }
 
   List<Widget> _buildNetworkConfig(BuildContext context, NetworkConfigDto net) {
@@ -1134,6 +1281,12 @@ class DeviceStateWidget extends StatelessWidget {
 
     if (client == null || !context.mounted) return;
 
+    // Request session key to ensure we can save changes (Meshtastic only)
+    if (client.deviceType != DeviceType.meshcore) {
+      await client.requestSessionKey(state.myNodeInfo?.myNodeNum);
+      if (!context.mounted) return;
+    }
+
     // Find the local node to get current values
     final localNode = state.myNodeInfo?.myNodeNum != null
         ? state.nodes.firstWhereOrNull(
@@ -1147,11 +1300,27 @@ class DeviceStateWidget extends StatelessWidget {
         currentLongName: localNode?.user?.longName,
         currentShortName: localNode?.user?.shortName,
         onSave: ({String? longName, String? shortName}) async {
+          // Begin transaction (Meshtastic only)
+          if (client.deviceType != DeviceType.meshcore) {
+            await client.beginEditSettings(
+              sessionPasskey: state.sessionPasskey,
+              nodeId: state.myNodeInfo?.myNodeNum,
+            );
+          }
+          // Set owner (works for both Meshtastic and MeshCore)
           await client.setOwner(
             longName: longName,
             shortName: shortName,
-            nodeId: null, // null = local node
+            sessionPasskey: state.sessionPasskey,
+            nodeId: state.myNodeInfo?.myNodeNum,
           );
+          // Commit transaction (Meshtastic only)
+          if (client.deviceType != DeviceType.meshcore) {
+            await client.commitEditSettings(
+              sessionPasskey: state.sessionPasskey,
+              nodeId: state.myNodeInfo?.myNodeNum,
+            );
+          }
         },
       ),
     );
@@ -1509,7 +1678,7 @@ class DeviceStateWidget extends StatelessWidget {
     if (client == null || !context.mounted) return;
 
     // Request session key to ensure we can save changes
-    print(
+    debugPrint(
       '[DeviceStateWidget] Requesting session key for node ${state.myNodeInfo?.myNodeNum}',
     );
     await client.requestSessionKey(state.myNodeInfo?.myNodeNum);
@@ -1523,7 +1692,7 @@ class DeviceStateWidget extends StatelessWidget {
           title: AppLocalizations.of(context).positionConfig,
           config: currentConfig,
           onSave: (updatedConfig) async {
-            print(
+            debugPrint(
               '[DeviceStateWidget] Saving position config. Passkey length: ${state.sessionPasskey?.length}',
             );
             // Send ONLY the position config, not the entire config object
@@ -2067,7 +2236,7 @@ class DeviceStateWidget extends StatelessWidget {
                 onChanged: (val) =>
                     onChanged(config.copyWith(modemPreset: val)),
               ),
-              ConfigFormHelpers.buildIntField(
+              ConfigFormHelpers.buildDoubleField(
                 label: 'Bandwidth',
                 value: config.bandwidth,
                 min: 0,
@@ -3690,6 +3859,27 @@ class DeviceStateWidget extends StatelessWidget {
     );
   }
 
+  void _openMeshCoreLoraConfigEdit(
+    BuildContext context,
+    LoRaConfigDto? current,
+  ) async {
+    if (deviceId == null) return;
+
+    final client =
+        DeviceStatusStore.instance.statusNow(deviceId!)?.state ==
+            DeviceConnectionState.connected
+        ? await DeviceStatusStore.instance.connectToId(deviceId!)
+        : null;
+
+    if (client is! MeshCoreBleClient || !context.mounted) return;
+
+    await showDialog(
+      context: context,
+      builder: (context) =>
+          _MeshCoreLoraEditDialog(client: client, current: current),
+    );
+  }
+
   void _openDtnOverlayConfigEdit(BuildContext context) async {
     if (deviceId == null) return;
 
@@ -4304,5 +4494,168 @@ class _Section extends StatelessWidget {
         children: children,
       ),
     );
+  }
+}
+
+class _MeshCoreLoraEditDialog extends StatefulWidget {
+  final MeshCoreBleClient client;
+  final LoRaConfigDto? current;
+
+  const _MeshCoreLoraEditDialog({required this.client, this.current});
+
+  @override
+  State<_MeshCoreLoraEditDialog> createState() =>
+      _MeshCoreLoraEditDialogState();
+}
+
+class _MeshCoreLoraEditDialogState extends State<_MeshCoreLoraEditDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late TextEditingController _freqController;
+  late TextEditingController _bwController;
+  late int _sf;
+  late int _cr;
+  late int _txPower;
+
+  @override
+  void initState() {
+    super.initState();
+    _freqController = TextEditingController(
+      text: widget.current?.overrideFrequency?.toString() ?? '915.0',
+    );
+    _bwController = TextEditingController(
+      text: widget.current?.bandwidth?.toString() ?? '250.0',
+    );
+    _sf = widget.current?.spreadFactor ?? 11;
+    _cr = widget.current?.codingRate ?? 5;
+    _txPower = widget.current?.txPower ?? 20;
+  }
+
+  @override
+  void dispose() {
+    _freqController.dispose();
+    _bwController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('MeshCore LoRa Config'),
+      content: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _freqController,
+                decoration: const InputDecoration(labelText: 'Frequency (MHz)'),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  final v = double.tryParse(value ?? '');
+                  if (v == null || v < 300.0 || v > 2500.0) {
+                    return '300.0 - 2500.0 MHz';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _bwController,
+                decoration: const InputDecoration(labelText: 'Bandwidth (kHz)'),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  final v = double.tryParse(value ?? '');
+                  if (v == null || v < 7.0 || v > 500.0) {
+                    return '7.0 - 500.0 kHz';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<int>(
+                initialValue: _sf,
+                decoration: const InputDecoration(
+                  labelText: 'Spreading Factor',
+                ),
+                items: List.generate(
+                  8,
+                  (index) => DropdownMenuItem(
+                    value: index + 5,
+                    child: Text('SF${index + 5}'),
+                  ),
+                ),
+                onChanged: (val) => setState(() => _sf = val!),
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<int>(
+                initialValue: _cr,
+                decoration: const InputDecoration(labelText: 'Coding Rate'),
+                items: List.generate(
+                  4,
+                  (index) => DropdownMenuItem(
+                    value: index + 5,
+                    child: Text('4/${index + 5}'),
+                  ),
+                ),
+                onChanged: (val) => _cr = val!,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                initialValue: _txPower.toString(),
+                decoration: const InputDecoration(labelText: 'TX Power (dBm)'),
+                keyboardType: TextInputType.number,
+                onChanged: (val) => _txPower = int.tryParse(val) ?? _txPower,
+                validator: (value) {
+                  final v = int.tryParse(value ?? '');
+                  if (v == null || v < 0 || v > 30) {
+                    return '0 - 30 dBm';
+                  }
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(onPressed: _save, child: const Text('Save')),
+      ],
+    );
+  }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final freq = double.parse(_freqController.text);
+    final bw = double.parse(_bwController.text);
+
+    try {
+      await widget.client.setLoRaConfig(
+        frequency: freq,
+        bandwidth: bw,
+        sf: _sf,
+        cr: _cr,
+      );
+
+      await widget.client.setTxPower(_txPower);
+
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('LoRa configuration sent')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 }

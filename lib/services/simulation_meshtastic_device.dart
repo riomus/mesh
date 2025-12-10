@@ -6,6 +6,7 @@ import '../generated/meshtastic/meshtastic/mesh.pb.dart' as mesh;
 import '../generated/meshtastic/meshtastic/portnums.pbenum.dart' as port;
 import '../meshtastic/model/meshtastic_event.dart';
 import '../meshtastic/model/meshtastic_models.dart';
+import '../meshtastic/model/device_type.dart';
 import 'meshtastic_client.dart';
 import 'device_communication_event_service.dart';
 import 'logging_service.dart';
@@ -24,6 +25,9 @@ class SimulationMeshtasticDevice extends MeshtasticClient
   bool _isConnected = false;
 
   SimulationMeshtasticDevice();
+
+  @override
+  DeviceType get deviceType => DeviceType.meshtastic;
 
   @override
   String get id => _deviceId;

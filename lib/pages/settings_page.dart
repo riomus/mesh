@@ -163,12 +163,18 @@ class SettingsPage extends StatelessWidget {
                           const Icon(Icons.bluetooth),
                           const SizedBox(width: 8),
                           Text(
-                            t.bleHeartbeatInterval,
+                            t.bluetooth,
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
+                      const Divider(),
+                      // BLE Heartbeat Interval
+                      Text(
+                        t.bleHeartbeatInterval,
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                      const SizedBox(height: 4),
                       Text(
                         t.bleHeartbeatIntervalDescription,
                         style: Theme.of(context).textTheme.bodySmall,
@@ -202,6 +208,115 @@ class SettingsPage extends StatelessWidget {
                             child: Text(
                               AppLocalizations.of(context).secondsSuffix(
                                 settings.bleHeartbeatIntervalSeconds.toString(),
+                              ),
+                              style: Theme.of(context).textTheme.bodyMedium,
+                              textAlign: TextAlign.end,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Divider(),
+                      // Auto Reconnection
+                      Text(
+                        t.autoReconnect,
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        t.autoReconnectDescription,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      const SizedBox(height: 8),
+                      SwitchListTile(
+                        title: Text(t.autoReconnectEnabled),
+                        value: settings.autoReconnectEnabled,
+                        onChanged: (value) {
+                          onChangedSettings(
+                            settings.copyWith(autoReconnectEnabled: value),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      // Max Reconnect Attempts
+                      Text(
+                        t.maxReconnectAttempts,
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        t.maxReconnectAttemptsDescription,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Slider(
+                              value: settings.maxReconnectAttempts
+                                  .toDouble()
+                                  .clamp(1.0, 10.0),
+                              min: 1,
+                              max: 10,
+                              divisions: 9,
+                              label: settings.maxReconnectAttempts.toString(),
+                              onChanged: (value) {
+                                onChangedSettings(
+                                  settings.copyWith(
+                                    maxReconnectAttempts: value.round(),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          SizedBox(
+                            width: 80,
+                            child: Text(
+                              settings.maxReconnectAttempts.toString(),
+                              style: Theme.of(context).textTheme.bodyMedium,
+                              textAlign: TextAlign.end,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      // Reconnect Base Delay
+                      Text(
+                        t.reconnectBaseDelay,
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        t.reconnectBaseDelayDescription,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Slider(
+                              value: settings.reconnectBaseDelaySeconds
+                                  .toDouble()
+                                  .clamp(1.0, 10.0),
+                              min: 1,
+                              max: 10,
+                              divisions: 9,
+                              label: AppLocalizations.of(context).secondsSuffix(
+                                settings.reconnectBaseDelaySeconds.toString(),
+                              ),
+                              onChanged: (value) {
+                                onChangedSettings(
+                                  settings.copyWith(
+                                    reconnectBaseDelaySeconds: value.round(),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          SizedBox(
+                            width: 80,
+                            child: Text(
+                              AppLocalizations.of(context).secondsSuffix(
+                                settings.reconnectBaseDelaySeconds.toString(),
                               ),
                               style: Theme.of(context).textTheme.bodyMedium,
                               textAlign: TextAlign.end,

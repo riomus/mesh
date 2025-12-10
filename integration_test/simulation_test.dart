@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:mesh/app.dart';
@@ -51,7 +52,7 @@ void main() {
         );
         if (snackBarText.evaluate().isNotEmpty) {
           final textWidget = snackBarText.evaluate().first.widget as Text;
-          print('SnackBar found with text: ${textWidget.data}');
+          debugPrint('SnackBar found with text: ${textWidget.data}');
         }
       }
 

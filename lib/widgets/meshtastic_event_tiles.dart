@@ -134,6 +134,13 @@ class MeshtasticEventTile extends StatelessWidget {
           ).xmodemStatus(e.xmodem.seq.toString(), e.xmodem.control.toString()),
           color: Colors.blueGrey,
         );
+      case MeshCoreCommandResponseEvent e:
+        return _SimpleTile(
+          emoji: '📟',
+          title: 'Command Response',
+          subtitle: e.responseDescription,
+          color: e.responseCode == 0 ? Colors.green : Colors.red,
+        );
     }
   }
 
@@ -149,15 +156,33 @@ class MeshtasticEventTile extends StatelessWidget {
 
   String? _configSubtitle(BuildContext context, ConfigDto config) {
     final parts = <String>[];
-    if (config.device != null) parts.add('Device');
-    if (config.position != null) parts.add('Position');
-    if (config.power != null) parts.add('Power');
-    if (config.network != null) parts.add('Network');
-    if (config.display != null) parts.add('Display');
-    if (config.lora != null) parts.add('LoRa');
-    if (config.bluetooth != null) parts.add('Bluetooth');
-    if (config.security != null) parts.add('Security');
-    if (config.sessionkey != null) parts.add('Session Key');
+    if (config.device != null) {
+      parts.add('Device');
+    }
+    if (config.position != null) {
+      parts.add('Position');
+    }
+    if (config.power != null) {
+      parts.add('Power');
+    }
+    if (config.network != null) {
+      parts.add('Network');
+    }
+    if (config.display != null) {
+      parts.add('Display');
+    }
+    if (config.lora != null) {
+      parts.add('LoRa');
+    }
+    if (config.bluetooth != null) {
+      parts.add('Bluetooth');
+    }
+    if (config.security != null) {
+      parts.add('Security');
+    }
+    if (config.sessionkey != null) {
+      parts.add('Session Key');
+    }
 
     if (parts.isEmpty) return null;
     return parts.join(', ');
@@ -165,24 +190,60 @@ class MeshtasticEventTile extends StatelessWidget {
 
   String? _moduleConfigSubtitle(BuildContext context, ModuleConfigDto config) {
     final parts = <String>[];
-    if (config.mqtt != null) parts.add('MQTT');
-    if (config.telemetry != null) parts.add('Telemetry');
-    if (config.serial != null) parts.add('Serial');
-    if (config.storeForward != null) parts.add('Store & Forward');
-    if (config.rangeTest != null) parts.add('Range Test');
-    if (config.externalNotification != null) parts.add('External Notification');
-    if (config.audio != null) parts.add('Audio');
-    if (config.neighborInfo != null) parts.add('Neighbor Info');
-    if (config.remoteHardware != null) parts.add('Remote Hardware');
-    if (config.paxcounter != null) parts.add('Paxcounter');
-    if (config.cannedMessage != null) parts.add('Canned Message');
-    if (config.ambientLighting != null) parts.add('Ambient Lighting');
-    if (config.detectionSensor != null) parts.add('Detection Sensor');
-    if (config.dtnOverlay != null) parts.add('DTN Overlay');
-    if (config.broadcastAssist != null) parts.add('Broadcast Assist');
-    if (config.nodeMod != null) parts.add('Node Mod');
-    if (config.nodeModAdmin != null) parts.add('Node Mod Admin');
-    if (config.idleGame != null) parts.add('Idle Game');
+    if (config.mqtt != null) {
+      parts.add('MQTT');
+    }
+    if (config.telemetry != null) {
+      parts.add('Telemetry');
+    }
+    if (config.serial != null) {
+      parts.add('Serial');
+    }
+    if (config.storeForward != null) {
+      parts.add('Store & Forward');
+    }
+    if (config.rangeTest != null) {
+      parts.add('Range Test');
+    }
+    if (config.externalNotification != null) {
+      parts.add('External Notification');
+    }
+    if (config.audio != null) {
+      parts.add('Audio');
+    }
+    if (config.neighborInfo != null) {
+      parts.add('Neighbor Info');
+    }
+    if (config.remoteHardware != null) {
+      parts.add('Remote Hardware');
+    }
+    if (config.paxcounter != null) {
+      parts.add('Paxcounter');
+    }
+    if (config.cannedMessage != null) {
+      parts.add('Canned Message');
+    }
+    if (config.ambientLighting != null) {
+      parts.add('Ambient Lighting');
+    }
+    if (config.detectionSensor != null) {
+      parts.add('Detection Sensor');
+    }
+    if (config.dtnOverlay != null) {
+      parts.add('DTN Overlay');
+    }
+    if (config.broadcastAssist != null) {
+      parts.add('Broadcast Assist');
+    }
+    if (config.nodeMod != null) {
+      parts.add('Node Mod');
+    }
+    if (config.nodeModAdmin != null) {
+      parts.add('Node Mod Admin');
+    }
+    if (config.idleGame != null) {
+      parts.add('Idle Game');
+    }
 
     if (parts.isEmpty) return null;
     return parts.join(', ');
@@ -191,15 +252,24 @@ class MeshtasticEventTile extends StatelessWidget {
 
 String? _deviceMetadataPreview(BuildContext context, DeviceMetadataDto dm) {
   final parts = <String>[];
-  if (dm.firmwareVersion != null)
+  if (dm.firmwareVersion != null) {
     parts.add(AppLocalizations.of(context).fwLabel(dm.firmwareVersion!));
-  if (dm.hwModel != null)
+  }
+  if (dm.hwModel != null) {
     parts.add(AppLocalizations.of(context).hwLabel(dm.hwModel.toString()));
-  if (dm.role != null)
+  }
+  if (dm.role != null) {
     parts.add(AppLocalizations.of(context).roleKey(dm.role.toString()));
-  if (dm.hasWifi == true) parts.add(AppLocalizations.of(context).wifiLabel);
-  if (dm.hasBluetooth == true) parts.add(AppLocalizations.of(context).btLabel);
-  if (dm.hasEthernet == true) parts.add(AppLocalizations.of(context).ethLabel);
+  }
+  if (dm.hasWifi == true) {
+    parts.add(AppLocalizations.of(context).wifiLabel);
+  }
+  if (dm.hasBluetooth == true) {
+    parts.add(AppLocalizations.of(context).btLabel);
+  }
+  if (dm.hasEthernet == true) {
+    parts.add(AppLocalizations.of(context).ethLabel);
+  }
   if (parts.isEmpty) return null;
   return parts.join(' · ');
 }
@@ -337,14 +407,18 @@ class _PacketTile extends StatelessWidget {
 
   String _packetSubtitle(BuildContext context, MeshPacketDto p) {
     final parts = <String>[];
-    if (p.from != null)
+    if (p.from != null) {
       parts.add(AppLocalizations.of(context).fromLabel(p.from.toString()));
-    if (p.to != null)
+    }
+    if (p.to != null) {
       parts.add(AppLocalizations.of(context).toLabel(p.to.toString()));
-    if (p.channel != null)
+    }
+    if (p.channel != null) {
       parts.add(AppLocalizations.of(context).chLabel(p.channel.toString()));
-    if (p.id != null)
+    }
+    if (p.id != null) {
       parts.add(AppLocalizations.of(context).idLabel(p.id.toString()));
+    }
     return parts.join('  ');
   }
 
@@ -503,19 +577,25 @@ class _LogTile extends StatelessWidget {
 
 String? _queuePreview(BuildContext context, QueueStatusDto s) {
   final parts = <String>[];
-  if (s.free != null)
+  if (s.free != null) {
     parts.add(AppLocalizations.of(context).freeLabel(s.free.toString()));
-  if (s.maxlen != null)
+  }
+  if (s.maxlen != null) {
     parts.add(AppLocalizations.of(context).maxLabel(s.maxlen.toString()));
-  if (s.meshPacketId != null)
+  }
+  if (s.meshPacketId != null) {
     parts.add(AppLocalizations.of(context).idLabel(s.meshPacketId.toString()));
+  }
   return parts.isEmpty ? null : parts.join('  ');
 }
 
 String? _fileInfoPreview(BuildContext context, FileInfoDto f) {
   final parts = <String>[];
-  if (f.fileName != null && f.fileName!.isNotEmpty) parts.add(f.fileName!);
-  if (f.sizeBytes != null)
+  if (f.fileName != null && f.fileName!.isNotEmpty) {
+    parts.add(f.fileName!);
+  }
+  if (f.sizeBytes != null) {
     parts.add(AppLocalizations.of(context).bytesLabel(f.sizeBytes.toString()));
+  }
   return parts.isEmpty ? null : parts.join('  ');
 }

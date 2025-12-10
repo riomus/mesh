@@ -193,8 +193,8 @@ class MessageRoutingService {
     DeviceCommunicationEventService.instance.listenAll().listen(
       _handleEvent,
       onError: (e, s) {
-        print('[MessageRoutingService] Error in event stream: $e');
-        print('[MessageRoutingService] Stack trace: $s');
+        debugPrint('[MessageRoutingService] Error in event stream: $e');
+        debugPrint('[MessageRoutingService] Stack trace: $s');
       },
     );
   }
@@ -282,7 +282,9 @@ class MessageRoutingService {
                   ),
                 ],
               );
-              print('DEBUG: Adding message to room $roomId: ${message.text}');
+              debugPrint(
+                'DEBUG: Adding message to room $roomId: ${message.text}',
+              );
               _addMessage(roomId, message);
 
               // Resolve names for notification
@@ -462,8 +464,8 @@ class MessageRoutingService {
         }
       }
     } catch (e, s) {
-      print('[MessageRoutingService] Error handling event: $e');
-      print('[MessageRoutingService] Stack trace: $s');
+      debugPrint('[MessageRoutingService] Error handling event: $e');
+      debugPrint('[MessageRoutingService] Stack trace: $s');
     }
   }
 
@@ -509,7 +511,9 @@ class MessageRoutingService {
       _messages[roomId] = [];
     }
     _messages[roomId]!.add(message);
-    print('DEBUG: Message added to list. Count: ${_messages[roomId]!.length}');
+    debugPrint(
+      'DEBUG: Message added to list. Count: ${_messages[roomId]!.length}',
+    );
     _emitMessages(roomId);
 
     // Update last message in room

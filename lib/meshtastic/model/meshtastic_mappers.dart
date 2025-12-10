@@ -4,7 +4,7 @@
 // deprecated fields during transitions; our mapper reads them for best‑effort
 // decoding and to support a wider range of devices.
 import 'dart:convert';
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:fixnum/fixnum.dart';
 
 import '../../generated/meshtastic/meshtastic/mesh.pb.dart' as mesh;
@@ -375,7 +375,7 @@ class MeshtasticMappers {
     return LoRaConfigDto(
       usePreset: l.hasUsePreset() ? l.usePreset : null,
       modemPreset: l.hasModemPreset() ? l.modemPreset.name : null,
-      bandwidth: l.hasBandwidth() ? l.bandwidth : null,
+      bandwidth: l.hasBandwidth() ? l.bandwidth.toDouble() : null,
       spreadFactor: l.hasSpreadFactor() ? l.spreadFactor : null,
       codingRate: l.hasCodingRate() ? l.codingRate : null,
       frequencyOffset: l.hasFrequencyOffset() ? l.frequencyOffset : null,
@@ -873,24 +873,37 @@ class MeshtasticMappers {
 
   static cfgpb.Config toConfig(ConfigDto dto) {
     final config = cfgpb.Config();
-    if (dto.device != null) config.device = _toDeviceConfig(dto.device!);
-    if (dto.position != null)
+    if (dto.device != null) {
+      config.device = _toDeviceConfig(dto.device!);
+    }
+    if (dto.position != null) {
       config.position = _toPositionConfig(dto.position!);
-    if (dto.power != null) config.power = _toPowerConfig(dto.power!);
-    if (dto.network != null) config.network = _toNetworkConfig(dto.network!);
-    if (dto.display != null) config.display = _toDisplayConfig(dto.display!);
-    if (dto.lora != null) config.lora = _toLoRaConfig(dto.lora!);
-    if (dto.bluetooth != null)
+    }
+    if (dto.power != null) {
+      config.power = _toPowerConfig(dto.power!);
+    }
+    if (dto.network != null) {
+      config.network = _toNetworkConfig(dto.network!);
+    }
+    if (dto.display != null) {
+      config.display = _toDisplayConfig(dto.display!);
+    }
+    if (dto.lora != null) {
+      config.lora = _toLoRaConfig(dto.lora!);
+    }
+    if (dto.bluetooth != null) {
       config.bluetooth = _toBluetoothConfig(dto.bluetooth!);
-    if (dto.security != null)
+    }
+    if (dto.security != null) {
       config.security = _toSecurityConfig(dto.security!);
+    }
     // Sessionkey is read-only / handled differently usually, but we can add if needed
     return config;
   }
 
   static cfgpb.Config_DeviceConfig _toDeviceConfig(DeviceConfigDto d) {
     final c = cfgpb.Config_DeviceConfig();
-    if (d.role != null)
+    if (d.role != null) {
       c.role =
           cfgpb.Config_DeviceConfig_Role.valueOf(
             cfgpb.Config_DeviceConfig_Role.values.indexWhere(
@@ -898,10 +911,11 @@ class MeshtasticMappers {
             ),
           ) ??
           cfgpb.Config_DeviceConfig_Role.CLIENT;
+    }
     if (d.serialEnabled != null) c.serialEnabled = d.serialEnabled!;
     if (d.buttonGpio != null) c.buttonGpio = d.buttonGpio!;
     if (d.buzzerGpio != null) c.buzzerGpio = d.buzzerGpio!;
-    if (d.rebroadcastMode != null)
+    if (d.rebroadcastMode != null) {
       c.rebroadcastMode =
           cfgpb.Config_DeviceConfig_RebroadcastMode.valueOf(
             cfgpb.Config_DeviceConfig_RebroadcastMode.values.indexWhere(
@@ -909,17 +923,26 @@ class MeshtasticMappers {
             ),
           ) ??
           cfgpb.Config_DeviceConfig_RebroadcastMode.ALL;
-    if (d.nodeInfoBroadcastSecs != null)
+    }
+    if (d.nodeInfoBroadcastSecs != null) {
       c.nodeInfoBroadcastSecs = d.nodeInfoBroadcastSecs!;
-    if (d.doubleTapAsButtonPress != null)
+    }
+    if (d.doubleTapAsButtonPress != null) {
       c.doubleTapAsButtonPress = d.doubleTapAsButtonPress!;
-    if (d.isManaged != null) c.isManaged = d.isManaged!;
-    if (d.disableTripleClick != null)
+    }
+    if (d.isManaged != null) {
+      c.isManaged = d.isManaged!;
+    }
+    if (d.disableTripleClick != null) {
       c.disableTripleClick = d.disableTripleClick!;
-    if (d.tzdef != null) c.tzdef = d.tzdef!;
-    if (d.ledHeartbeatDisabled != null)
+    }
+    if (d.tzdef != null) {
+      c.tzdef = d.tzdef!;
+    }
+    if (d.ledHeartbeatDisabled != null) {
       c.ledHeartbeatDisabled = d.ledHeartbeatDisabled!;
-    if (d.buzzerMode != null)
+    }
+    if (d.buzzerMode != null) {
       c.buzzerMode =
           cfgpb.Config_DeviceConfig_BuzzerMode.valueOf(
             cfgpb.Config_DeviceConfig_BuzzerMode.values.indexWhere(
@@ -927,29 +950,50 @@ class MeshtasticMappers {
             ),
           ) ??
           cfgpb.Config_DeviceConfig_BuzzerMode.ALL_ENABLED;
+    }
     return c;
   }
 
   static cfgpb.Config_PositionConfig _toPositionConfig(PositionConfigDto p) {
     final c = cfgpb.Config_PositionConfig();
-    if (p.positionBroadcastSecs != null)
+    if (p.positionBroadcastSecs != null) {
       c.positionBroadcastSecs = p.positionBroadcastSecs!;
-    if (p.positionBroadcastSmartEnabled != null)
+    }
+    if (p.positionBroadcastSmartEnabled != null) {
       c.positionBroadcastSmartEnabled = p.positionBroadcastSmartEnabled!;
-    if (p.fixedPosition != null) c.fixedPosition = p.fixedPosition!;
-    if (p.gpsEnabled != null) c.gpsEnabled = p.gpsEnabled!;
-    if (p.gpsUpdateInterval != null) c.gpsUpdateInterval = p.gpsUpdateInterval!;
-    if (p.gpsAttemptTime != null) c.gpsAttemptTime = p.gpsAttemptTime!;
-    if (p.positionFlags != null) c.positionFlags = p.positionFlags!;
-    if (p.rxGpio != null) c.rxGpio = p.rxGpio!;
-    if (p.txGpio != null) c.txGpio = p.txGpio!;
-    if (p.broadcastSmartMinimumDistance != null)
+    }
+    if (p.fixedPosition != null) {
+      c.fixedPosition = p.fixedPosition!;
+    }
+    if (p.gpsEnabled != null) {
+      c.gpsEnabled = p.gpsEnabled!;
+    }
+    if (p.gpsUpdateInterval != null) {
+      c.gpsUpdateInterval = p.gpsUpdateInterval!;
+    }
+    if (p.gpsAttemptTime != null) {
+      c.gpsAttemptTime = p.gpsAttemptTime!;
+    }
+    if (p.positionFlags != null) {
+      c.positionFlags = p.positionFlags!;
+    }
+    if (p.rxGpio != null) {
+      c.rxGpio = p.rxGpio!;
+    }
+    if (p.txGpio != null) {
+      c.txGpio = p.txGpio!;
+    }
+    if (p.broadcastSmartMinimumDistance != null) {
       c.broadcastSmartMinimumDistance = p.broadcastSmartMinimumDistance!;
-    if (p.broadcastSmartMinimumIntervalSecs != null)
+    }
+    if (p.broadcastSmartMinimumIntervalSecs != null) {
       c.broadcastSmartMinimumIntervalSecs =
           p.broadcastSmartMinimumIntervalSecs!;
-    if (p.gpsEnGpio != null) c.gpsEnGpio = p.gpsEnGpio!;
-    if (p.gpsMode != null)
+    }
+    if (p.gpsEnGpio != null) {
+      c.gpsEnGpio = p.gpsEnGpio!;
+    }
+    if (p.gpsMode != null) {
       c.gpsMode =
           cfgpb.Config_PositionConfig_GpsMode.valueOf(
             cfgpb.Config_PositionConfig_GpsMode.values.indexWhere(
@@ -957,24 +1001,29 @@ class MeshtasticMappers {
             ),
           ) ??
           cfgpb.Config_PositionConfig_GpsMode.DISABLED;
+    }
     return c;
   }
 
   static cfgpb.Config_PowerConfig _toPowerConfig(PowerConfigDto p) {
     final c = cfgpb.Config_PowerConfig();
     if (p.isPowerSaving != null) c.isPowerSaving = p.isPowerSaving!;
-    if (p.onBatteryShutdownAfterSecs != null)
+    if (p.onBatteryShutdownAfterSecs != null) {
       c.onBatteryShutdownAfterSecs = p.onBatteryShutdownAfterSecs!;
-    if (p.adcMultiplierOverride != null)
+    }
+    if (p.adcMultiplierOverride != null) {
       c.adcMultiplierOverride = p.adcMultiplierOverride!;
+    }
     if (p.waitBluetoothSecs != null) c.waitBluetoothSecs = p.waitBluetoothSecs!;
     if (p.sdsSecs != null) c.sdsSecs = p.sdsSecs!;
     if (p.lsSecs != null) c.lsSecs = p.lsSecs!;
     if (p.minWakeSecs != null) c.minWakeSecs = p.minWakeSecs!;
-    if (p.deviceBatteryInaAddress != null)
+    if (p.deviceBatteryInaAddress != null) {
       c.deviceBatteryInaAddress = p.deviceBatteryInaAddress!;
-    if (p.powermonEnables != null)
+    }
+    if (p.powermonEnables != null) {
       c.powermonEnables = Int64.parseInt(p.powermonEnables.toString());
+    }
     return c;
   }
 
@@ -982,10 +1031,14 @@ class MeshtasticMappers {
     final c = cfgpb.Config_NetworkConfig();
     if (n.wifiEnabled != null) c.wifiEnabled = n.wifiEnabled!;
     if (n.wifiSsid != null) c.wifiSsid = n.wifiSsid!;
-    if (n.wifiPsk != null) c.wifiPsk = n.wifiPsk!;
+    if (n.wifiPsk != null) {
+      c.wifiPsk = n.wifiPsk!;
+    }
     if (n.ntpServer != null) c.ntpServer = n.ntpServer!;
-    if (n.ethEnabled != null) c.ethEnabled = n.ethEnabled!;
-    if (n.addressMode != null)
+    if (n.ethEnabled != null) {
+      c.ethEnabled = n.ethEnabled!;
+    }
+    if (n.addressMode != null) {
       c.addressMode =
           cfgpb.Config_NetworkConfig_AddressMode.valueOf(
             cfgpb.Config_NetworkConfig_AddressMode.values.indexWhere(
@@ -993,29 +1046,49 @@ class MeshtasticMappers {
             ),
           ) ??
           cfgpb.Config_NetworkConfig_AddressMode.DHCP;
+    }
     if (n.ipv4Config != null) {
       c.ipv4Config = cfgpb.Config_NetworkConfig_IpV4Config();
-      if (n.ipv4Config!.ip != null) c.ipv4Config.ip = n.ipv4Config!.ip!;
-      if (n.ipv4Config!.gateway != null)
+      if (n.ipv4Config!.ip != null) {
+        c.ipv4Config.ip = n.ipv4Config!.ip!;
+      }
+      if (n.ipv4Config!.gateway != null) {
         c.ipv4Config.gateway = n.ipv4Config!.gateway!;
-      if (n.ipv4Config!.subnet != null)
+      }
+      if (n.ipv4Config!.subnet != null) {
         c.ipv4Config.subnet = n.ipv4Config!.subnet!;
-      if (n.ipv4Config!.dns != null) c.ipv4Config.dns = n.ipv4Config!.dns!;
+      }
+      if (n.ipv4Config!.dns != null) {
+        c.ipv4Config.dns = n.ipv4Config!.dns!;
+      }
     }
-    if (n.rsyslogServer != null) c.rsyslogServer = n.rsyslogServer!;
-    if (n.enabledProtocols != null) c.enabledProtocols = n.enabledProtocols!;
-    if (n.ipv6Enabled != null) c.ipv6Enabled = n.ipv6Enabled!;
+    if (n.rsyslogServer != null) {
+      c.rsyslogServer = n.rsyslogServer!;
+    }
+    if (n.enabledProtocols != null) {
+      c.enabledProtocols = n.enabledProtocols!;
+    }
+    if (n.ipv6Enabled != null) {
+      c.ipv6Enabled = n.ipv6Enabled!;
+    }
     return c;
   }
 
   static cfgpb.Config_DisplayConfig _toDisplayConfig(DisplayConfigDto d) {
     final c = cfgpb.Config_DisplayConfig();
-    if (d.screenOnSecs != null) c.screenOnSecs = d.screenOnSecs!;
-    if (d.autoScreenCarouselSecs != null)
+    if (d.screenOnSecs != null) {
+      c.screenOnSecs = d.screenOnSecs!;
+    }
+    if (d.autoScreenCarouselSecs != null) {
       c.autoScreenCarouselSecs = d.autoScreenCarouselSecs!;
-    if (d.compassNorthTop != null) c.compassNorthTop = d.compassNorthTop!;
-    if (d.flipScreen != null) c.flipScreen = d.flipScreen!;
-    if (d.units != null)
+    }
+    if (d.compassNorthTop != null) {
+      c.compassNorthTop = d.compassNorthTop!;
+    }
+    if (d.flipScreen != null) {
+      c.flipScreen = d.flipScreen!;
+    }
+    if (d.units != null) {
       c.units =
           cfgpb.Config_DisplayConfig_DisplayUnits.valueOf(
             cfgpb.Config_DisplayConfig_DisplayUnits.values.indexWhere(
@@ -1023,7 +1096,8 @@ class MeshtasticMappers {
             ),
           ) ??
           cfgpb.Config_DisplayConfig_DisplayUnits.METRIC;
-    if (d.oled != null)
+    }
+    if (d.oled != null) {
       c.oled =
           cfgpb.Config_DisplayConfig_OledType.valueOf(
             cfgpb.Config_DisplayConfig_OledType.values.indexWhere(
@@ -1031,7 +1105,8 @@ class MeshtasticMappers {
             ),
           ) ??
           cfgpb.Config_DisplayConfig_OledType.OLED_AUTO;
-    if (d.displaymode != null)
+    }
+    if (d.displaymode != null) {
       c.displaymode =
           cfgpb.Config_DisplayConfig_DisplayMode.valueOf(
             cfgpb.Config_DisplayConfig_DisplayMode.values.indexWhere(
@@ -1039,9 +1114,14 @@ class MeshtasticMappers {
             ),
           ) ??
           cfgpb.Config_DisplayConfig_DisplayMode.DEFAULT;
-    if (d.headingBold != null) c.headingBold = d.headingBold!;
-    if (d.wakeOnTapOrMotion != null) c.wakeOnTapOrMotion = d.wakeOnTapOrMotion!;
-    if (d.compassOrientation != null)
+    }
+    if (d.headingBold != null) {
+      c.headingBold = d.headingBold!;
+    }
+    if (d.wakeOnTapOrMotion != null) {
+      c.wakeOnTapOrMotion = d.wakeOnTapOrMotion!;
+    }
+    if (d.compassOrientation != null) {
       c.compassOrientation =
           cfgpb.Config_DisplayConfig_CompassOrientation.valueOf(
             cfgpb.Config_DisplayConfig_CompassOrientation.values.indexWhere(
@@ -1049,15 +1129,22 @@ class MeshtasticMappers {
             ),
           ) ??
           cfgpb.Config_DisplayConfig_CompassOrientation.DEGREES_0;
-    if (d.use12hClock != null) c.use12hClock = d.use12hClock!;
-    if (d.useLongNodeName != null) c.useLongNodeName = d.useLongNodeName!;
+    }
+    if (d.use12hClock != null) {
+      c.use12hClock = d.use12hClock!;
+    }
+    if (d.useLongNodeName != null) {
+      c.useLongNodeName = d.useLongNodeName!;
+    }
     return c;
   }
 
   static cfgpb.Config_LoRaConfig _toLoRaConfig(LoRaConfigDto l) {
     final c = cfgpb.Config_LoRaConfig();
-    if (l.usePreset != null) c.usePreset = l.usePreset!;
-    if (l.modemPreset != null)
+    if (l.usePreset != null) {
+      c.usePreset = l.usePreset!;
+    }
+    if (l.modemPreset != null) {
       c.modemPreset =
           cfgpb.Config_LoRaConfig_ModemPreset.valueOf(
             cfgpb.Config_LoRaConfig_ModemPreset.values.indexWhere(
@@ -1065,11 +1152,20 @@ class MeshtasticMappers {
             ),
           ) ??
           cfgpb.Config_LoRaConfig_ModemPreset.LONG_FAST;
-    if (l.bandwidth != null) c.bandwidth = l.bandwidth!;
-    if (l.spreadFactor != null) c.spreadFactor = l.spreadFactor!;
-    if (l.codingRate != null) c.codingRate = l.codingRate!;
-    if (l.frequencyOffset != null) c.frequencyOffset = l.frequencyOffset!;
-    if (l.region != null)
+    }
+    if (l.bandwidth != null) {
+      c.bandwidth = l.bandwidth!.round();
+    }
+    if (l.spreadFactor != null) {
+      c.spreadFactor = l.spreadFactor!;
+    }
+    if (l.codingRate != null) {
+      c.codingRate = l.codingRate!;
+    }
+    if (l.frequencyOffset != null) {
+      c.frequencyOffset = l.frequencyOffset!;
+    }
+    if (l.region != null) {
       c.region =
           cfgpb.Config_LoRaConfig_RegionCode.valueOf(
             cfgpb.Config_LoRaConfig_RegionCode.values.indexWhere(
@@ -1077,25 +1173,49 @@ class MeshtasticMappers {
             ),
           ) ??
           cfgpb.Config_LoRaConfig_RegionCode.US;
-    if (l.hopLimit != null) c.hopLimit = l.hopLimit!;
-    if (l.txEnabled != null) c.txEnabled = l.txEnabled!;
-    if (l.txPower != null) c.txPower = l.txPower!;
-    if (l.channelNum != null) c.channelNum = l.channelNum!;
-    if (l.overrideDutyCycle != null) c.overrideDutyCycle = l.overrideDutyCycle!;
-    if (l.sx126xRxBoostedGain != null)
+    }
+    if (l.hopLimit != null) {
+      c.hopLimit = l.hopLimit!;
+    }
+    if (l.txEnabled != null) {
+      c.txEnabled = l.txEnabled!;
+    }
+    if (l.txPower != null) {
+      c.txPower = l.txPower!;
+    }
+    if (l.channelNum != null) {
+      c.channelNum = l.channelNum!;
+    }
+    if (l.overrideDutyCycle != null) {
+      c.overrideDutyCycle = l.overrideDutyCycle!;
+    }
+    if (l.sx126xRxBoostedGain != null) {
       c.sx126xRxBoostedGain = l.sx126xRxBoostedGain!;
-    if (l.overrideFrequency != null) c.overrideFrequency = l.overrideFrequency!;
-    if (l.paFanDisabled != null) c.paFanDisabled = l.paFanDisabled!;
-    if (l.ignoreIncoming != null) c.ignoreIncoming.addAll(l.ignoreIncoming!);
-    if (l.ignoreMqtt != null) c.ignoreMqtt = l.ignoreMqtt!;
-    if (l.configOkToMqtt != null) c.configOkToMqtt = l.configOkToMqtt!;
+    }
+    if (l.overrideFrequency != null) {
+      c.overrideFrequency = l.overrideFrequency!;
+    }
+    if (l.paFanDisabled != null) {
+      c.paFanDisabled = l.paFanDisabled!;
+    }
+    if (l.ignoreIncoming != null) {
+      c.ignoreIncoming.addAll(l.ignoreIncoming!);
+    }
+    if (l.ignoreMqtt != null) {
+      c.ignoreMqtt = l.ignoreMqtt!;
+    }
+    if (l.configOkToMqtt != null) {
+      c.configOkToMqtt = l.configOkToMqtt!;
+    }
     return c;
   }
 
   static cfgpb.Config_BluetoothConfig _toBluetoothConfig(BluetoothConfigDto b) {
     final c = cfgpb.Config_BluetoothConfig();
-    if (b.enabled != null) c.enabled = b.enabled!;
-    if (b.mode != null)
+    if (b.enabled != null) {
+      c.enabled = b.enabled!;
+    }
+    if (b.mode != null) {
       c.mode =
           cfgpb.Config_BluetoothConfig_PairingMode.valueOf(
             cfgpb.Config_BluetoothConfig_PairingMode.values.indexWhere(
@@ -1103,88 +1223,146 @@ class MeshtasticMappers {
             ),
           ) ??
           cfgpb.Config_BluetoothConfig_PairingMode.RANDOM_PIN;
-    if (b.fixedPin != null) c.fixedPin = b.fixedPin!;
+    }
+    if (b.fixedPin != null) {
+      c.fixedPin = b.fixedPin!;
+    }
     return c;
   }
 
   static cfgpb.Config_SecurityConfig _toSecurityConfig(SecurityConfigDto s) {
     final c = cfgpb.Config_SecurityConfig();
-    if (s.publicKey != null) c.publicKey = s.publicKey!;
-    if (s.privateKey != null) c.privateKey = s.privateKey!;
-    if (s.adminKey != null) c.adminKey.addAll(s.adminKey!);
-    if (s.isManaged != null) c.isManaged = s.isManaged!;
-    if (s.serialEnabled != null) c.serialEnabled = s.serialEnabled!;
-    if (s.debugLogApiEnabled != null)
+    if (s.publicKey != null) {
+      c.publicKey = s.publicKey!;
+    }
+    if (s.privateKey != null) {
+      c.privateKey = s.privateKey!;
+    }
+    if (s.adminKey != null) {
+      c.adminKey.addAll(s.adminKey!);
+    }
+    if (s.isManaged != null) {
+      c.isManaged = s.isManaged!;
+    }
+    if (s.serialEnabled != null) {
+      c.serialEnabled = s.serialEnabled!;
+    }
+    if (s.debugLogApiEnabled != null) {
       c.debugLogApiEnabled = s.debugLogApiEnabled!;
-    if (s.adminChannelEnabled != null)
+    }
+    if (s.adminChannelEnabled != null) {
       c.adminChannelEnabled = s.adminChannelEnabled!;
+    }
     return c;
   }
 
   static module.ModuleConfig toModuleConfig(ModuleConfigDto dto) {
     final config = module.ModuleConfig();
-    if (dto.mqtt != null) config.mqtt = _toMqttConfig(dto.mqtt!);
-    if (dto.telemetry != null)
+    if (dto.mqtt != null) {
+      config.mqtt = _toMqttConfig(dto.mqtt!);
+    }
+    if (dto.telemetry != null) {
       config.telemetry = _toTelemetryConfig(dto.telemetry!);
-    if (dto.serial != null) config.serial = _toSerialConfig(dto.serial!);
-    if (dto.storeForward != null)
+    }
+    if (dto.serial != null) {
+      config.serial = _toSerialConfig(dto.serial!);
+    }
+    if (dto.storeForward != null) {
       config.storeForward = _toStoreForwardConfig(dto.storeForward!);
-    if (dto.rangeTest != null)
+    }
+    if (dto.rangeTest != null) {
       config.rangeTest = _toRangeTestConfig(dto.rangeTest!);
-    if (dto.externalNotification != null)
+    }
+    if (dto.externalNotification != null) {
       config.externalNotification = _toExternalNotificationConfig(
         dto.externalNotification!,
       );
-    if (dto.audio != null) config.audio = _toAudioConfig(dto.audio!);
-    if (dto.neighborInfo != null)
+    }
+    if (dto.audio != null) {
+      config.audio = _toAudioConfig(dto.audio!);
+    }
+    if (dto.neighborInfo != null) {
       config.neighborInfo = _toNeighborInfoConfig(dto.neighborInfo!);
-    if (dto.remoteHardware != null)
+    }
+    if (dto.remoteHardware != null) {
       config.remoteHardware = _toRemoteHardwareConfig(dto.remoteHardware!);
-    if (dto.paxcounter != null)
+    }
+    if (dto.paxcounter != null) {
       config.paxcounter = _toPaxcounterConfig(dto.paxcounter!);
-    if (dto.cannedMessage != null)
+    }
+    if (dto.cannedMessage != null) {
       config.cannedMessage = _toCannedMessageConfig(dto.cannedMessage!);
-    if (dto.ambientLighting != null)
+    }
+    if (dto.ambientLighting != null) {
       config.ambientLighting = _toAmbientLightingConfig(dto.ambientLighting!);
-    if (dto.detectionSensor != null)
+    }
+    if (dto.detectionSensor != null) {
       config.detectionSensor = _toDetectionSensorConfig(dto.detectionSensor!);
-    if (dto.dtnOverlay != null)
+    }
+    if (dto.dtnOverlay != null) {
       config.dtnOverlay = _toDtnOverlayConfig(dto.dtnOverlay!);
-    if (dto.broadcastAssist != null)
+    }
+    if (dto.broadcastAssist != null) {
       config.broadcastAssist = _toBroadcastAssistConfig(dto.broadcastAssist!);
-    if (dto.nodeMod != null) config.nodeMod = _toNodeModConfig(dto.nodeMod!);
-    if (dto.nodeModAdmin != null)
+    }
+    if (dto.nodeMod != null) {
+      config.nodeMod = _toNodeModConfig(dto.nodeMod!);
+    }
+    if (dto.nodeModAdmin != null) {
       config.nodeModAdmin = _toNodeModAdminConfig(dto.nodeModAdmin!);
-    if (dto.idleGame != null)
+    }
+    if (dto.idleGame != null) {
       config.idleGame = _toIdleGameConfig(dto.idleGame!);
+    }
     return config;
   }
 
   static module.ModuleConfig_MQTTConfig _toMqttConfig(MqttConfigDto m) {
     final c = module.ModuleConfig_MQTTConfig();
-    if (m.enabled != null) c.enabled = m.enabled!;
-    if (m.address != null) c.address = m.address!;
-    if (m.username != null) c.username = m.username!;
-    if (m.password != null) c.password = m.password!;
-    if (m.encryptionEnabled != null) c.encryptionEnabled = m.encryptionEnabled!;
-    if (m.jsonEnabled != null) c.jsonEnabled = m.jsonEnabled!;
-    if (m.tlsEnabled != null) c.tlsEnabled = m.tlsEnabled!;
-    if (m.root != null) c.root = m.root!;
-    if (m.proxyToClientEnabled != null)
+    if (m.enabled != null) {
+      c.enabled = m.enabled!;
+    }
+    if (m.address != null) {
+      c.address = m.address!;
+    }
+    if (m.username != null) {
+      c.username = m.username!;
+    }
+    if (m.password != null) {
+      c.password = m.password!;
+    }
+    if (m.encryptionEnabled != null) {
+      c.encryptionEnabled = m.encryptionEnabled!;
+    }
+    if (m.jsonEnabled != null) {
+      c.jsonEnabled = m.jsonEnabled!;
+    }
+    if (m.tlsEnabled != null) {
+      c.tlsEnabled = m.tlsEnabled!;
+    }
+    if (m.root != null) {
+      c.root = m.root!;
+    }
+    if (m.proxyToClientEnabled != null) {
       c.proxyToClientEnabled = m.proxyToClientEnabled!;
-    if (m.mapReportingEnabled != null)
+    }
+    if (m.mapReportingEnabled != null) {
       c.mapReportingEnabled = m.mapReportingEnabled!;
+    }
     if (m.mapReportSettings != null) {
       c.mapReportSettings = module.ModuleConfig_MapReportSettings();
-      if (m.mapReportSettings!.publishIntervalSecs != null)
+      if (m.mapReportSettings!.publishIntervalSecs != null) {
         c.mapReportSettings.publishIntervalSecs =
             m.mapReportSettings!.publishIntervalSecs!;
-      if (m.mapReportSettings!.positionPrecision != null)
+      }
+      if (m.mapReportSettings!.positionPrecision != null) {
         c.mapReportSettings.positionPrecision =
             m.mapReportSettings!.positionPrecision!;
-      if (m.mapReportSettings!.shouldReportLocation != null)
+      }
+      if (m.mapReportSettings!.shouldReportLocation != null) {
         c.mapReportSettings.shouldReportLocation =
             m.mapReportSettings!.shouldReportLocation!;
+      }
     }
     return c;
   }
@@ -1193,43 +1371,66 @@ class MeshtasticMappers {
     TelemetryConfigDto t,
   ) {
     final c = module.ModuleConfig_TelemetryConfig();
-    if (t.deviceUpdateInterval != null)
+    if (t.deviceUpdateInterval != null) {
       c.deviceUpdateInterval = t.deviceUpdateInterval!;
-    if (t.environmentUpdateInterval != null)
+    }
+    if (t.environmentUpdateInterval != null) {
       c.environmentUpdateInterval = t.environmentUpdateInterval!;
-    if (t.environmentMeasurementEnabled != null)
+    }
+    if (t.environmentMeasurementEnabled != null) {
       c.environmentMeasurementEnabled = t.environmentMeasurementEnabled!;
-    if (t.environmentScreenEnabled != null)
+    }
+    if (t.environmentScreenEnabled != null) {
       c.environmentScreenEnabled = t.environmentScreenEnabled!;
-    if (t.environmentDisplayFahrenheit != null)
+    }
+    if (t.environmentDisplayFahrenheit != null) {
       c.environmentDisplayFahrenheit = t.environmentDisplayFahrenheit!;
-    if (t.airQualityEnabled != null) c.airQualityEnabled = t.airQualityEnabled!;
-    if (t.airQualityInterval != null)
+    }
+    if (t.airQualityEnabled != null) {
+      c.airQualityEnabled = t.airQualityEnabled!;
+    }
+    if (t.airQualityInterval != null) {
       c.airQualityInterval = t.airQualityInterval!;
-    if (t.powerMeasurementEnabled != null)
+    }
+    if (t.powerMeasurementEnabled != null) {
       c.powerMeasurementEnabled = t.powerMeasurementEnabled!;
-    if (t.powerUpdateInterval != null)
+    }
+    if (t.powerUpdateInterval != null) {
       c.powerUpdateInterval = t.powerUpdateInterval!;
-    if (t.powerScreenEnabled != null)
+    }
+    if (t.powerScreenEnabled != null) {
       c.powerScreenEnabled = t.powerScreenEnabled!;
-    if (t.healthMeasurementEnabled != null)
+    }
+    if (t.healthMeasurementEnabled != null) {
       c.healthMeasurementEnabled = t.healthMeasurementEnabled!;
-    if (t.healthUpdateInterval != null)
+    }
+    if (t.healthUpdateInterval != null) {
       c.healthUpdateInterval = t.healthUpdateInterval!;
-    if (t.healthScreenEnabled != null)
+    }
+    if (t.healthScreenEnabled != null) {
       c.healthScreenEnabled = t.healthScreenEnabled!;
-    if (t.deviceTelemetryEnabled != null)
+    }
+    if (t.deviceTelemetryEnabled != null) {
       c.deviceTelemetryEnabled = t.deviceTelemetryEnabled!;
+    }
     return c;
   }
 
   static module.ModuleConfig_SerialConfig _toSerialConfig(SerialConfigDto s) {
     final c = module.ModuleConfig_SerialConfig();
-    if (s.enabled != null) c.enabled = s.enabled!;
-    if (s.echo != null) c.echo = s.echo!;
-    if (s.rxd != null) c.rxd = s.rxd!;
-    if (s.txd != null) c.txd = s.txd!;
-    if (s.baud != null)
+    if (s.enabled != null) {
+      c.enabled = s.enabled!;
+    }
+    if (s.echo != null) {
+      c.echo = s.echo!;
+    }
+    if (s.rxd != null) {
+      c.rxd = s.rxd!;
+    }
+    if (s.txd != null) {
+      c.txd = s.txd!;
+    }
+    if (s.baud != null) {
       c.baud =
           module.ModuleConfig_SerialConfig_Serial_Baud.valueOf(
             module.ModuleConfig_SerialConfig_Serial_Baud.values.indexWhere(
@@ -1237,8 +1438,11 @@ class MeshtasticMappers {
             ),
           ) ??
           module.ModuleConfig_SerialConfig_Serial_Baud.BAUD_115200;
-    if (s.timeout != null) c.timeout = s.timeout!;
-    if (s.mode != null)
+    }
+    if (s.timeout != null) {
+      c.timeout = s.timeout!;
+    }
+    if (s.mode != null) {
       c.mode =
           module.ModuleConfig_SerialConfig_Serial_Mode.valueOf(
             module.ModuleConfig_SerialConfig_Serial_Mode.values.indexWhere(
@@ -1246,8 +1450,10 @@ class MeshtasticMappers {
             ),
           ) ??
           module.ModuleConfig_SerialConfig_Serial_Mode.DEFAULT;
-    if (s.overrideConsoleSerialPort != null)
+    }
+    if (s.overrideConsoleSerialPort != null) {
       c.overrideConsoleSerialPort = s.overrideConsoleSerialPort!;
+    }
     return c;
   }
 
@@ -1255,15 +1461,27 @@ class MeshtasticMappers {
     StoreForwardConfigDto sf,
   ) {
     final c = module.ModuleConfig_StoreForwardConfig();
-    if (sf.enabled != null) c.enabled = sf.enabled!;
-    if (sf.heartbeat != null) c.heartbeat = sf.heartbeat!;
-    if (sf.records != null) c.records = sf.records!;
-    if (sf.historyReturnMax != null) c.historyReturnMax = sf.historyReturnMax!;
-    if (sf.historyReturnWindow != null)
+    if (sf.enabled != null) {
+      c.enabled = sf.enabled!;
+    }
+    if (sf.heartbeat != null) {
+      c.heartbeat = sf.heartbeat!;
+    }
+    if (sf.records != null) {
+      c.records = sf.records!;
+    }
+    if (sf.historyReturnMax != null) {
+      c.historyReturnMax = sf.historyReturnMax!;
+    }
+    if (sf.historyReturnWindow != null) {
       c.historyReturnWindow = sf.historyReturnWindow!;
-    if (sf.isServer != null) c.isServer = sf.isServer!;
-    if (sf.emitControlSignals != null)
+    }
+    if (sf.isServer != null) {
+      c.isServer = sf.isServer!;
+    }
+    if (sf.emitControlSignals != null) {
       c.emitControlSignals = sf.emitControlSignals!;
+    }
     return c;
   }
 
@@ -1271,41 +1489,81 @@ class MeshtasticMappers {
     RangeTestConfigDto rt,
   ) {
     final c = module.ModuleConfig_RangeTestConfig();
-    if (rt.enabled != null) c.enabled = rt.enabled!;
-    if (rt.sender != null) c.sender = rt.sender!;
-    if (rt.save != null) c.save = rt.save!;
-    if (rt.clearOnReboot != null) c.clearOnReboot = rt.clearOnReboot!;
+    if (rt.enabled != null) {
+      c.enabled = rt.enabled!;
+    }
+    if (rt.sender != null) {
+      c.sender = rt.sender!;
+    }
+    if (rt.save != null) {
+      c.save = rt.save!;
+    }
+    if (rt.clearOnReboot != null) {
+      c.clearOnReboot = rt.clearOnReboot!;
+    }
     return c;
   }
 
   static module.ModuleConfig_ExternalNotificationConfig
   _toExternalNotificationConfig(ExternalNotificationConfigDto en) {
     final c = module.ModuleConfig_ExternalNotificationConfig();
-    if (en.enabled != null) c.enabled = en.enabled!;
-    if (en.outputMs != null) c.outputMs = en.outputMs!;
-    if (en.output != null) c.output = en.output!;
-    if (en.active != null) c.active = en.active!;
-    if (en.alertMessage != null) c.alertMessage = en.alertMessage!;
-    if (en.alertBell != null) c.alertBell = en.alertBell!;
-    if (en.usePwm != null) c.usePwm = en.usePwm!;
-    if (en.outputVibra != null) c.outputVibra = en.outputVibra!;
-    if (en.outputBuzzer != null) c.outputBuzzer = en.outputBuzzer!;
-    if (en.alertMessageVibra != null)
+    if (en.enabled != null) {
+      c.enabled = en.enabled!;
+    }
+    if (en.outputMs != null) {
+      c.outputMs = en.outputMs!;
+    }
+    if (en.output != null) {
+      c.output = en.output!;
+    }
+    if (en.active != null) {
+      c.active = en.active!;
+    }
+    if (en.alertMessage != null) {
+      c.alertMessage = en.alertMessage!;
+    }
+    if (en.alertBell != null) {
+      c.alertBell = en.alertBell!;
+    }
+    if (en.usePwm != null) {
+      c.usePwm = en.usePwm!;
+    }
+    if (en.outputVibra != null) {
+      c.outputVibra = en.outputVibra!;
+    }
+    if (en.outputBuzzer != null) {
+      c.outputBuzzer = en.outputBuzzer!;
+    }
+    if (en.alertMessageVibra != null) {
       c.alertMessageVibra = en.alertMessageVibra!;
-    if (en.alertMessageBuzzer != null)
+    }
+    if (en.alertMessageBuzzer != null) {
       c.alertMessageBuzzer = en.alertMessageBuzzer!;
-    if (en.alertBellVibra != null) c.alertBellVibra = en.alertBellVibra!;
-    if (en.alertBellBuzzer != null) c.alertBellBuzzer = en.alertBellBuzzer!;
-    if (en.nagTimeout != null) c.nagTimeout = en.nagTimeout!;
-    if (en.useI2sAsBuzzer != null) c.useI2sAsBuzzer = en.useI2sAsBuzzer!;
+    }
+    if (en.alertBellVibra != null) {
+      c.alertBellVibra = en.alertBellVibra!;
+    }
+    if (en.alertBellBuzzer != null) {
+      c.alertBellBuzzer = en.alertBellBuzzer!;
+    }
+    if (en.nagTimeout != null) {
+      c.nagTimeout = en.nagTimeout!;
+    }
+    if (en.useI2sAsBuzzer != null) {
+      c.useI2sAsBuzzer = en.useI2sAsBuzzer!;
+    }
     return c;
   }
 
   static module.ModuleConfig_AudioConfig _toAudioConfig(AudioConfigDto a) {
     final c = module.ModuleConfig_AudioConfig();
-    if (a.codec2Enabled != null) c.codec2Enabled = a.codec2Enabled!;
-    if (a.pttPin != null) c.pttPin = a.pttPin!;
-    if (a.bitrate != null)
+    if (a.codec2Enabled != null) {
+      c.codec2Enabled = a.codec2Enabled!;
+    }
+    if (a.pttPin != null) {
+      c.pttPin = a.pttPin!;
+    }
+    if (a.bitrate != null) {
       c.bitrate =
           module.ModuleConfig_AudioConfig_Audio_Baud.valueOf(
             module.ModuleConfig_AudioConfig_Audio_Baud.values.indexWhere(
@@ -1313,10 +1571,19 @@ class MeshtasticMappers {
             ),
           ) ??
           module.ModuleConfig_AudioConfig_Audio_Baud.CODEC2_3200;
-    if (a.i2sWs != null) c.i2sWs = a.i2sWs!;
-    if (a.i2sSd != null) c.i2sSd = a.i2sSd!;
-    if (a.i2sDin != null) c.i2sDin = a.i2sDin!;
-    if (a.i2sSck != null) c.i2sSck = a.i2sSck!;
+    }
+    if (a.i2sWs != null) {
+      c.i2sWs = a.i2sWs!;
+    }
+    if (a.i2sSd != null) {
+      c.i2sSd = a.i2sSd!;
+    }
+    if (a.i2sDin != null) {
+      c.i2sDin = a.i2sDin!;
+    }
+    if (a.i2sSck != null) {
+      c.i2sSck = a.i2sSck!;
+    }
     return c;
   }
 
@@ -1324,9 +1591,15 @@ class MeshtasticMappers {
     NeighborInfoConfigDto ni,
   ) {
     final c = module.ModuleConfig_NeighborInfoConfig();
-    if (ni.enabled != null) c.enabled = ni.enabled!;
-    if (ni.updateInterval != null) c.updateInterval = ni.updateInterval!;
-    if (ni.transmitOverLora != null) c.transmitOverLora = ni.transmitOverLora!;
+    if (ni.enabled != null) {
+      c.enabled = ni.enabled!;
+    }
+    if (ni.updateInterval != null) {
+      c.updateInterval = ni.updateInterval!;
+    }
+    if (ni.transmitOverLora != null) {
+      c.transmitOverLora = ni.transmitOverLora!;
+    }
     return c;
   }
 
@@ -1334,16 +1607,23 @@ class MeshtasticMappers {
     RemoteHardwareConfigDto rh,
   ) {
     final c = module.ModuleConfig_RemoteHardwareConfig();
-    if (rh.enabled != null) c.enabled = rh.enabled!;
-    if (rh.allowUndefinedPinAccess != null)
+    if (rh.enabled != null) {
+      c.enabled = rh.enabled!;
+    }
+    if (rh.allowUndefinedPinAccess != null) {
       c.allowUndefinedPinAccess = rh.allowUndefinedPinAccess!;
+    }
     if (rh.availablePins != null) {
       c.availablePins.addAll(
         rh.availablePins!.map((p) {
           final pin = module.RemoteHardwarePin();
-          if (p.gpioPin != null) pin.gpioPin = p.gpioPin!;
-          if (p.name != null) pin.name = p.name!;
-          if (p.type != null)
+          if (p.gpioPin != null) {
+            pin.gpioPin = p.gpioPin!;
+          }
+          if (p.name != null) {
+            pin.name = p.name!;
+          }
+          if (p.type != null) {
             pin.type =
                 module.RemoteHardwarePinType.valueOf(
                   module.RemoteHardwarePinType.values.indexWhere(
@@ -1351,6 +1631,7 @@ class MeshtasticMappers {
                   ),
                 ) ??
                 module.RemoteHardwarePinType.UNKNOWN;
+          }
           return pin;
         }),
       );
@@ -1362,11 +1643,18 @@ class MeshtasticMappers {
     PaxcounterConfigDto px,
   ) {
     final c = module.ModuleConfig_PaxcounterConfig();
-    if (px.enabled != null) c.enabled = px.enabled!;
-    if (px.paxcounterUpdateInterval != null)
+    if (px.enabled != null) {
+      c.enabled = px.enabled!;
+    }
+    if (px.paxcounterUpdateInterval != null) {
       c.paxcounterUpdateInterval = px.paxcounterUpdateInterval!;
-    if (px.wifiThreshold != null) c.wifiThreshold = px.wifiThreshold!;
-    if (px.bleThreshold != null) c.bleThreshold = px.bleThreshold!;
+    }
+    if (px.wifiThreshold != null) {
+      c.wifiThreshold = px.wifiThreshold!;
+    }
+    if (px.bleThreshold != null) {
+      c.bleThreshold = px.bleThreshold!;
+    }
     return c;
   }
 
@@ -1374,36 +1662,54 @@ class MeshtasticMappers {
     CannedMessageConfigDto cm,
   ) {
     final c = module.ModuleConfig_CannedMessageConfig();
-    if (cm.rotary1Enabled != null) c.rotary1Enabled = cm.rotary1Enabled!;
-    if (cm.inputbrokerPinA != null) c.inputbrokerPinA = cm.inputbrokerPinA!;
-    if (cm.inputbrokerPinB != null) c.inputbrokerPinB = cm.inputbrokerPinB!;
-    if (cm.inputbrokerPinPress != null)
+    if (cm.rotary1Enabled != null) {
+      c.rotary1Enabled = cm.rotary1Enabled!;
+    }
+    if (cm.inputbrokerPinA != null) {
+      c.inputbrokerPinA = cm.inputbrokerPinA!;
+    }
+    if (cm.inputbrokerPinB != null) {
+      c.inputbrokerPinB = cm.inputbrokerPinB!;
+    }
+    if (cm.inputbrokerPinPress != null) {
       c.inputbrokerPinPress = cm.inputbrokerPinPress!;
-    if (cm.inputbrokerEventCw != null)
+    }
+    if (cm.inputbrokerEventCw != null) {
       c.inputbrokerEventCw =
           module.ModuleConfig_CannedMessageConfig_InputEventChar.valueOf(
             module.ModuleConfig_CannedMessageConfig_InputEventChar.values
                 .indexWhere((e) => e.name == cm.inputbrokerEventCw),
           ) ??
           module.ModuleConfig_CannedMessageConfig_InputEventChar.NONE;
-    if (cm.inputbrokerEventCcw != null)
+    }
+    if (cm.inputbrokerEventCcw != null) {
       c.inputbrokerEventCcw =
           module.ModuleConfig_CannedMessageConfig_InputEventChar.valueOf(
             module.ModuleConfig_CannedMessageConfig_InputEventChar.values
                 .indexWhere((e) => e.name == cm.inputbrokerEventCcw),
           ) ??
           module.ModuleConfig_CannedMessageConfig_InputEventChar.NONE;
-    if (cm.inputbrokerEventPress != null)
+    }
+    if (cm.inputbrokerEventPress != null) {
       c.inputbrokerEventPress =
           module.ModuleConfig_CannedMessageConfig_InputEventChar.valueOf(
             module.ModuleConfig_CannedMessageConfig_InputEventChar.values
                 .indexWhere((e) => e.name == cm.inputbrokerEventPress),
           ) ??
           module.ModuleConfig_CannedMessageConfig_InputEventChar.NONE;
-    if (cm.updown1Enabled != null) c.updown1Enabled = cm.updown1Enabled!;
-    if (cm.enabled != null) c.enabled = cm.enabled!;
-    if (cm.allowInputSource != null) c.allowInputSource = cm.allowInputSource!;
-    if (cm.sendBell != null) c.sendBell = cm.sendBell!;
+    }
+    if (cm.updown1Enabled != null) {
+      c.updown1Enabled = cm.updown1Enabled!;
+    }
+    if (cm.enabled != null) {
+      c.enabled = cm.enabled!;
+    }
+    if (cm.allowInputSource != null) {
+      c.allowInputSource = cm.allowInputSource!;
+    }
+    if (cm.sendBell != null) {
+      c.sendBell = cm.sendBell!;
+    }
     return c;
   }
 
@@ -1411,11 +1717,21 @@ class MeshtasticMappers {
     AmbientLightingConfigDto al,
   ) {
     final c = module.ModuleConfig_AmbientLightingConfig();
-    if (al.ledState != null) c.ledState = al.ledState!;
-    if (al.current != null) c.current = al.current!;
-    if (al.red != null) c.red = al.red!;
-    if (al.green != null) c.green = al.green!;
-    if (al.blue != null) c.blue = al.blue!;
+    if (al.ledState != null) {
+      c.ledState = al.ledState!;
+    }
+    if (al.current != null) {
+      c.current = al.current!;
+    }
+    if (al.red != null) {
+      c.red = al.red!;
+    }
+    if (al.green != null) {
+      c.green = al.green!;
+    }
+    if (al.blue != null) {
+      c.blue = al.blue!;
+    }
     return c;
   }
 
@@ -1424,20 +1740,29 @@ class MeshtasticMappers {
   ) {
     final c = module.ModuleConfig_DetectionSensorConfig();
     if (ds.enabled != null) c.enabled = ds.enabled!;
-    if (ds.minimumBroadcastSecs != null)
+    if (ds.minimumBroadcastSecs != null) {
       c.minimumBroadcastSecs = ds.minimumBroadcastSecs!;
-    if (ds.stateBroadcastSecs != null)
+    }
+    if (ds.stateBroadcastSecs != null) {
       c.stateBroadcastSecs = ds.stateBroadcastSecs!;
-    if (ds.sendBell != null) c.sendBell = ds.sendBell!;
-    if (ds.name != null) c.name = ds.name!;
-    if (ds.monitorPin != null) c.monitorPin = ds.monitorPin!;
-    if (ds.detectionTriggerType != null)
+    }
+    if (ds.sendBell != null) {
+      c.sendBell = ds.sendBell!;
+    }
+    if (ds.name != null) {
+      c.name = ds.name!;
+    }
+    if (ds.monitorPin != null) {
+      c.monitorPin = ds.monitorPin!;
+    }
+    if (ds.detectionTriggerType != null) {
       c.detectionTriggerType =
           module.ModuleConfig_DetectionSensorConfig_TriggerType.valueOf(
             module.ModuleConfig_DetectionSensorConfig_TriggerType.values
                 .indexWhere((e) => e.name == ds.detectionTriggerType),
           ) ??
           module.ModuleConfig_DetectionSensorConfig_TriggerType.LOGIC_LOW;
+    }
     if (ds.usePullup != null) c.usePullup = ds.usePullup!;
     return c;
   }
@@ -1448,20 +1773,25 @@ class MeshtasticMappers {
     final c = module.ModuleConfig_DtnOverlayConfig();
     if (d.enabled != null) c.enabled = d.enabled!;
     if (d.ttlMinutes != null) c.ttlMinutes = d.ttlMinutes!;
-    if (d.initialDelayBaseMs != null)
+    if (d.initialDelayBaseMs != null) {
       c.initialDelayBaseMs = d.initialDelayBaseMs!;
+    }
     if (d.retryBackoffMs != null) c.retryBackoffMs = d.retryBackoffMs!;
     if (d.maxTries != null) c.maxTries = d.maxTries!;
-    if (d.lateFallbackEnabled != null)
+    if (d.lateFallbackEnabled != null) {
       c.lateFallbackEnabled = d.lateFallbackEnabled!;
-    if (d.fallbackTailPercent != null)
+    }
+    if (d.fallbackTailPercent != null) {
       c.fallbackTailPercent = d.fallbackTailPercent!;
+    }
     if (d.milestonesEnabled != null) c.milestonesEnabled = d.milestonesEnabled!;
-    if (d.perDestMinSpacingMs != null)
+    if (d.perDestMinSpacingMs != null) {
       c.perDestMinSpacingMs = d.perDestMinSpacingMs!;
+    }
     if (d.maxActiveDm != null) c.maxActiveDm = d.maxActiveDm!;
-    if (d.probeFwplusNearDeadline != null)
+    if (d.probeFwplusNearDeadline != null) {
       c.probeFwplusNearDeadline = d.probeFwplusNearDeadline!;
+    }
     return c;
   }
 
@@ -1494,63 +1824,91 @@ class MeshtasticMappers {
   ) {
     final c = module.ModuleConfig_NodeModAdminConfig();
     if (n.snifferEnabled != null) c.snifferEnabled = n.snifferEnabled!;
-    if (n.doNotSendPrvOverMqtt != null)
+    if (n.doNotSendPrvOverMqtt != null) {
       c.doNotSendPrvOverMqtt = n.doNotSendPrvOverMqtt!;
-    if (n.localStatsOverMeshEnabled != null)
+    }
+    if (n.localStatsOverMeshEnabled != null) {
       c.localStatsOverMeshEnabled = n.localStatsOverMeshEnabled!;
-    if (n.localStatsExtendedOverMeshEnabled != null)
+    }
+    if (n.localStatsExtendedOverMeshEnabled != null) {
       c.localStatsExtendedOverMeshEnabled =
           n.localStatsExtendedOverMeshEnabled!;
+    }
     if (n.idlegameEnabled != null) c.idlegameEnabled = n.idlegameEnabled!;
     if (n.additionalChutil != null) c.additionalChutil = n.additionalChutil!;
     if (n.additionalTxutil != null) c.additionalTxutil = n.additionalTxutil!;
-    if (n.additionalPoliteChannelPercent != null)
+    if (n.additionalPoliteChannelPercent != null) {
       c.additionalPoliteChannelPercent = n.additionalPoliteChannelPercent!;
-    if (n.additionalPoliteDutyCyclePercent != null)
+    }
+    if (n.additionalPoliteDutyCyclePercent != null) {
       c.additionalPoliteDutyCyclePercent = n.additionalPoliteDutyCyclePercent!;
-    if (n.currentTxUtilLimit != null)
+    }
+    if (n.currentTxUtilLimit != null) {
       c.currentTxUtilLimit = n.currentTxUtilLimit!;
-    if (n.currentMaxChannelUtilPercent != null)
+    }
+    if (n.currentMaxChannelUtilPercent != null) {
       c.currentMaxChannelUtilPercent = n.currentMaxChannelUtilPercent!;
-    if (n.currentPoliteChannelUtilPercent != null)
+    }
+    if (n.currentPoliteChannelUtilPercent != null) {
       c.currentPoliteChannelUtilPercent = n.currentPoliteChannelUtilPercent!;
-    if (n.currentPoliteDutyCyclePercent != null)
+    }
+    if (n.currentPoliteDutyCyclePercent != null) {
       c.currentPoliteDutyCyclePercent = n.currentPoliteDutyCyclePercent!;
-    if (n.autoResponderEnabled != null)
+    }
+    if (n.autoResponderEnabled != null) {
       c.autoResponderEnabled = n.autoResponderEnabled!;
-    if (n.autoResponderText != null) c.autoResponderText = n.autoResponderText!;
-    if (n.autoRedirectMessages != null)
+    }
+    if (n.autoResponderText != null) {
+      c.autoResponderText = n.autoResponderText!;
+    }
+    if (n.autoRedirectMessages != null) {
       c.autoRedirectMessages = n.autoRedirectMessages!;
-    if (n.autoRedirectTargetNodeId != null)
+    }
+    if (n.autoRedirectTargetNodeId != null) {
       c.autoRedirectTargetNodeId = n.autoRedirectTargetNodeId!;
-    if (n.telemetryLimiterEnabled != null)
+    }
+    if (n.telemetryLimiterEnabled != null) {
       c.telemetryLimiterEnabled = n.telemetryLimiterEnabled!;
-    if (n.telemetryLimiterPacketsPerMinute != null)
+    }
+    if (n.telemetryLimiterPacketsPerMinute != null) {
       c.telemetryLimiterPacketsPerMinute = n.telemetryLimiterPacketsPerMinute!;
-    if (n.telemetryLimiterAutoChanutilEnabled != null)
+    }
+    if (n.telemetryLimiterAutoChanutilEnabled != null) {
       c.telemetryLimiterAutoChanutilEnabled =
           n.telemetryLimiterAutoChanutilEnabled!;
-    if (n.telemetryLimiterAutoChanutilThreshold != null)
+    }
+    if (n.telemetryLimiterAutoChanutilThreshold != null) {
       c.telemetryLimiterAutoChanutilThreshold =
           n.telemetryLimiterAutoChanutilThreshold!;
-    if (n.positionLimiterEnabled != null)
+    }
+    if (n.positionLimiterEnabled != null) {
       c.positionLimiterEnabled = n.positionLimiterEnabled!;
-    if (n.positionLimiterTimeMinutesThreshold != null)
+    }
+    if (n.positionLimiterTimeMinutesThreshold != null) {
       c.positionLimiterTimeMinutesThreshold =
           n.positionLimiterTimeMinutesThreshold!;
-    if (n.opportunisticFloodingEnabled != null)
+    }
+    if (n.opportunisticFloodingEnabled != null) {
       c.opportunisticFloodingEnabled = n.opportunisticFloodingEnabled!;
-    if (n.opportunisticBaseDelayMs != null)
+    }
+    if (n.opportunisticBaseDelayMs != null) {
       c.opportunisticBaseDelayMs = n.opportunisticBaseDelayMs!;
-    if (n.opportunisticHopDelayMs != null)
+    }
+    if (n.opportunisticHopDelayMs != null) {
       c.opportunisticHopDelayMs = n.opportunisticHopDelayMs!;
-    if (n.opportunisticSnrGainMs != null)
+    }
+    if (n.opportunisticSnrGainMs != null) {
       c.opportunisticSnrGainMs = n.opportunisticSnrGainMs!;
-    if (n.opportunisticJitterMs != null)
+    }
+    if (n.opportunisticJitterMs != null) {
       c.opportunisticJitterMs = n.opportunisticJitterMs!;
-    if (n.opportunisticCancelOnFirstHear != null)
+    }
+    if (n.opportunisticCancelOnFirstHear != null) {
       c.opportunisticCancelOnFirstHear = n.opportunisticCancelOnFirstHear!;
-    if (n.opportunisticAuto != null) c.opportunisticAuto = n.opportunisticAuto!;
+    }
+    if (n.opportunisticAuto != null) {
+      c.opportunisticAuto = n.opportunisticAuto!;
+    }
     return c;
   }
 
@@ -1670,16 +2028,16 @@ class MeshtasticMappers {
       case port.PortNum.ADMIN_APP:
         try {
           final a = admin.AdminMessage.fromBuffer(bytes);
-          print(
+          debugPrint(
             '[MeshtasticMappers] Received ADMIN_APP message. Variant: ${a.whichPayloadVariant().name}',
           );
-          print(
+          debugPrint(
             '[MeshtasticMappers]   hasSessionPasskey: ${a.hasSessionPasskey()}',
           );
-          print(
+          debugPrint(
             '[MeshtasticMappers]   hasGetConfigResponse: ${a.hasGetConfigResponse()}',
           );
-          print(
+          debugPrint(
             '[MeshtasticMappers]   hasGetModuleConfigResponse: ${a.hasGetModuleConfigResponse()}',
           );
           return AdminPayloadDto(
@@ -1704,7 +2062,7 @@ class MeshtasticMappers {
                 : null,
           );
         } catch (e) {
-          print('[MeshtasticMappers] Error parsing ADMIN_APP: $e');
+          debugPrint('[MeshtasticMappers] Error parsing ADMIN_APP: $e');
           return RawPayloadDto(portInternal, bytes);
         }
       case port.PortNum.WAYPOINT_APP:
@@ -1897,7 +2255,9 @@ class MeshtasticMappers {
     if (s.channelNum != null) cs.channelNum = s.channelNum!;
     if (s.psk != null) cs.psk = s.psk!;
     if (s.name != null) cs.name = s.name!;
-    if (s.id != null) cs.id = s.id!;
+    if (s.id != null) {
+      cs.id = s.id!;
+    }
     if (s.uplinkEnabled != null) cs.uplinkEnabled = s.uplinkEnabled!;
     if (s.downlinkEnabled != null) cs.downlinkEnabled = s.downlinkEnabled!;
     if (s.moduleSettings != null) {
@@ -1908,8 +2268,9 @@ class MeshtasticMappers {
 
   static channel.ModuleSettings toModuleSettings(ModuleSettingsDto m) {
     final ms = channel.ModuleSettings();
-    if (m.positionPrecision != null)
+    if (m.positionPrecision != null) {
       ms.positionPrecision = m.positionPrecision!;
+    }
     return ms;
   }
 

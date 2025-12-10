@@ -23,7 +23,7 @@ class AdaptiveChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PlatformWidget(
-      material: (_, __) {
+      material: (context, platform) {
         Widget chip;
         if (onSelected != null) {
           chip = FilterChip(
@@ -48,7 +48,7 @@ class AdaptiveChip extends StatelessWidget {
         }
         return Material(type: MaterialType.transparency, child: chip);
       },
-      cupertino: (_, __) => _buildCupertinoChip(context),
+      cupertino: (context, platform) => _buildCupertinoChip(context),
     );
   }
 

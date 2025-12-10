@@ -1,4 +1,4 @@
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'dart:math';
 import 'dart:convert';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -8,6 +8,8 @@ import 'device_status_store.dart';
 
 import 'device_state_service.dart';
 import 'chatting_device.dart';
+import '../meshtastic/model/device_type.dart';
+import 'meshcore_ble_client.dart';
 
 /// Implementation of [ChattingDevice] for Bluetooth LE devices.
 class BleMeshtasticDevice implements ChattingDevice {
@@ -36,6 +38,17 @@ class BleMeshtasticDevice implements ChattingDevice {
   Future<int> sendMessage(String text, int? toId, {int? channelIndex}) async {
     final client = await DeviceStatusStore.instance.connect(_device);
 
+    if (client.deviceType == DeviceType.meshcore &&
+        client is MeshCoreBleClient) {
+      // MeshCore uses binary protocol
+      await client.sendMessage(
+        text,
+        destinationId: toId ?? 0xFFFFFFFF,
+        channelIndex: channelIndex ?? 0,
+      );
+      return _generatePacketId();
+    }
+
     // Construct MeshPacket
     final packet = mesh.MeshPacket();
     // 0xFFFFFFFF is broadcast
@@ -47,7 +60,7 @@ class BleMeshtasticDevice implements ChattingDevice {
     } else if (toId != null) {
       packet.to = toId;
     } else {
-      print(
+      debugPrint(
         'BleMeshtasticDevice: sendMessage: toId is null and channelIndex is null. Not sending message.',
       );
       return 0;
@@ -75,7 +88,7 @@ class BleMeshtasticDevice implements ChattingDevice {
     // The device firmware will populate this with its own node ID.
     // Setting it manually can cause the device to reject the packet as a duplicate/loopback.
 
-    print(packet);
+    debugPrint(packet.toString());
 
     await client.sendMeshPacket(packet);
     return packet.id;
@@ -107,7 +120,7 @@ class BleMeshtasticDevice implements ChattingDevice {
     // Generate unique packet ID
     packet.id = _generatePacketId();
 
-    print('Sending traceroute packet to node $targetNodeId: $packet');
+    debugPrint('Sending traceroute packet to node $targetNodeId: $packet');
 
     await client.sendMeshPacket(packet);
     return packet.id;

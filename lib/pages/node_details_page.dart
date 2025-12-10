@@ -333,8 +333,9 @@ class _NodeDetailsPageState extends State<NodeDetailsPage> {
     final name = _firstOrNull(n.tags['sourceNodeName']);
     final id = _firstOrNull(n.tags['sourceDeviceId']);
     final short = id != null ? _shortId(id) : null;
-    if (name != null && short != null)
+    if (name != null && short != null) {
       return AppLocalizations.of(context).viaNameId(name, short);
+    }
     if (name != null) return AppLocalizations.of(context).viaName(name);
     if (short != null) return AppLocalizations.of(context).viaId(short);
     return '—';
@@ -355,8 +356,9 @@ class _NodeDetailsPageState extends State<NodeDetailsPage> {
   String _formatLastHeard(int secondsAgo) {
     const twoDays = 2 * 24 * 60 * 60;
     if (secondsAgo < twoDays) {
-      if (secondsAgo < 60)
+      if (secondsAgo < 60) {
         return AppLocalizations.of(context).agoSeconds(secondsAgo);
+      }
       final minutes = secondsAgo ~/ 60;
       if (minutes < 60) return AppLocalizations.of(context).agoMinutes(minutes);
       final hours = minutes ~/ 60;

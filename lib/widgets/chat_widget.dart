@@ -101,7 +101,7 @@ class _ChatWidgetState extends State<ChatWidget> {
             _scrollToBottom();
           },
           onError: (e) {
-            print('[ChatWidget] Error in messages stream: $e');
+            debugPrint('[ChatWidget] Error in messages stream: $e');
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(

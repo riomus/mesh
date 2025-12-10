@@ -20,13 +20,13 @@ class AdaptivePopupMenu<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PlatformWidget(
-      material: (_, __) => PopupMenuButton<T>(
+      material: (context, platform) => PopupMenuButton<T>(
         icon: icon,
         tooltip: tooltip,
         itemBuilder: (context) => itemBuilder,
         onSelected: onSelected,
       ),
-      cupertino: (_, __) => _buildCupertinoActionSheet(context),
+      cupertino: (context, platform) => _buildCupertinoActionSheet(context),
     );
   }
 
@@ -44,7 +44,7 @@ class AdaptivePopupMenu<T> extends StatelessWidget {
                     onPressed: () {
                       Navigator.pop(context);
                       if (item.value != null) {
-                        onSelected(item.value!);
+                        onSelected(item.value as T);
                       }
                     },
                     child: item.child ?? const SizedBox.shrink(),

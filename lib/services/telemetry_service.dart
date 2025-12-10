@@ -78,7 +78,7 @@ class TelemetryService {
           }
         }
       }
-    } catch (e, s) {
+    } catch (e) {
       LoggingService.instance.push(
         tags: {'service': 'TelemetryService'},
         level: 'error',

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:mesh/widgets/mesh_app_bar.dart';
-import 'package:mesh/services/device_status_store.dart';
+
 import 'package:mesh/l10n/app_localizations.dart';
 
 // Mock BluetoothDevice since we can't instantiate it easily with all properties
@@ -20,7 +20,6 @@ void main() {
     tester,
   ) async {
     // 1. Setup
-    final device = BluetoothDevice(remoteId: const DeviceIdentifier('test_id'));
 
     // We need to trigger the connecting state in DeviceStatusStore
     // Since we can't easily mock the internal client, we'll start the connection

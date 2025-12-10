@@ -25,7 +25,7 @@ void main() async {
       final parts = payload.split('_');
       if (parts.length >= 3) {
         final deviceId = parts[1];
-        print('Notification tapped: $payload, deviceId: $deviceId');
+        debugPrint('Notification tapped: $payload, deviceId: $deviceId');
 
         navigatorKey.currentState?.push(
           MaterialPageRoute(
@@ -58,5 +58,5 @@ void main() async {
 // Placeholder for _loadSettings function
 void _loadSettings() {
   // Implement your settings loading logic here
-  print('Loading settings...');
+  debugPrint('Loading settings...');
 }

@@ -895,7 +895,7 @@ class DisplayConfigDto {
 class LoRaConfigDto {
   final bool? usePreset;
   final String? modemPreset; // enum name
-  final int? bandwidth;
+  final double? bandwidth;
   final int? spreadFactor;
   final int? codingRate;
   final double? frequencyOffset;
@@ -936,7 +936,7 @@ class LoRaConfigDto {
   LoRaConfigDto copyWith({
     bool? usePreset,
     String? modemPreset,
-    int? bandwidth,
+    double? bandwidth,
     int? spreadFactor,
     int? codingRate,
     double? frequencyOffset,

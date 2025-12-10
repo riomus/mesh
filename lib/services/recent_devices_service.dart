@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart' show compute;
+import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -89,12 +89,14 @@ class RecentDevicesService {
           _controller.add(_devices);
         } catch (e) {
           // Log corruption and clear corrupted data
-          print('[RecentDevicesService] Failed to parse recent devices: $e');
+          debugPrint(
+            '[RecentDevicesService] Failed to parse recent devices: $e',
+          );
           await prefs.remove(_prefsKey);
         }
       }
     } catch (e) {
-      print('[RecentDevicesService] Error loading recent devices: $e');
+      debugPrint('[RecentDevicesService] Error loading recent devices: $e');
     }
   }
 
@@ -142,6 +144,12 @@ class RecentDevicesService {
     );
 
     _sort();
+    _controller.add(_devices);
+    await _save();
+  }
+
+  Future<void> remove(String id) async {
+    _devices.removeWhere((d) => d.id == id);
     _controller.add(_devices);
     await _save();
   }

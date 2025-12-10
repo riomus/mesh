@@ -57,11 +57,6 @@ class _NodesListWidgetState extends State<NodesListWidget>
       (list == null || list.isEmpty) ? null : list.first;
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   void dispose() {
     _searchCtrl.dispose();
     _searchFocus.dispose();
@@ -161,7 +156,7 @@ class _NodesListWidgetState extends State<NodesListWidget>
                     tileColor: isHop0
                         ? Theme.of(
                             context,
-                          ).colorScheme.primaryContainer.withOpacity(0.2)
+                          ).colorScheme.primaryContainer.withValues(alpha: 0.2)
                         : null,
                     leading: CircleAvatar(
                       child: Text(safeInitial(n.displayName)),
@@ -200,20 +195,23 @@ class _NodesListWidgetState extends State<NodesListWidget>
 
   Widget _buildSubtitle(MeshNodeView n) {
     final parts = <String>[];
-    if (n.user?.shortName != null && n.user!.shortName!.isNotEmpty)
+    if (n.user?.shortName != null && n.user!.shortName!.isNotEmpty) {
       parts.add('@${n.user!.shortName!}');
+    }
     if (n.num != null) parts.add('0x${n.num!.toRadixString(16)}');
-    if (n.hopsAway != null)
+    if (n.hopsAway != null) {
       parts.add('${n.hopsAway} ${AppLocalizations.of(context).hops}');
-    if (n.position?.latitudeI != null && n.position?.longitudeI != null)
+    }
+    if (n.position?.latitudeI != null && n.position?.longitudeI != null) {
       parts.add('📍');
+    }
     if (n.deviceMetrics?.batteryLevel != null) {
       final lvl = n.deviceMetrics!.batteryLevel!;
       if (lvl == 101) {
         // 101 indicates charging state for Meshtastic devices
         parts.add('🔌 ${AppLocalizations.of(context).charging}');
       } else {
-        parts.add('🔋${lvl}%');
+        parts.add('🔋$lvl%');
       }
     }
     if (n.lastHeard != null) parts.add('⏱️ ${_formatLastHeard(n.lastHeard!)}');
@@ -632,8 +630,9 @@ class _NodesListWidgetState extends State<NodesListWidget>
   double? _distanceMeters(MeshNodeView n, NodesState state) {
     final ref = _getEffectiveDistanceReference(state);
     final p = n.position;
-    if (ref == null || p?.latitudeI == null || p?.longitudeI == null)
+    if (ref == null || p?.latitudeI == null || p?.longitudeI == null) {
       return null;
+    }
     final lat1 = ref.$1 * math.pi / 180.0;
     final lon1 = ref.$2 * math.pi / 180.0;
     final lat2 = (p!.latitudeI! / 1e7) * math.pi / 180.0;
@@ -673,8 +672,9 @@ class _NodesListWidgetState extends State<NodesListWidget>
   String _formatLastHeard(int secondsAgo) {
     const twoDays = 2 * 24 * 60 * 60; // 172800
     if (secondsAgo < twoDays) {
-      if (secondsAgo < 60)
+      if (secondsAgo < 60) {
         return AppLocalizations.of(context).agoSeconds(secondsAgo);
+      }
       final minutes = secondsAgo ~/ 60;
       if (minutes < 60) return AppLocalizations.of(context).agoMinutes(minutes);
       final hours = minutes ~/ 60;

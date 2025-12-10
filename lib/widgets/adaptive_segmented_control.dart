@@ -17,14 +17,14 @@ class AdaptiveSegmentedControl<T extends Object> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PlatformWidget(
-      material: (_, __) => SegmentedButton<T>(
+      material: (context, platform) => SegmentedButton<T>(
         segments: children.entries
             .map((e) => ButtonSegment<T>(value: e.key, label: e.value))
             .toList(),
         selected: {groupValue},
         onSelectionChanged: (s) => onValueChanged(s.first),
       ),
-      cupertino: (_, __) => CupertinoSlidingSegmentedControl<T>(
+      cupertino: (context, platform) => CupertinoSlidingSegmentedControl<T>(
         groupValue: groupValue,
         children: children,
         onValueChanged: (v) {

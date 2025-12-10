@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 
 import '../models/device_state.dart';
 import 'device_communication_event_service.dart';
@@ -107,7 +108,7 @@ class DeviceStateService {
             level: 'info',
             message: 'Updating ConfigEvent: $newConfig',
           );
-          print(
+          debugPrint(
             '[DeviceStateService] Received config update. Device: ${newConfig.device != null}, Position: ${newConfig.position != null}, Power: ${newConfig.power != null}',
           );
           // If we have existing config, merge with it; otherwise use the new config directly
@@ -182,7 +183,7 @@ class DeviceStateService {
           if (decoded.sessionPasskey != null) {
             state = state.copyWith(sessionPasskey: decoded.sessionPasskey);
             changed = true;
-            print(
+            debugPrint(
               '[DeviceStateService] Updated session passkey for $deviceId. Length: ${decoded.sessionPasskey!.length}, First 4 bytes: ${decoded.sessionPasskey!.take(4).toList()}',
             );
           }

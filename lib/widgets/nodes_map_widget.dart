@@ -66,7 +66,7 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
           }
         },
         onError: (e) {
-          print('[NodesMapWidget] Error in trace stream: $e');
+          debugPrint('[NodesMapWidget] Error in trace stream: $e');
         },
       );
     }
@@ -376,8 +376,9 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
   String _formatLastHeard(BuildContext context, int secondsAgo) {
     const twoDays = 2 * 24 * 60 * 60; // 172800
     if (secondsAgo < twoDays) {
-      if (secondsAgo < 60)
+      if (secondsAgo < 60) {
         return AppLocalizations.of(context).agoSeconds(secondsAgo);
+      }
       final minutes = secondsAgo ~/ 60;
       if (minutes < 60) return AppLocalizations.of(context).agoMinutes(minutes);
       final hours = minutes ~/ 60;
@@ -409,18 +410,17 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
     final missing = <MeshNodeView>[];
     for (final id in traceNodeIds) {
       if (_getPos(id) == null) {
-        var node = _getNodeView(id);
-        if (node == null) {
-          node = MeshNodeView(
-            num: id,
-            user: UserDto(
-              id: '!${id.toRadixString(16)}',
-              longName: 'Node 0x${id.toRadixString(16)}',
-              shortName: '0x${id.toRadixString(16)}',
-            ),
-            position: null,
-          );
-        }
+        var node =
+            _getNodeView(id) ??
+            MeshNodeView(
+              num: id,
+              user: UserDto(
+                id: '!${id.toRadixString(16)}',
+                longName: 'Node 0x${id.toRadixString(16)}',
+                shortName: '0x${id.toRadixString(16)}',
+              ),
+              position: null,
+            );
         missing.add(node);
       }
     }
@@ -471,18 +471,21 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
       return palette[key % palette.length];
     }
 
-    String _getNodeDebugLabel(int? nodeNum, int? sourceNodeId) {
+    String getNodeDebugLabel(int? nodeNum, int? sourceNodeId) {
       if (_activeTrace == null || nodeNum == null) return '';
-      if (nodeNum == _activeTrace!.targetNodeId)
+      if (nodeNum == _activeTrace!.targetNodeId) {
         return ' ${AppLocalizations.of(context).targetLabel}';
-      if (nodeNum == sourceNodeId)
+      }
+      if (nodeNum == sourceNodeId) {
         return ' ${AppLocalizations.of(context).sourceLabel}';
-      if (_activeTrace!.ackNodeIds.contains(nodeNum))
+      }
+      if (_activeTrace!.ackNodeIds.contains(nodeNum)) {
         return ' ${AppLocalizations.of(context).ackLabel}';
+      }
       return '';
     }
 
-    Widget _getNodeIcon(MeshNodeView node, int? sourceNodeId) {
+    Widget getNodeIcon(MeshNodeView node, int? sourceNodeId) {
       if (_activeTrace == null) {
         return Icon(Icons.location_pin, size: 36, color: colorFor(node));
       }
@@ -565,16 +568,19 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
           );
           parts.add(const SizedBox(height: 8));
           final hex = n.num?.toRadixString(16);
-          if (hex != null)
+          if (hex != null) {
             parts.add(Text(AppLocalizations.of(ctx).nodeIdHex(hex)));
-          if (n.user?.role != null)
+          }
+          if (n.user?.role != null) {
             parts.add(
               Text(
                 safeText('${AppLocalizations.of(ctx).role}: ${n.user!.role!}'),
               ),
             );
-          if (n.hopsAway != null)
+          }
+          if (n.hopsAway != null) {
             parts.add(Text('${AppLocalizations.of(ctx).hops}: ${n.hopsAway}'));
+          }
           if (n.deviceMetrics?.batteryLevel != null) {
             final lvl = n.deviceMetrics!.batteryLevel!;
             if (lvl == 101) {
@@ -584,15 +590,16 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
                 ),
               );
             } else {
-              parts.add(Text('${AppLocalizations.of(ctx).battery}: ${lvl}%'));
+              parts.add(Text('${AppLocalizations.of(ctx).battery}: $lvl%'));
             }
           }
-          if (n.lastHeard != null)
+          if (n.lastHeard != null) {
             parts.add(
               Text(
                 '${AppLocalizations.of(ctx).lastSeen}: ${_formatLastHeard(ctx, n.lastHeard!)}',
               ),
             );
+          }
           parts.add(
             Text(
               '${AppLocalizations.of(ctx).coordinates}: ${lat.toStringAsFixed(6)}, ${lon.toStringAsFixed(6)}',
@@ -676,10 +683,10 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
           height: 44,
           child: Tooltip(
             message:
-                '${safeText(p.$1.displayName)}${_getNodeDebugLabel(p.$1.num, sourceNodeId)}',
+                '${safeText(p.$1.displayName)}${getNodeDebugLabel(p.$1.num, sourceNodeId)}',
             child: InkWell(
               onTap: () => showNodeSheet(p.$1, p.$2, p.$3),
-              child: _getNodeIcon(p.$1, sourceNodeId),
+              child: getNodeIcon(p.$1, sourceNodeId),
             ),
           ),
         ),
@@ -821,9 +828,10 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
                   child: Align(
                     alignment: Alignment.topLeft,
                     child: Card(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainerHighest.withOpacity(0.9),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .surfaceContainerHighest
+                          .withValues(alpha: 0.9),
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: ConstrainedBox(
@@ -925,7 +933,7 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
                   message: AppLocalizations.of(context).traceTooltip,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.5),
+                      color: Colors.white.withValues(alpha: 0.5),
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.blue, width: 1),
                     ),
@@ -960,7 +968,7 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
                   message: AppLocalizations.of(context).traceTooltip,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.5),
+                      color: Colors.white.withValues(alpha: 0.5),
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.blue, width: 1),
                     ),
@@ -992,7 +1000,7 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
                 message: AppLocalizations.of(context).ackTooltip,
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.5),
+                    color: Colors.white.withValues(alpha: 0.5),
                     shape: BoxShape.circle,
                     border: Border.all(color: Colors.orange, width: 1),
                   ),
@@ -1043,10 +1051,10 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
       }
 
       final color = trace.status == TraceStatus.completed
-          ? Colors.green.withOpacity(0.7)
+          ? Colors.green.withValues(alpha: 0.7)
           : trace.status == TraceStatus.failed
-          ? Colors.red.withOpacity(0.7)
-          : Colors.orange.withOpacity(0.7);
+          ? Colors.red.withValues(alpha: 0.7)
+          : Colors.orange.withValues(alpha: 0.7);
 
       var currentPos = localPos;
 
@@ -1096,8 +1104,8 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
         final targetPos = _getPos(trace.targetNodeId);
         if (targetPos != null) {
           final dashColor = trace.status == TraceStatus.pending
-              ? Colors.orange.withOpacity(0.6)
-              : Colors.red.withOpacity(0.7);
+              ? Colors.orange.withValues(alpha: 0.6)
+              : Colors.red.withValues(alpha: 0.7);
 
           polylines.add(
             Polyline(
@@ -1134,8 +1142,8 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
                 latlng.LatLng(ackPos.$1, ackPos.$2),
               ],
               strokeWidth: 2.0,
-              color: Colors.green.withOpacity(
-                0.6,
+              color: Colors.green.withValues(
+                alpha: 0.6,
               ), // Green for ACKs as requested
               pattern: const StrokePattern.dotted(),
             ),

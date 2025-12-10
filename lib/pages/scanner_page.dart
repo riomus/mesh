@@ -43,6 +43,7 @@ class _ScannerPageState extends State<ScannerPage> {
   Timer? _debounce;
   bool _loraOnly = false; // ticker: show only LoRa devices by default
 
+  @override
   void initState() {
     super.initState();
     // Only refresh serial ports on non-web platforms
@@ -122,8 +123,9 @@ class _ScannerPageState extends State<ScannerPage> {
       requests.add(Permission.bluetooth);
     }
 
-    if (requests.isEmpty)
+    if (requests.isEmpty) {
       return; // Safety: do not invoke plugin with empty list
+    }
     await requests.request();
   }
 
@@ -351,11 +353,53 @@ class _ScannerPageState extends State<ScannerPage> {
                   itemCount: devices.length,
                   itemBuilder: (context, index) {
                     final r = devices[index];
-                    return DeviceTile(
-                      result: r,
-                      onToggleTheme: widget.onToggleTheme,
-                      themeMode: widget.themeMode,
-                      onOpenSettings: widget.onOpenSettings,
+                    final id = r.device.remoteId.str;
+                    final isRecent = RecentDevicesService
+                        .instance
+                        .currentDevices
+                        .any((d) => d.id == id);
+
+                    if (!isRecent) {
+                      return DeviceTile(
+                        result: r,
+                        onToggleTheme: widget.onToggleTheme,
+                        themeMode: widget.themeMode,
+                        onOpenSettings: widget.onOpenSettings,
+                      );
+                    }
+
+                    return Dismissible(
+                      key: Key('recent_device_$id'),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 20),
+                        color: Colors.red,
+                        child: const Icon(Icons.delete, color: Colors.white),
+                      ),
+                      onDismissed: (direction) async {
+                        await RecentDevicesService.instance.remove(id);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(t.deviceRemoved),
+                              duration: const Duration(seconds: 4),
+                              action: SnackBarAction(
+                                label: t.undo,
+                                onPressed: () {
+                                  RecentDevicesService.instance.add(r);
+                                },
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                      child: DeviceTile(
+                        result: r,
+                        onToggleTheme: widget.onToggleTheme,
+                        themeMode: widget.themeMode,
+                        onOpenSettings: widget.onOpenSettings,
+                      ),
                     );
                   },
                 ),
@@ -471,7 +515,7 @@ class _ScannerPageState extends State<ScannerPage> {
         }
       });
     } catch (e) {
-      print('Error listing serial ports: $e');
+      debugPrint('Error listing serial ports: $e');
     }
   }
 
@@ -506,7 +550,8 @@ class _ScannerPageState extends State<ScannerPage> {
                 Center(child: Text(t.noSerialPortsFound))
               else
                 DropdownButtonFormField<String>(
-                  value: _selectedPort,
+                  key: ValueKey(_selectedPort),
+                  initialValue: _selectedPort,
                   decoration: InputDecoration(
                     labelText: t.selectSerialPort,
                     border: const OutlineInputBorder(),

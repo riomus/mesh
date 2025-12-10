@@ -25,7 +25,7 @@ class AdaptiveListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PlatformWidget(
-      material: (_, __) => ListTile(
+      material: (context, platform) => ListTile(
         leading: leading,
         title: title,
         subtitle: subtitle,
@@ -34,7 +34,7 @@ class AdaptiveListTile extends StatelessWidget {
         dense: dense,
         tileColor: tileColor,
       ),
-      cupertino: (_, __) => Material(
+      cupertino: (context, platform) => Material(
         // CupertinoListTile doesn't support tileColor directly in the same way,
         // so we wrap in Material to allow some flexibility or use Container.
         // However, standard CupertinoListTile is preferred for look.

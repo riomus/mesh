@@ -17,9 +17,9 @@ class AdaptiveDropdown<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PlatformWidget(
-      material: (_, __) =>
+      material: (context, platform) =>
           DropdownButton<T>(value: value, items: items, onChanged: onChanged),
-      cupertino: (_, __) => _buildCupertinoPicker(context),
+      cupertino: (context, platform) => _buildCupertinoPicker(context),
     );
   }
 

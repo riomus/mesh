@@ -546,6 +546,13 @@
   "tracerouteMinIntervalDescription": "Minimalna liczba sekund między żądaniami traceroute do tego samego węzła. Firmware również wymusza limity częstotliwości, aby zapobiec przeciążeniu sieci.",
   "configTimeout": "Timeout Pobierania Konfiguracji",
   "configTimeoutDescription": "Maksymalny czas bez aktywności podczas pobierania konfiguracji urządzenia (w sekundach)",
+  "autoReconnect": "Automatyczne Ponowne Łączenie",
+  "autoReconnectDescription": "Automatycznie łącz ponownie gdy połączenie Bluetooth zostanie nieoczekiwanie utracone",
+  "autoReconnectEnabled": "Włącz Auto-Połączenie",
+  "maxReconnectAttempts": "Maks. Prób Połączenia",
+  "maxReconnectAttemptsDescription": "Maksymalna liczba prób ponownego połączenia (1-10)",
+  "reconnectBaseDelay": "Bazowe Opóźnienie Połączenia",
+  "reconnectBaseDelayDescription": "Bazowe opóźnienie dla wykładniczego backoff w sekundach (backoff: 1s, 2s, 4s, 8s, 16s...)",
   "nodesWithoutLocation": "Węzły bez lokalizacji",
   "targetNodeNoLocation": "Węzeł docelowy {id} nie ma danych lokalizacyjnych. Linia śledzenia nie może zostać narysowana.",
   "startLocal": "Start (Lokalny)",
@@ -1023,5 +1030,7 @@
   "smartBroadcastMinDistanceLabel": "Min. Dystans Smart Rozgłaszania",
   "smartBroadcastMinIntervalLabel": "Min. Interwał Smart Rozgłaszania (sekundy)",
   "gpsEnableGpioLabel": "GPIO Włączenia GPS",
-  "gpsModeLabel": "Tryb GPS"
+  "gpsModeLabel": "Tryb GPS",
+  "deviceRemoved": "Urządzenie usunięte",
+  "undo": "Cofnij"
 }

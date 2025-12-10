@@ -4,7 +4,6 @@ import 'package:mesh/services/device_communication_event_service.dart';
 import 'package:mesh/meshtastic/model/meshtastic_event.dart';
 import 'package:mesh/meshtastic/model/meshtastic_models.dart';
 import 'package:mesh/models/device_state.dart';
-import 'dart:async';
 
 void main() {
   test('DeviceStateService streamWithCurrent emits initial state', () async {
