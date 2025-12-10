@@ -168,7 +168,22 @@ class RoutingPayloadDto extends DecodedPayloadDto {
 
 class AdminPayloadDto extends DecodedPayloadDto {
   final String? variant;
-  const AdminPayloadDto({this.variant});
+  final Uint8List? sessionPasskey;
+  final ConfigDto? config;
+  final ModuleConfigDto? moduleConfig;
+  final ChannelDto? channel;
+  final UserDto? owner;
+  final DeviceUiConfigDto? deviceUiConfig;
+
+  const AdminPayloadDto({
+    this.variant,
+    this.sessionPasskey,
+    this.config,
+    this.moduleConfig,
+    this.channel,
+    this.owner,
+    this.deviceUiConfig,
+  });
 }
 
 class RawPayloadDto extends DecodedPayloadDto {
@@ -601,6 +616,38 @@ class DeviceConfigDto {
     this.ledHeartbeatDisabled,
     this.buzzerMode,
   });
+
+  DeviceConfigDto copyWith({
+    String? role,
+    bool? serialEnabled,
+    int? buttonGpio,
+    int? buzzerGpio,
+    String? rebroadcastMode,
+    int? nodeInfoBroadcastSecs,
+    bool? doubleTapAsButtonPress,
+    bool? isManaged,
+    bool? disableTripleClick,
+    String? tzdef,
+    bool? ledHeartbeatDisabled,
+    String? buzzerMode,
+  }) {
+    return DeviceConfigDto(
+      role: role ?? this.role,
+      serialEnabled: serialEnabled ?? this.serialEnabled,
+      buttonGpio: buttonGpio ?? this.buttonGpio,
+      buzzerGpio: buzzerGpio ?? this.buzzerGpio,
+      rebroadcastMode: rebroadcastMode ?? this.rebroadcastMode,
+      nodeInfoBroadcastSecs:
+          nodeInfoBroadcastSecs ?? this.nodeInfoBroadcastSecs,
+      doubleTapAsButtonPress:
+          doubleTapAsButtonPress ?? this.doubleTapAsButtonPress,
+      isManaged: isManaged ?? this.isManaged,
+      disableTripleClick: disableTripleClick ?? this.disableTripleClick,
+      tzdef: tzdef ?? this.tzdef,
+      ledHeartbeatDisabled: ledHeartbeatDisabled ?? this.ledHeartbeatDisabled,
+      buzzerMode: buzzerMode ?? this.buzzerMode,
+    );
+  }
 }
 
 class PositionConfigDto {
@@ -633,6 +680,43 @@ class PositionConfigDto {
     this.gpsEnGpio,
     this.gpsMode,
   });
+
+  PositionConfigDto copyWith({
+    int? positionBroadcastSecs,
+    bool? positionBroadcastSmartEnabled,
+    bool? fixedPosition,
+    bool? gpsEnabled,
+    int? gpsUpdateInterval,
+    int? gpsAttemptTime,
+    int? positionFlags,
+    int? rxGpio,
+    int? txGpio,
+    int? broadcastSmartMinimumDistance,
+    int? broadcastSmartMinimumIntervalSecs,
+    int? gpsEnGpio,
+    String? gpsMode,
+  }) {
+    return PositionConfigDto(
+      positionBroadcastSecs:
+          positionBroadcastSecs ?? this.positionBroadcastSecs,
+      positionBroadcastSmartEnabled:
+          positionBroadcastSmartEnabled ?? this.positionBroadcastSmartEnabled,
+      fixedPosition: fixedPosition ?? this.fixedPosition,
+      gpsEnabled: gpsEnabled ?? this.gpsEnabled,
+      gpsUpdateInterval: gpsUpdateInterval ?? this.gpsUpdateInterval,
+      gpsAttemptTime: gpsAttemptTime ?? this.gpsAttemptTime,
+      positionFlags: positionFlags ?? this.positionFlags,
+      rxGpio: rxGpio ?? this.rxGpio,
+      txGpio: txGpio ?? this.txGpio,
+      broadcastSmartMinimumDistance:
+          broadcastSmartMinimumDistance ?? this.broadcastSmartMinimumDistance,
+      broadcastSmartMinimumIntervalSecs:
+          broadcastSmartMinimumIntervalSecs ??
+          this.broadcastSmartMinimumIntervalSecs,
+      gpsEnGpio: gpsEnGpio ?? this.gpsEnGpio,
+      gpsMode: gpsMode ?? this.gpsMode,
+    );
+  }
 }
 
 class PowerConfigDto {
@@ -657,6 +741,33 @@ class PowerConfigDto {
     this.deviceBatteryInaAddress,
     this.powermonEnables,
   });
+
+  PowerConfigDto copyWith({
+    bool? isPowerSaving,
+    int? onBatteryShutdownAfterSecs,
+    double? adcMultiplierOverride,
+    int? waitBluetoothSecs,
+    int? sdsSecs,
+    int? lsSecs,
+    int? minWakeSecs,
+    int? deviceBatteryInaAddress,
+    int? powermonEnables,
+  }) {
+    return PowerConfigDto(
+      isPowerSaving: isPowerSaving ?? this.isPowerSaving,
+      onBatteryShutdownAfterSecs:
+          onBatteryShutdownAfterSecs ?? this.onBatteryShutdownAfterSecs,
+      adcMultiplierOverride:
+          adcMultiplierOverride ?? this.adcMultiplierOverride,
+      waitBluetoothSecs: waitBluetoothSecs ?? this.waitBluetoothSecs,
+      sdsSecs: sdsSecs ?? this.sdsSecs,
+      lsSecs: lsSecs ?? this.lsSecs,
+      minWakeSecs: minWakeSecs ?? this.minWakeSecs,
+      deviceBatteryInaAddress:
+          deviceBatteryInaAddress ?? this.deviceBatteryInaAddress,
+      powermonEnables: powermonEnables ?? this.powermonEnables,
+    );
+  }
 }
 
 class NetworkConfigDto {
@@ -683,6 +794,32 @@ class NetworkConfigDto {
     this.enabledProtocols,
     this.ipv6Enabled,
   });
+
+  NetworkConfigDto copyWith({
+    bool? wifiEnabled,
+    String? wifiSsid,
+    String? wifiPsk,
+    String? ntpServer,
+    bool? ethEnabled,
+    String? addressMode,
+    IpV4ConfigDto? ipv4Config,
+    String? rsyslogServer,
+    int? enabledProtocols,
+    bool? ipv6Enabled,
+  }) {
+    return NetworkConfigDto(
+      wifiEnabled: wifiEnabled ?? this.wifiEnabled,
+      wifiSsid: wifiSsid ?? this.wifiSsid,
+      wifiPsk: wifiPsk ?? this.wifiPsk,
+      ntpServer: ntpServer ?? this.ntpServer,
+      ethEnabled: ethEnabled ?? this.ethEnabled,
+      addressMode: addressMode ?? this.addressMode,
+      ipv4Config: ipv4Config ?? this.ipv4Config,
+      rsyslogServer: rsyslogServer ?? this.rsyslogServer,
+      enabledProtocols: enabledProtocols ?? this.enabledProtocols,
+      ipv6Enabled: ipv6Enabled ?? this.ipv6Enabled,
+    );
+  }
 }
 
 class IpV4ConfigDto {
@@ -722,6 +859,37 @@ class DisplayConfigDto {
     this.use12hClock,
     this.useLongNodeName,
   });
+
+  DisplayConfigDto copyWith({
+    int? screenOnSecs,
+    int? autoScreenCarouselSecs,
+    bool? compassNorthTop,
+    bool? flipScreen,
+    String? units,
+    String? oled,
+    String? displaymode,
+    bool? headingBold,
+    bool? wakeOnTapOrMotion,
+    String? compassOrientation,
+    bool? use12hClock,
+    bool? useLongNodeName,
+  }) {
+    return DisplayConfigDto(
+      screenOnSecs: screenOnSecs ?? this.screenOnSecs,
+      autoScreenCarouselSecs:
+          autoScreenCarouselSecs ?? this.autoScreenCarouselSecs,
+      compassNorthTop: compassNorthTop ?? this.compassNorthTop,
+      flipScreen: flipScreen ?? this.flipScreen,
+      units: units ?? this.units,
+      oled: oled ?? this.oled,
+      displaymode: displaymode ?? this.displaymode,
+      headingBold: headingBold ?? this.headingBold,
+      wakeOnTapOrMotion: wakeOnTapOrMotion ?? this.wakeOnTapOrMotion,
+      compassOrientation: compassOrientation ?? this.compassOrientation,
+      use12hClock: use12hClock ?? this.use12hClock,
+      useLongNodeName: useLongNodeName ?? this.useLongNodeName,
+    );
+  }
 }
 
 class LoRaConfigDto {
@@ -764,6 +932,48 @@ class LoRaConfigDto {
     this.ignoreMqtt,
     this.configOkToMqtt,
   });
+
+  LoRaConfigDto copyWith({
+    bool? usePreset,
+    String? modemPreset,
+    int? bandwidth,
+    int? spreadFactor,
+    int? codingRate,
+    double? frequencyOffset,
+    String? region,
+    int? hopLimit,
+    bool? txEnabled,
+    int? txPower,
+    int? channelNum,
+    bool? overrideDutyCycle,
+    bool? sx126xRxBoostedGain,
+    double? overrideFrequency,
+    bool? paFanDisabled,
+    List<int>? ignoreIncoming,
+    bool? ignoreMqtt,
+    bool? configOkToMqtt,
+  }) {
+    return LoRaConfigDto(
+      usePreset: usePreset ?? this.usePreset,
+      modemPreset: modemPreset ?? this.modemPreset,
+      bandwidth: bandwidth ?? this.bandwidth,
+      spreadFactor: spreadFactor ?? this.spreadFactor,
+      codingRate: codingRate ?? this.codingRate,
+      frequencyOffset: frequencyOffset ?? this.frequencyOffset,
+      region: region ?? this.region,
+      hopLimit: hopLimit ?? this.hopLimit,
+      txEnabled: txEnabled ?? this.txEnabled,
+      txPower: txPower ?? this.txPower,
+      channelNum: channelNum ?? this.channelNum,
+      overrideDutyCycle: overrideDutyCycle ?? this.overrideDutyCycle,
+      sx126xRxBoostedGain: sx126xRxBoostedGain ?? this.sx126xRxBoostedGain,
+      overrideFrequency: overrideFrequency ?? this.overrideFrequency,
+      paFanDisabled: paFanDisabled ?? this.paFanDisabled,
+      ignoreIncoming: ignoreIncoming ?? this.ignoreIncoming,
+      ignoreMqtt: ignoreMqtt ?? this.ignoreMqtt,
+      configOkToMqtt: configOkToMqtt ?? this.configOkToMqtt,
+    );
+  }
 }
 
 class BluetoothConfigDto {
@@ -772,6 +982,14 @@ class BluetoothConfigDto {
   final int? fixedPin;
 
   const BluetoothConfigDto({this.enabled, this.mode, this.fixedPin});
+
+  BluetoothConfigDto copyWith({bool? enabled, String? mode, int? fixedPin}) {
+    return BluetoothConfigDto(
+      enabled: enabled ?? this.enabled,
+      mode: mode ?? this.mode,
+      fixedPin: fixedPin ?? this.fixedPin,
+    );
+  }
 }
 
 class SecurityConfigDto {
@@ -792,6 +1010,26 @@ class SecurityConfigDto {
     this.debugLogApiEnabled,
     this.adminChannelEnabled,
   });
+
+  SecurityConfigDto copyWith({
+    Uint8List? publicKey,
+    Uint8List? privateKey,
+    List<Uint8List>? adminKey,
+    bool? isManaged,
+    bool? serialEnabled,
+    bool? debugLogApiEnabled,
+    bool? adminChannelEnabled,
+  }) {
+    return SecurityConfigDto(
+      publicKey: publicKey ?? this.publicKey,
+      privateKey: privateKey ?? this.privateKey,
+      adminKey: adminKey ?? this.adminKey,
+      isManaged: isManaged ?? this.isManaged,
+      serialEnabled: serialEnabled ?? this.serialEnabled,
+      debugLogApiEnabled: debugLogApiEnabled ?? this.debugLogApiEnabled,
+      adminChannelEnabled: adminChannelEnabled ?? this.adminChannelEnabled,
+    );
+  }
 }
 
 class SessionkeyConfigDto {
@@ -867,6 +1105,13 @@ class NodeModConfigDto {
   final String? textStatus;
   final String? emoji;
   const NodeModConfigDto({this.textStatus, this.emoji});
+
+  NodeModConfigDto copyWith({String? textStatus, String? emoji}) {
+    return NodeModConfigDto(
+      textStatus: textStatus ?? this.textStatus,
+      emoji: emoji ?? this.emoji,
+    );
+  }
 }
 
 class NodeModAdminConfigDto {
@@ -933,11 +1178,108 @@ class NodeModAdminConfigDto {
     this.opportunisticCancelOnFirstHear,
     this.opportunisticAuto,
   });
+
+  NodeModAdminConfigDto copyWith({
+    bool? snifferEnabled,
+    bool? doNotSendPrvOverMqtt,
+    bool? localStatsOverMeshEnabled,
+    bool? localStatsExtendedOverMeshEnabled,
+    bool? idlegameEnabled,
+    int? additionalChutil,
+    double? additionalTxutil,
+    int? additionalPoliteChannelPercent,
+    int? additionalPoliteDutyCyclePercent,
+    double? currentTxUtilLimit,
+    int? currentMaxChannelUtilPercent,
+    int? currentPoliteChannelUtilPercent,
+    int? currentPoliteDutyCyclePercent,
+    bool? autoResponderEnabled,
+    String? autoResponderText,
+    bool? autoRedirectMessages,
+    int? autoRedirectTargetNodeId,
+    bool? telemetryLimiterEnabled,
+    int? telemetryLimiterPacketsPerMinute,
+    bool? telemetryLimiterAutoChanutilEnabled,
+    int? telemetryLimiterAutoChanutilThreshold,
+    bool? positionLimiterEnabled,
+    int? positionLimiterTimeMinutesThreshold,
+    bool? opportunisticFloodingEnabled,
+    int? opportunisticBaseDelayMs,
+    int? opportunisticHopDelayMs,
+    int? opportunisticSnrGainMs,
+    int? opportunisticJitterMs,
+    bool? opportunisticCancelOnFirstHear,
+    bool? opportunisticAuto,
+  }) {
+    return NodeModAdminConfigDto(
+      snifferEnabled: snifferEnabled ?? this.snifferEnabled,
+      doNotSendPrvOverMqtt: doNotSendPrvOverMqtt ?? this.doNotSendPrvOverMqtt,
+      localStatsOverMeshEnabled:
+          localStatsOverMeshEnabled ?? this.localStatsOverMeshEnabled,
+      localStatsExtendedOverMeshEnabled:
+          localStatsExtendedOverMeshEnabled ??
+          this.localStatsExtendedOverMeshEnabled,
+      idlegameEnabled: idlegameEnabled ?? this.idlegameEnabled,
+      additionalChutil: additionalChutil ?? this.additionalChutil,
+      additionalTxutil: additionalTxutil ?? this.additionalTxutil,
+      additionalPoliteChannelPercent:
+          additionalPoliteChannelPercent ?? this.additionalPoliteChannelPercent,
+      additionalPoliteDutyCyclePercent:
+          additionalPoliteDutyCyclePercent ??
+          this.additionalPoliteDutyCyclePercent,
+      currentTxUtilLimit: currentTxUtilLimit ?? this.currentTxUtilLimit,
+      currentMaxChannelUtilPercent:
+          currentMaxChannelUtilPercent ?? this.currentMaxChannelUtilPercent,
+      currentPoliteChannelUtilPercent:
+          currentPoliteChannelUtilPercent ??
+          this.currentPoliteChannelUtilPercent,
+      currentPoliteDutyCyclePercent:
+          currentPoliteDutyCyclePercent ?? this.currentPoliteDutyCyclePercent,
+      autoResponderEnabled: autoResponderEnabled ?? this.autoResponderEnabled,
+      autoResponderText: autoResponderText ?? this.autoResponderText,
+      autoRedirectMessages: autoRedirectMessages ?? this.autoRedirectMessages,
+      autoRedirectTargetNodeId:
+          autoRedirectTargetNodeId ?? this.autoRedirectTargetNodeId,
+      telemetryLimiterEnabled:
+          telemetryLimiterEnabled ?? this.telemetryLimiterEnabled,
+      telemetryLimiterPacketsPerMinute:
+          telemetryLimiterPacketsPerMinute ??
+          this.telemetryLimiterPacketsPerMinute,
+      telemetryLimiterAutoChanutilEnabled:
+          telemetryLimiterAutoChanutilEnabled ??
+          this.telemetryLimiterAutoChanutilEnabled,
+      telemetryLimiterAutoChanutilThreshold:
+          telemetryLimiterAutoChanutilThreshold ??
+          this.telemetryLimiterAutoChanutilThreshold,
+      positionLimiterEnabled:
+          positionLimiterEnabled ?? this.positionLimiterEnabled,
+      positionLimiterTimeMinutesThreshold:
+          positionLimiterTimeMinutesThreshold ??
+          this.positionLimiterTimeMinutesThreshold,
+      opportunisticFloodingEnabled:
+          opportunisticFloodingEnabled ?? this.opportunisticFloodingEnabled,
+      opportunisticBaseDelayMs:
+          opportunisticBaseDelayMs ?? this.opportunisticBaseDelayMs,
+      opportunisticHopDelayMs:
+          opportunisticHopDelayMs ?? this.opportunisticHopDelayMs,
+      opportunisticSnrGainMs:
+          opportunisticSnrGainMs ?? this.opportunisticSnrGainMs,
+      opportunisticJitterMs:
+          opportunisticJitterMs ?? this.opportunisticJitterMs,
+      opportunisticCancelOnFirstHear:
+          opportunisticCancelOnFirstHear ?? this.opportunisticCancelOnFirstHear,
+      opportunisticAuto: opportunisticAuto ?? this.opportunisticAuto,
+    );
+  }
 }
 
 class IdleGameConfigDto {
   final String? variant; // oneof name
   const IdleGameConfigDto({this.variant});
+
+  IdleGameConfigDto copyWith({String? variant}) {
+    return IdleGameConfigDto(variant: variant ?? this.variant);
+  }
 }
 
 class MqttConfigDto {
@@ -966,6 +1308,34 @@ class MqttConfigDto {
     this.mapReportingEnabled,
     this.mapReportSettings,
   });
+
+  MqttConfigDto copyWith({
+    bool? enabled,
+    String? address,
+    String? username,
+    String? password,
+    bool? encryptionEnabled,
+    bool? jsonEnabled,
+    bool? tlsEnabled,
+    String? root,
+    bool? proxyToClientEnabled,
+    bool? mapReportingEnabled,
+    MapReportSettingsDto? mapReportSettings,
+  }) {
+    return MqttConfigDto(
+      enabled: enabled ?? this.enabled,
+      address: address ?? this.address,
+      username: username ?? this.username,
+      password: password ?? this.password,
+      encryptionEnabled: encryptionEnabled ?? this.encryptionEnabled,
+      jsonEnabled: jsonEnabled ?? this.jsonEnabled,
+      tlsEnabled: tlsEnabled ?? this.tlsEnabled,
+      root: root ?? this.root,
+      proxyToClientEnabled: proxyToClientEnabled ?? this.proxyToClientEnabled,
+      mapReportingEnabled: mapReportingEnabled ?? this.mapReportingEnabled,
+      mapReportSettings: mapReportSettings ?? this.mapReportSettings,
+    );
+  }
 }
 
 class MapReportSettingsDto {
@@ -1012,6 +1382,47 @@ class TelemetryConfigDto {
     this.healthScreenEnabled,
     this.deviceTelemetryEnabled,
   });
+
+  TelemetryConfigDto copyWith({
+    int? deviceUpdateInterval,
+    int? environmentUpdateInterval,
+    bool? environmentMeasurementEnabled,
+    bool? environmentScreenEnabled,
+    bool? environmentDisplayFahrenheit,
+    bool? airQualityEnabled,
+    int? airQualityInterval,
+    bool? powerMeasurementEnabled,
+    int? powerUpdateInterval,
+    bool? powerScreenEnabled,
+    bool? healthMeasurementEnabled,
+    int? healthUpdateInterval,
+    bool? healthScreenEnabled,
+    bool? deviceTelemetryEnabled,
+  }) {
+    return TelemetryConfigDto(
+      deviceUpdateInterval: deviceUpdateInterval ?? this.deviceUpdateInterval,
+      environmentUpdateInterval:
+          environmentUpdateInterval ?? this.environmentUpdateInterval,
+      environmentMeasurementEnabled:
+          environmentMeasurementEnabled ?? this.environmentMeasurementEnabled,
+      environmentScreenEnabled:
+          environmentScreenEnabled ?? this.environmentScreenEnabled,
+      environmentDisplayFahrenheit:
+          environmentDisplayFahrenheit ?? this.environmentDisplayFahrenheit,
+      airQualityEnabled: airQualityEnabled ?? this.airQualityEnabled,
+      airQualityInterval: airQualityInterval ?? this.airQualityInterval,
+      powerMeasurementEnabled:
+          powerMeasurementEnabled ?? this.powerMeasurementEnabled,
+      powerUpdateInterval: powerUpdateInterval ?? this.powerUpdateInterval,
+      powerScreenEnabled: powerScreenEnabled ?? this.powerScreenEnabled,
+      healthMeasurementEnabled:
+          healthMeasurementEnabled ?? this.healthMeasurementEnabled,
+      healthUpdateInterval: healthUpdateInterval ?? this.healthUpdateInterval,
+      healthScreenEnabled: healthScreenEnabled ?? this.healthScreenEnabled,
+      deviceTelemetryEnabled:
+          deviceTelemetryEnabled ?? this.deviceTelemetryEnabled,
+    );
+  }
 }
 
 class SerialConfigDto {
@@ -1034,6 +1445,29 @@ class SerialConfigDto {
     this.mode,
     this.overrideConsoleSerialPort,
   });
+
+  SerialConfigDto copyWith({
+    bool? enabled,
+    bool? echo,
+    int? rxd,
+    int? txd,
+    String? baud,
+    int? timeout,
+    String? mode,
+    bool? overrideConsoleSerialPort,
+  }) {
+    return SerialConfigDto(
+      enabled: enabled ?? this.enabled,
+      echo: echo ?? this.echo,
+      rxd: rxd ?? this.rxd,
+      txd: txd ?? this.txd,
+      baud: baud ?? this.baud,
+      timeout: timeout ?? this.timeout,
+      mode: mode ?? this.mode,
+      overrideConsoleSerialPort:
+          overrideConsoleSerialPort ?? this.overrideConsoleSerialPort,
+    );
+  }
 }
 
 class StoreForwardConfigDto {
@@ -1054,6 +1488,26 @@ class StoreForwardConfigDto {
     this.isServer,
     this.emitControlSignals,
   });
+
+  StoreForwardConfigDto copyWith({
+    bool? enabled,
+    bool? heartbeat,
+    int? records,
+    int? historyReturnMax,
+    int? historyReturnWindow,
+    bool? isServer,
+    bool? emitControlSignals,
+  }) {
+    return StoreForwardConfigDto(
+      enabled: enabled ?? this.enabled,
+      heartbeat: heartbeat ?? this.heartbeat,
+      records: records ?? this.records,
+      historyReturnMax: historyReturnMax ?? this.historyReturnMax,
+      historyReturnWindow: historyReturnWindow ?? this.historyReturnWindow,
+      isServer: isServer ?? this.isServer,
+      emitControlSignals: emitControlSignals ?? this.emitControlSignals,
+    );
+  }
 }
 
 class RangeTestConfigDto {
@@ -1068,6 +1522,20 @@ class RangeTestConfigDto {
     this.save,
     this.clearOnReboot,
   });
+
+  RangeTestConfigDto copyWith({
+    bool? enabled,
+    int? sender,
+    bool? save,
+    bool? clearOnReboot,
+  }) {
+    return RangeTestConfigDto(
+      enabled: enabled ?? this.enabled,
+      sender: sender ?? this.sender,
+      save: save ?? this.save,
+      clearOnReboot: clearOnReboot ?? this.clearOnReboot,
+    );
+  }
 }
 
 class ExternalNotificationConfigDto {
@@ -1104,6 +1572,42 @@ class ExternalNotificationConfigDto {
     this.nagTimeout,
     this.useI2sAsBuzzer,
   });
+
+  ExternalNotificationConfigDto copyWith({
+    bool? enabled,
+    int? outputMs,
+    int? output,
+    bool? active,
+    bool? alertMessage,
+    bool? alertBell,
+    bool? usePwm,
+    int? outputVibra,
+    int? outputBuzzer,
+    bool? alertMessageVibra,
+    bool? alertMessageBuzzer,
+    bool? alertBellVibra,
+    bool? alertBellBuzzer,
+    int? nagTimeout,
+    bool? useI2sAsBuzzer,
+  }) {
+    return ExternalNotificationConfigDto(
+      enabled: enabled ?? this.enabled,
+      outputMs: outputMs ?? this.outputMs,
+      output: output ?? this.output,
+      active: active ?? this.active,
+      alertMessage: alertMessage ?? this.alertMessage,
+      alertBell: alertBell ?? this.alertBell,
+      usePwm: usePwm ?? this.usePwm,
+      outputVibra: outputVibra ?? this.outputVibra,
+      outputBuzzer: outputBuzzer ?? this.outputBuzzer,
+      alertMessageVibra: alertMessageVibra ?? this.alertMessageVibra,
+      alertMessageBuzzer: alertMessageBuzzer ?? this.alertMessageBuzzer,
+      alertBellVibra: alertBellVibra ?? this.alertBellVibra,
+      alertBellBuzzer: alertBellBuzzer ?? this.alertBellBuzzer,
+      nagTimeout: nagTimeout ?? this.nagTimeout,
+      useI2sAsBuzzer: useI2sAsBuzzer ?? this.useI2sAsBuzzer,
+    );
+  }
 }
 
 class AudioConfigDto {
@@ -1124,6 +1628,26 @@ class AudioConfigDto {
     this.i2sDin,
     this.i2sSck,
   });
+
+  AudioConfigDto copyWith({
+    bool? codec2Enabled,
+    int? pttPin,
+    String? bitrate,
+    int? i2sWs,
+    int? i2sSd,
+    int? i2sDin,
+    int? i2sSck,
+  }) {
+    return AudioConfigDto(
+      codec2Enabled: codec2Enabled ?? this.codec2Enabled,
+      pttPin: pttPin ?? this.pttPin,
+      bitrate: bitrate ?? this.bitrate,
+      i2sWs: i2sWs ?? this.i2sWs,
+      i2sSd: i2sSd ?? this.i2sSd,
+      i2sDin: i2sDin ?? this.i2sDin,
+      i2sSck: i2sSck ?? this.i2sSck,
+    );
+  }
 }
 
 class NeighborInfoConfigDto {
@@ -1136,6 +1660,18 @@ class NeighborInfoConfigDto {
     this.updateInterval,
     this.transmitOverLora,
   });
+
+  NeighborInfoConfigDto copyWith({
+    bool? enabled,
+    int? updateInterval,
+    bool? transmitOverLora,
+  }) {
+    return NeighborInfoConfigDto(
+      enabled: enabled ?? this.enabled,
+      updateInterval: updateInterval ?? this.updateInterval,
+      transmitOverLora: transmitOverLora ?? this.transmitOverLora,
+    );
+  }
 }
 
 class RemoteHardwareConfigDto {
@@ -1148,6 +1684,19 @@ class RemoteHardwareConfigDto {
     this.allowUndefinedPinAccess,
     this.availablePins,
   });
+
+  RemoteHardwareConfigDto copyWith({
+    bool? enabled,
+    bool? allowUndefinedPinAccess,
+    List<RemoteHardwarePinDto>? availablePins,
+  }) {
+    return RemoteHardwareConfigDto(
+      enabled: enabled ?? this.enabled,
+      allowUndefinedPinAccess:
+          allowUndefinedPinAccess ?? this.allowUndefinedPinAccess,
+      availablePins: availablePins ?? this.availablePins,
+    );
+  }
 }
 
 class RemoteHardwarePinDto {
@@ -1170,6 +1719,21 @@ class PaxcounterConfigDto {
     this.wifiThreshold,
     this.bleThreshold,
   });
+
+  PaxcounterConfigDto copyWith({
+    bool? enabled,
+    int? paxcounterUpdateInterval,
+    int? wifiThreshold,
+    int? bleThreshold,
+  }) {
+    return PaxcounterConfigDto(
+      enabled: enabled ?? this.enabled,
+      paxcounterUpdateInterval:
+          paxcounterUpdateInterval ?? this.paxcounterUpdateInterval,
+      wifiThreshold: wifiThreshold ?? this.wifiThreshold,
+      bleThreshold: bleThreshold ?? this.bleThreshold,
+    );
+  }
 }
 
 class CannedMessageConfigDto {
@@ -1199,6 +1763,35 @@ class CannedMessageConfigDto {
     this.allowInputSource,
     this.sendBell,
   });
+
+  CannedMessageConfigDto copyWith({
+    bool? rotary1Enabled,
+    int? inputbrokerPinA,
+    int? inputbrokerPinB,
+    int? inputbrokerPinPress,
+    String? inputbrokerEventCw,
+    String? inputbrokerEventCcw,
+    String? inputbrokerEventPress,
+    bool? updown1Enabled,
+    bool? enabled,
+    String? allowInputSource,
+    bool? sendBell,
+  }) {
+    return CannedMessageConfigDto(
+      rotary1Enabled: rotary1Enabled ?? this.rotary1Enabled,
+      inputbrokerPinA: inputbrokerPinA ?? this.inputbrokerPinA,
+      inputbrokerPinB: inputbrokerPinB ?? this.inputbrokerPinB,
+      inputbrokerPinPress: inputbrokerPinPress ?? this.inputbrokerPinPress,
+      inputbrokerEventCw: inputbrokerEventCw ?? this.inputbrokerEventCw,
+      inputbrokerEventCcw: inputbrokerEventCcw ?? this.inputbrokerEventCcw,
+      inputbrokerEventPress:
+          inputbrokerEventPress ?? this.inputbrokerEventPress,
+      updown1Enabled: updown1Enabled ?? this.updown1Enabled,
+      enabled: enabled ?? this.enabled,
+      allowInputSource: allowInputSource ?? this.allowInputSource,
+      sendBell: sendBell ?? this.sendBell,
+    );
+  }
 }
 
 class AmbientLightingConfigDto {
@@ -1215,6 +1808,22 @@ class AmbientLightingConfigDto {
     this.green,
     this.blue,
   });
+
+  AmbientLightingConfigDto copyWith({
+    bool? ledState,
+    int? current,
+    int? red,
+    int? green,
+    int? blue,
+  }) {
+    return AmbientLightingConfigDto(
+      ledState: ledState ?? this.ledState,
+      current: current ?? this.current,
+      red: red ?? this.red,
+      green: green ?? this.green,
+      blue: blue ?? this.blue,
+    );
+  }
 }
 
 class DetectionSensorConfigDto {
@@ -1237,6 +1846,28 @@ class DetectionSensorConfigDto {
     this.detectionTriggerType,
     this.usePullup,
   });
+
+  DetectionSensorConfigDto copyWith({
+    bool? enabled,
+    int? minimumBroadcastSecs,
+    int? stateBroadcastSecs,
+    bool? sendBell,
+    String? name,
+    int? monitorPin,
+    String? detectionTriggerType,
+    bool? usePullup,
+  }) {
+    return DetectionSensorConfigDto(
+      enabled: enabled ?? this.enabled,
+      minimumBroadcastSecs: minimumBroadcastSecs ?? this.minimumBroadcastSecs,
+      stateBroadcastSecs: stateBroadcastSecs ?? this.stateBroadcastSecs,
+      sendBell: sendBell ?? this.sendBell,
+      name: name ?? this.name,
+      monitorPin: monitorPin ?? this.monitorPin,
+      detectionTriggerType: detectionTriggerType ?? this.detectionTriggerType,
+      usePullup: usePullup ?? this.usePullup,
+    );
+  }
 }
 
 class DtnOverlayConfigDto {
@@ -1265,6 +1896,35 @@ class DtnOverlayConfigDto {
     this.maxActiveDm,
     this.probeFwplusNearDeadline,
   });
+
+  DtnOverlayConfigDto copyWith({
+    bool? enabled,
+    int? ttlMinutes,
+    int? initialDelayBaseMs,
+    int? retryBackoffMs,
+    int? maxTries,
+    bool? lateFallbackEnabled,
+    int? fallbackTailPercent,
+    bool? milestonesEnabled,
+    int? perDestMinSpacingMs,
+    int? maxActiveDm,
+    bool? probeFwplusNearDeadline,
+  }) {
+    return DtnOverlayConfigDto(
+      enabled: enabled ?? this.enabled,
+      ttlMinutes: ttlMinutes ?? this.ttlMinutes,
+      initialDelayBaseMs: initialDelayBaseMs ?? this.initialDelayBaseMs,
+      retryBackoffMs: retryBackoffMs ?? this.retryBackoffMs,
+      maxTries: maxTries ?? this.maxTries,
+      lateFallbackEnabled: lateFallbackEnabled ?? this.lateFallbackEnabled,
+      fallbackTailPercent: fallbackTailPercent ?? this.fallbackTailPercent,
+      milestonesEnabled: milestonesEnabled ?? this.milestonesEnabled,
+      perDestMinSpacingMs: perDestMinSpacingMs ?? this.perDestMinSpacingMs,
+      maxActiveDm: maxActiveDm ?? this.maxActiveDm,
+      probeFwplusNearDeadline:
+          probeFwplusNearDeadline ?? this.probeFwplusNearDeadline,
+    );
+  }
 }
 
 class BroadcastAssistConfigDto {
@@ -1287,6 +1947,28 @@ class BroadcastAssistConfigDto {
     this.airtimeGuard,
     this.allowedPorts,
   });
+
+  BroadcastAssistConfigDto copyWith({
+    bool? enabled,
+    int? degreeThreshold,
+    int? dupThreshold,
+    int? windowMs,
+    int? maxExtraHops,
+    int? jitterMs,
+    bool? airtimeGuard,
+    List<int>? allowedPorts,
+  }) {
+    return BroadcastAssistConfigDto(
+      enabled: enabled ?? this.enabled,
+      degreeThreshold: degreeThreshold ?? this.degreeThreshold,
+      dupThreshold: dupThreshold ?? this.dupThreshold,
+      windowMs: windowMs ?? this.windowMs,
+      maxExtraHops: maxExtraHops ?? this.maxExtraHops,
+      jitterMs: jitterMs ?? this.jitterMs,
+      airtimeGuard: airtimeGuard ?? this.airtimeGuard,
+      allowedPorts: allowedPorts ?? this.allowedPorts,
+    );
+  }
 }
 
 class ChannelDto {
@@ -1295,6 +1977,18 @@ class ChannelDto {
   final ChannelSettingsDto? settings;
 
   const ChannelDto({this.index, this.role, this.settings});
+
+  ChannelDto copyWith({
+    int? index,
+    String? role,
+    ChannelSettingsDto? settings,
+  }) {
+    return ChannelDto(
+      index: index ?? this.index,
+      role: role ?? this.role,
+      settings: settings ?? this.settings,
+    );
+  }
 }
 
 class ChannelSettingsDto {
@@ -1315,12 +2009,38 @@ class ChannelSettingsDto {
     this.downlinkEnabled,
     this.moduleSettings,
   });
+
+  ChannelSettingsDto copyWith({
+    int? channelNum,
+    Uint8List? psk,
+    String? name,
+    int? id,
+    bool? uplinkEnabled,
+    bool? downlinkEnabled,
+    ModuleSettingsDto? moduleSettings,
+  }) {
+    return ChannelSettingsDto(
+      channelNum: channelNum ?? this.channelNum,
+      psk: psk ?? this.psk,
+      name: name ?? this.name,
+      id: id ?? this.id,
+      uplinkEnabled: uplinkEnabled ?? this.uplinkEnabled,
+      downlinkEnabled: downlinkEnabled ?? this.downlinkEnabled,
+      moduleSettings: moduleSettings ?? this.moduleSettings,
+    );
+  }
 }
 
 class ModuleSettingsDto {
   final int? positionPrecision;
 
   const ModuleSettingsDto({this.positionPrecision});
+
+  ModuleSettingsDto copyWith({int? positionPrecision}) {
+    return ModuleSettingsDto(
+      positionPrecision: positionPrecision ?? this.positionPrecision,
+    );
+  }
 }
 
 class QueueStatusDto {
@@ -1446,6 +2166,50 @@ class DeviceUiConfigDto {
     this.isClockfaceAnalog,
     this.gpsFormat,
   });
+
+  DeviceUiConfigDto copyWith({
+    int? version,
+    int? screenBrightness,
+    int? screenTimeout,
+    bool? screenLock,
+    bool? settingsLock,
+    int? pinCode,
+    String? theme,
+    bool? alertEnabled,
+    bool? bannerEnabled,
+    int? ringToneId,
+    String? language,
+    DeviceUiNodeFilterDto? nodeFilter,
+    DeviceUiNodeHighlightDto? nodeHighlight,
+    Uint8List? calibrationData,
+    DeviceUiMapDto? mapData,
+    String? compassMode,
+    int? screenRgbColor,
+    bool? isClockfaceAnalog,
+    String? gpsFormat,
+  }) {
+    return DeviceUiConfigDto(
+      version: version ?? this.version,
+      screenBrightness: screenBrightness ?? this.screenBrightness,
+      screenTimeout: screenTimeout ?? this.screenTimeout,
+      screenLock: screenLock ?? this.screenLock,
+      settingsLock: settingsLock ?? this.settingsLock,
+      pinCode: pinCode ?? this.pinCode,
+      theme: theme ?? this.theme,
+      alertEnabled: alertEnabled ?? this.alertEnabled,
+      bannerEnabled: bannerEnabled ?? this.bannerEnabled,
+      ringToneId: ringToneId ?? this.ringToneId,
+      language: language ?? this.language,
+      nodeFilter: nodeFilter ?? this.nodeFilter,
+      nodeHighlight: nodeHighlight ?? this.nodeHighlight,
+      calibrationData: calibrationData ?? this.calibrationData,
+      mapData: mapData ?? this.mapData,
+      compassMode: compassMode ?? this.compassMode,
+      screenRgbColor: screenRgbColor ?? this.screenRgbColor,
+      isClockfaceAnalog: isClockfaceAnalog ?? this.isClockfaceAnalog,
+      gpsFormat: gpsFormat ?? this.gpsFormat,
+    );
+  }
 }
 
 class DeviceUiNodeFilterDto {

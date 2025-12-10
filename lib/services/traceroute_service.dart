@@ -179,35 +179,46 @@ class TracerouteService {
 
   /// Subscribe to device events to track traceroute responses
   void _subscribeToEvents() {
-    DeviceCommunicationEventService.instance.listenAll().listen(_handleEvent);
+    DeviceCommunicationEventService.instance.listenAll().listen(
+      _handleEvent,
+      onError: (e, s) {
+        print('[TracerouteService] Error in event stream: $e');
+        print('[TracerouteService] Stack trace: $s');
+      },
+    );
   }
 
   /// Handle incoming device events
   void _handleEvent(DeviceEvent event) {
-    if (event.payload is! MeshtasticDeviceEventPayload) return;
+    try {
+      if (event.payload is! MeshtasticDeviceEventPayload) return;
 
-    final meshPayload = event.payload as MeshtasticDeviceEventPayload;
-    if (meshPayload.event is! MeshPacketEvent) return;
+      final meshPayload = event.payload as MeshtasticDeviceEventPayload;
+      if (meshPayload.event is! MeshPacketEvent) return;
 
-    final packetEvent = meshPayload.event as MeshPacketEvent;
-    final packet = packetEvent.packet;
-    final decoded = packetEvent.decoded;
+      final packetEvent = meshPayload.event as MeshPacketEvent;
+      final packet = packetEvent.packet;
+      final decoded = packetEvent.decoded;
 
-    // Handle traceroute responses
-    if (decoded is TraceroutePayloadDto) {
-      print(
-        '[TracerouteService] Received TraceroutePayloadDto from node ${packet.from}',
-      );
-      print(
-        '[TracerouteService] Route: ${decoded.route}, RouteBack: ${decoded.routeBack}',
-      );
-      print('[TracerouteService] Pending traces: ${_pendingTraces.length}');
-      _handleTracerouteResponse(packet, decoded);
-    }
-    // Handle routing ACKs for our trace requests
-    else if (decoded is RoutingPayloadDto) {
-      print('[TracerouteService] Received RoutingPayloadDto');
-      _handleRoutingAck(packet, decoded);
+      // Handle traceroute responses
+      if (decoded is TraceroutePayloadDto) {
+        print(
+          '[TracerouteService] Received TraceroutePayloadDto from node ${packet.from}',
+        );
+        print(
+          '[TracerouteService] Route: ${decoded.route}, RouteBack: ${decoded.routeBack}',
+        );
+        print('[TracerouteService] Pending traces: ${_pendingTraces.length}');
+        _handleTracerouteResponse(packet, decoded);
+      }
+      // Handle routing ACKs for our trace requests
+      else if (decoded is RoutingPayloadDto) {
+        print('[TracerouteService] Received RoutingPayloadDto');
+        _handleRoutingAck(packet, decoded);
+      }
+    } catch (e, s) {
+      print('[TracerouteService] Error handling event: $e');
+      print('[TracerouteService] Stack trace: $s');
     }
   }
 

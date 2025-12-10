@@ -138,13 +138,14 @@ class _MeshtasticEventDetails extends StatelessWidget {
           emoji: '🧩',
           title: AppLocalizations.of(context).myInfo,
           child: _kvTable(context, {
-            'myNodeNum': e.myInfo.myNodeNum,
-            'rebootCount': e.myInfo.rebootCount,
-            'minAppVersion': e.myInfo.minAppVersion,
-            'firmwareEdition': e.myInfo.firmwareEdition,
-            'nodedbCount': e.myInfo.nodedbCount,
-            'pioEnv': e.myInfo.pioEnv,
-            'deviceId': e.myInfo.deviceId?.length,
+            AppLocalizations.of(context).myNodeNum: e.myInfo.myNodeNum,
+            AppLocalizations.of(context).rebootCount: e.myInfo.rebootCount,
+            AppLocalizations.of(context).minAppVersion: e.myInfo.minAppVersion,
+            AppLocalizations.of(context).firmwareEdition:
+                e.myInfo.firmwareEdition,
+            AppLocalizations.of(context).nodedbCount: e.myInfo.nodedbCount,
+            AppLocalizations.of(context).pioEnv: e.myInfo.pioEnv,
+            AppLocalizations.of(context).deviceId: e.myInfo.deviceId?.length,
           }),
         );
       case NodeInfoEvent e:
@@ -164,24 +165,34 @@ class _MeshtasticEventDetails extends StatelessWidget {
               emoji: '🪪',
               title: AppLocalizations.of(context).nodeInfo,
               child: _kvTable(context, {
-                'num': e.nodeInfo.num,
-                'user.longName': e.nodeInfo.user?.longName,
-                'user.shortName': e.nodeInfo.user?.shortName,
-                'position.lat': e.nodeInfo.position?.latitudeI,
-                'position.lon': e.nodeInfo.position?.longitudeI,
-                'snr': e.nodeInfo.snr,
-                'lastHeard': e.nodeInfo.lastHeard,
-                'channel': e.nodeInfo.channel,
-                'viaMqtt': e.nodeInfo.viaMqtt,
-                'hopsAway': e.nodeInfo.hopsAway,
-                'isFavorite': e.nodeInfo.isFavorite,
-                'isIgnored': e.nodeInfo.isIgnored,
-                'isKeyManuallyVerified': e.nodeInfo.isKeyManuallyVerified,
-                'batt': e.nodeInfo.deviceMetrics?.batteryLevel,
-                'volt': e.nodeInfo.deviceMetrics?.voltage,
-                'chUtil': e.nodeInfo.deviceMetrics?.channelUtilization,
-                'airUtil': e.nodeInfo.deviceMetrics?.airUtilTx,
-                'uptime': e.nodeInfo.deviceMetrics?.uptimeSeconds,
+                AppLocalizations.of(context).nodeNum: e.nodeInfo.num,
+                AppLocalizations.of(context).userLongName:
+                    e.nodeInfo.user?.longName,
+                AppLocalizations.of(context).userShortName:
+                    e.nodeInfo.user?.shortName,
+                AppLocalizations.of(context).positionLat:
+                    e.nodeInfo.position?.latitudeI,
+                AppLocalizations.of(context).positionLon:
+                    e.nodeInfo.position?.longitudeI,
+                AppLocalizations.of(context).snr: e.nodeInfo.snr,
+                AppLocalizations.of(context).lastHeard: e.nodeInfo.lastHeard,
+                AppLocalizations.of(context).channel: e.nodeInfo.channel,
+                AppLocalizations.of(context).viaMqtt: e.nodeInfo.viaMqtt,
+                AppLocalizations.of(context).hopsAway: e.nodeInfo.hopsAway,
+                AppLocalizations.of(context).isFavorite: e.nodeInfo.isFavorite,
+                AppLocalizations.of(context).isIgnored: e.nodeInfo.isIgnored,
+                AppLocalizations.of(context).isKeyManuallyVerified:
+                    e.nodeInfo.isKeyManuallyVerified,
+                AppLocalizations.of(context).battery:
+                    e.nodeInfo.deviceMetrics?.batteryLevel,
+                AppLocalizations.of(context).volt:
+                    e.nodeInfo.deviceMetrics?.voltage,
+                AppLocalizations.of(context).chUtil:
+                    e.nodeInfo.deviceMetrics?.channelUtilization,
+                AppLocalizations.of(context).airUtil:
+                    e.nodeInfo.deviceMetrics?.airUtilTx,
+                AppLocalizations.of(context).uptime:
+                    e.nodeInfo.deviceMetrics?.uptimeSeconds,
               }),
             ),
           ],
@@ -218,8 +229,10 @@ class _MeshtasticEventDetails extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _kvTable(context, {
-                'index': e.channel.index,
-                'role': e.channel.role,
+                AppLocalizations.of(
+                  context,
+                ).channelIndexLabel(e.channel.index.toString()): null,
+                AppLocalizations.of(context).role: e.channel.role,
               }),
               if (e.channel.settings != null) ...[
                 const SizedBox(height: 8),
@@ -234,10 +247,10 @@ class _MeshtasticEventDetails extends StatelessWidget {
           emoji: '📬',
           title: AppLocalizations.of(context).queueStatus,
           child: _kvTable(context, {
-            'res': e.status.res,
-            'size': e.status.free,
-            'maxlen': e.status.maxlen,
-            'meshPacketId': e.status.meshPacketId,
+            AppLocalizations.of(context).res: e.status.res,
+            AppLocalizations.of(context).size: e.status.free,
+            AppLocalizations.of(context).maxlen: e.status.maxlen,
+            AppLocalizations.of(context).meshPacketId: e.status.meshPacketId,
           }),
         );
       case DeviceMetadataEvent e:
@@ -245,20 +258,23 @@ class _MeshtasticEventDetails extends StatelessWidget {
           emoji: '🧰',
           title: AppLocalizations.of(context).deviceMetadata,
           child: _kvTable(context, {
-            'fw': e.metadata.firmwareVersion,
-            'hw': e.metadata.hwModel,
-            'role': e.metadata.role,
-            'wifi': e.metadata.hasWifi,
-            'bt': e.metadata.hasBluetooth,
-            'eth': e.metadata.hasEthernet,
-            'stateVer': e.metadata.deviceStateVersion,
-            'canShutdown': e.metadata.canShutdown,
-            'posFlags': e.metadata.positionFlags,
-            'hasRemoteHw': e.metadata.hasRemoteHardware,
-            'hasPKC': e.metadata.hasPKC,
-            'excluded': e.metadata.excludedModules,
-            'hasFwPlus': e.metadata.hasFwPlus,
-            'hasNodemod': e.metadata.hasNodemod,
+            AppLocalizations.of(context).firmware: e.metadata.firmwareVersion,
+            AppLocalizations.of(context).hardware: e.metadata.hwModel,
+            AppLocalizations.of(context).role: e.metadata.role,
+            AppLocalizations.of(context).wifi: e.metadata.hasWifi,
+            AppLocalizations.of(context).bluetooth: e.metadata.hasBluetooth,
+            AppLocalizations.of(context).ethernet: e.metadata.hasEthernet,
+            AppLocalizations.of(context).stateVersion:
+                e.metadata.deviceStateVersion,
+            AppLocalizations.of(context).canShutdown: e.metadata.canShutdown,
+            AppLocalizations.of(context).positionFlags:
+                e.metadata.positionFlags,
+            AppLocalizations.of(context).hasRemoteHw:
+                e.metadata.hasRemoteHardware,
+            AppLocalizations.of(context).hasPKC: e.metadata.hasPKC,
+            AppLocalizations.of(context).excluded: e.metadata.excludedModules,
+            AppLocalizations.of(context).hasFwPlus: e.metadata.hasFwPlus,
+            AppLocalizations.of(context).hasNodemod: e.metadata.hasNodemod,
           }),
         );
       case MqttClientProxyEvent e:
@@ -266,10 +282,10 @@ class _MeshtasticEventDetails extends StatelessWidget {
           emoji: '☁️',
           title: AppLocalizations.of(context).mqttProxy,
           child: _kvTable(context, {
-            'topic': e.message.topic,
-            'retained': e.message.retained,
-            'text': e.message.text,
-            'dataLen': e.message.data?.length,
+            AppLocalizations.of(context).topic: e.message.topic,
+            AppLocalizations.of(context).retained: e.message.retained,
+            AppLocalizations.of(context).text: e.message.text,
+            AppLocalizations.of(context).dataLength: e.message.data?.length,
           }),
         );
       case FileInfoEvent e:
@@ -277,8 +293,8 @@ class _MeshtasticEventDetails extends StatelessWidget {
           emoji: '📁',
           title: AppLocalizations.of(context).fileInfo,
           child: _kvTable(context, {
-            'name': e.fileInfo.fileName,
-            'sizeBytes': e.fileInfo.sizeBytes,
+            AppLocalizations.of(context).fileName: e.fileInfo.fileName,
+            AppLocalizations.of(context).sizeBytes: e.fileInfo.sizeBytes,
           }),
         );
       case ClientNotificationEvent e:
@@ -286,11 +302,12 @@ class _MeshtasticEventDetails extends StatelessWidget {
           emoji: '🔔',
           title: AppLocalizations.of(context).clientNotification,
           child: _kvTable(context, {
-            'message': e.notification.message,
-            'replyId': e.notification.replyId,
-            'time': e.notification.time,
-            'level': e.notification.level,
-            'payloadVariant': e.notification.payloadVariant,
+            AppLocalizations.of(context).message: e.notification.message,
+            AppLocalizations.of(context).replyId: e.notification.replyId,
+            AppLocalizations.of(context).time: e.notification.time,
+            AppLocalizations.of(context).level: e.notification.level,
+            AppLocalizations.of(context).payloadVariant:
+                e.notification.payloadVariant,
           }),
         );
       case DeviceUiConfigEvent e:
@@ -304,8 +321,8 @@ class _MeshtasticEventDetails extends StatelessWidget {
           emoji: '🪵',
           title: AppLocalizations.of(context).logRecord,
           child: _kvTable(context, {
-            'source': e.logRecord.source,
-            'message': e.logRecord.message,
+            AppLocalizations.of(context).source: e.logRecord.source,
+            AppLocalizations.of(context).message: e.logRecord.message,
           }),
         );
       case XModemEvent e:
@@ -313,10 +330,10 @@ class _MeshtasticEventDetails extends StatelessWidget {
           emoji: '💾',
           title: AppLocalizations.of(context).xmodemTitle,
           child: _kvTable(context, {
-            'control': e.xmodem.control,
-            'seq': e.xmodem.seq,
-            'crc16': e.xmodem.crc16,
-            'buffer': e.xmodem.buffer?.length,
+            AppLocalizations.of(context).control: e.xmodem.control,
+            AppLocalizations.of(context).seq: e.xmodem.seq,
+            AppLocalizations.of(context).crc16: e.xmodem.crc16,
+            AppLocalizations.of(context).buffer: e.xmodem.buffer?.length,
           }),
         );
     }
@@ -328,25 +345,25 @@ class _MeshtasticEventDetails extends StatelessWidget {
       emoji: '📦',
       title: AppLocalizations.of(context).packet,
       child: _kvTable(context, {
-        'from': p.from,
-        'to': p.to,
-        'id': p.id,
-        'channel': p.channel,
-        'rxTime': p.rxTime,
-        'rxRssi': p.rxRssi,
-        'rxSnr': p.rxSnr,
-        'hopLimit': p.hopLimit,
-        'wantAck': p.wantAck,
-        'priority': p.priority,
-        'viaMqtt': p.viaMqtt,
-        'transport': p.transportMechanism,
-        'hopStart': p.hopStart,
-        'encrypted': p.encrypted?.length,
-        'publicKey': p.publicKey?.length,
-        'pkiEncrypted': p.pkiEncrypted,
-        'nextHop': p.nextHop,
-        'relayNode': p.relayNode,
-        'txAfter': p.txAfter,
+        AppLocalizations.of(context).from: p.from,
+        AppLocalizations.of(context).to: p.to,
+        AppLocalizations.of(context).idTitle: p.id,
+        AppLocalizations.of(context).channel: p.channel,
+        AppLocalizations.of(context).rxTime: p.rxTime,
+        AppLocalizations.of(context).rxRssi: p.rxRssi,
+        AppLocalizations.of(context).rxSnr: p.rxSnr,
+        AppLocalizations.of(context).hopLimit: p.hopLimit,
+        AppLocalizations.of(context).wantAck: p.wantAck,
+        AppLocalizations.of(context).priority: p.priority,
+        AppLocalizations.of(context).viaMqtt: p.viaMqtt,
+        AppLocalizations.of(context).transport: p.transportMechanism,
+        AppLocalizations.of(context).hopStart: p.hopStart,
+        AppLocalizations.of(context).encrypted: p.encrypted?.length,
+        AppLocalizations.of(context).publicKey: p.publicKey?.length,
+        AppLocalizations.of(context).pkiEncrypted: p.pkiEncrypted,
+        AppLocalizations.of(context).nextHop: p.nextHop,
+        AppLocalizations.of(context).relayNode: p.relayNode,
+        AppLocalizations.of(context).txAfter: p.txAfter,
       }),
     );
 
@@ -357,7 +374,10 @@ class _MeshtasticEventDetails extends StatelessWidget {
       TextPayloadDto t => _Section(
         emoji: '💬',
         title: AppLocalizations.of(context).textPayload,
-        child: _kvTable(context, {'text': t.text, 'emoji': t.emoji}),
+        child: _kvTable(context, {
+          AppLocalizations.of(context).text: t.text,
+          AppLocalizations.of(context).emoji: t.emoji,
+        }),
       ),
       PositionPayloadDto pos => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -372,29 +392,37 @@ class _MeshtasticEventDetails extends StatelessWidget {
             emoji: '📍',
             title: AppLocalizations.of(context).position,
             child: _kvTable(context, {
-              'latI': pos.latitudeI,
-              'lonI': pos.longitudeI,
-              'alt': pos.position.altitude,
-              'time': pos.position.time,
-              'gpsAcc': pos.position.gpsAccuracy,
-              'sats': pos.position.satsInView,
-              'locSource': pos.position.locationSource,
-              'altSource': pos.position.altitudeSource,
-              'ts': pos.position.timestamp,
-              'tsMillisAdj': pos.position.timestampMillisAdjust,
-              'altHae': pos.position.altitudeHae,
-              'altGeoSep': pos.position.altitudeGeoidalSeparation,
-              'pDOP': pos.position.pDOP,
-              'hDOP': pos.position.hDOP,
-              'vDOP': pos.position.vDOP,
-              'groundSpeed': pos.position.groundSpeed,
-              'groundTrack': pos.position.groundTrack,
-              'fixQuality': pos.position.fixQuality,
-              'fixType': pos.position.fixType,
-              'sensorId': pos.position.sensorId,
-              'nextUpdate': pos.position.nextUpdate,
-              'seqNumber': pos.position.seqNumber,
-              'precisionBits': pos.position.precisionBits,
+              AppLocalizations.of(context).latI: pos.latitudeI,
+              AppLocalizations.of(context).lonI: pos.longitudeI,
+              AppLocalizations.of(context).altitude: pos.position.altitude,
+              AppLocalizations.of(context).time: pos.position.time,
+              AppLocalizations.of(context).gpsAccuracy:
+                  pos.position.gpsAccuracy,
+              AppLocalizations.of(context).sats: pos.position.satsInView,
+              AppLocalizations.of(context).locationSource:
+                  pos.position.locationSource,
+              AppLocalizations.of(context).altitudeSource:
+                  pos.position.altitudeSource,
+              AppLocalizations.of(context).timestamp: pos.position.timestamp,
+              AppLocalizations.of(context).tsMillisAdj:
+                  pos.position.timestampMillisAdjust,
+              AppLocalizations.of(context).altHae: pos.position.altitudeHae,
+              AppLocalizations.of(context).altGeoSep:
+                  pos.position.altitudeGeoidalSeparation,
+              AppLocalizations.of(context).pDOP: pos.position.pDOP,
+              AppLocalizations.of(context).hDOP: pos.position.hDOP,
+              AppLocalizations.of(context).vDOP: pos.position.vDOP,
+              AppLocalizations.of(context).groundSpeed:
+                  pos.position.groundSpeed,
+              AppLocalizations.of(context).groundTrack:
+                  pos.position.groundTrack,
+              AppLocalizations.of(context).fixQuality: pos.position.fixQuality,
+              AppLocalizations.of(context).fixType: pos.position.fixType,
+              AppLocalizations.of(context).sensorId: pos.position.sensorId,
+              AppLocalizations.of(context).nextUpdate: pos.position.nextUpdate,
+              AppLocalizations.of(context).seqNumber: pos.position.seqNumber,
+              AppLocalizations.of(context).precisionBits:
+                  pos.position.precisionBits,
             }),
           ),
         ],
@@ -412,14 +440,14 @@ class _MeshtasticEventDetails extends StatelessWidget {
             emoji: '📍',
             title: AppLocalizations.of(context).waypoint,
             child: _kvTable(context, {
-              'name': w.waypoint.name,
-              'id': w.waypoint.id,
-              'latI': w.waypoint.latitudeI,
-              'lonI': w.waypoint.longitudeI,
-              'expire': w.waypoint.expire,
-              'lockedTo': w.waypoint.lockedTo,
-              'desc': w.waypoint.description,
-              'icon': w.waypoint.icon,
+              AppLocalizations.of(context).name: w.waypoint.name,
+              AppLocalizations.of(context).idTitle: w.waypoint.id,
+              AppLocalizations.of(context).latI: w.waypoint.latitudeI,
+              AppLocalizations.of(context).lonI: w.waypoint.longitudeI,
+              AppLocalizations.of(context).expire: w.waypoint.expire,
+              AppLocalizations.of(context).lockedTo: w.waypoint.lockedTo,
+              AppLocalizations.of(context).description: w.waypoint.description,
+              AppLocalizations.of(context).icon: w.waypoint.icon,
             }),
           ),
         ],
@@ -428,38 +456,40 @@ class _MeshtasticEventDetails extends StatelessWidget {
         emoji: '🪪',
         title: AppLocalizations.of(context).user,
         child: _kvTable(context, {
-          'id': u.user.id,
-          'longName': u.user.longName,
-          'shortName': u.user.shortName,
-          'mac': u.user.macaddr?.length,
-          'hwModel': u.user.hwModel,
-          'isLicensed': u.user.isLicensed,
-          'role': u.user.role,
-          'pubKey': u.user.publicKey?.length,
-          'isUnmessagable': u.user.isUnmessagable,
+          AppLocalizations.of(context).idTitle: u.user.id,
+          AppLocalizations.of(context).userLongName: u.user.longName,
+          AppLocalizations.of(context).userShortName: u.user.shortName,
+          AppLocalizations.of(context).mac: u.user.macaddr?.length,
+          AppLocalizations.of(context).hardware: u.user.hwModel,
+          AppLocalizations.of(context).isLicensed: u.user.isLicensed,
+          AppLocalizations.of(context).role: u.user.role,
+          AppLocalizations.of(context).publicKey: u.user.publicKey?.length,
+          AppLocalizations.of(context).isUnmessagable: u.user.isUnmessagable,
         }),
       ),
       RoutingPayloadDto r => _Section(
         emoji: '🧭',
         title: AppLocalizations.of(context).routing,
         child: _kvTable(context, {
-          'variant': r.variant,
-          'errorReason': r.errorReason,
-          'requestId': r.requestId,
+          AppLocalizations.of(context).variant: r.variant,
+          AppLocalizations.of(context).errorReason: r.errorReason,
+          AppLocalizations.of(context).requestId: r.requestId,
         }),
       ),
       AdminPayloadDto a => _Section(
         emoji: '🛠️',
         title: AppLocalizations.of(context).admin,
-        child: _kvTable(context, {'variant': a.variant}),
+        child: _kvTable(context, {
+          AppLocalizations.of(context).variant: a.variant,
+        }),
       ),
       RemoteHardwarePayloadDto rh => _Section(
         emoji: '🔧',
         title: AppLocalizations.of(context).remoteHardware,
         child: _kvTable(context, {
-          'type': rh.type,
-          'gpioMask': rh.gpioMask,
-          'gpioValue': rh.gpioValue,
+          AppLocalizations.of(context).type: rh.type,
+          AppLocalizations.of(context).gpioMask: rh.gpioMask,
+          AppLocalizations.of(context).gpioValue: rh.gpioValue,
         }),
       ),
       NeighborInfoPayloadDto ni => _Section(
@@ -469,9 +499,10 @@ class _MeshtasticEventDetails extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _kvTable(context, {
-              'nodeId': ni.nodeId,
-              'lastSentById': ni.lastSentById,
-              'nodeBroadcastIntervalSecs': ni.nodeBroadcastIntervalSecs,
+              AppLocalizations.of(context).nodeId: ni.nodeId,
+              AppLocalizations.of(context).lastSentById: ni.lastSentById,
+              AppLocalizations.of(context).nodeBroadcastIntervalSecs:
+                  ni.nodeBroadcastIntervalSecs,
             }),
             if (ni.neighbors != null && ni.neighbors!.isNotEmpty) ...[
               const SizedBox(height: 8),
@@ -486,10 +517,11 @@ class _MeshtasticEventDetails extends StatelessWidget {
                       (n) => Padding(
                         padding: const EdgeInsets.symmetric(vertical: 2),
                         child: _kvTable(context, {
-                          'nodeId': n.nodeId,
-                          'snr': n.snr,
-                          'lastRxTime': n.lastRxTime,
-                          'broadcastIntSecs': n.nodeBroadcastIntervalSecs,
+                          AppLocalizations.of(context).nodeId: n.nodeId,
+                          AppLocalizations.of(context).snr: n.snr,
+                          AppLocalizations.of(context).lastRxTime: n.lastRxTime,
+                          AppLocalizations.of(context).broadcastIntSecs:
+                              n.nodeBroadcastIntervalSecs,
                         }),
                       ),
                     )
@@ -502,7 +534,9 @@ class _MeshtasticEventDetails extends StatelessWidget {
       StoreForwardPayloadDto sf => _Section(
         emoji: '🗄️',
         title: AppLocalizations.of(context).storeForward,
-        child: _kvTable(context, {'variant': sf.variant}),
+        child: _kvTable(context, {
+          AppLocalizations.of(context).variant: sf.variant,
+        }),
       ),
       TelemetryPayloadDto t => _Section(
         emoji: '📊',
@@ -513,37 +547,40 @@ class _MeshtasticEventDetails extends StatelessWidget {
         emoji: '👥',
         title: AppLocalizations.of(context).paxcounter,
         child: _kvTable(context, {
-          'wifi': p.wifi,
-          'ble': p.ble,
-          'uptime': p.uptime,
+          AppLocalizations.of(context).wifi: p.wifi,
+          AppLocalizations.of(context).btLabel: p.ble,
+          AppLocalizations.of(context).uptime: p.uptime,
         }),
       ),
       TraceroutePayloadDto tr => _Section(
         emoji: '🔎',
         title: AppLocalizations.of(context).traceroute,
         child: _kvTable(context, {
-          'routeLen': tr.route?.length,
-          'hops': tr.route?.map((e) => e.toString()).join(' -> '),
-          'snrTowards': tr.snrTowards?.join(', '),
-          'routeBackLen': tr.routeBack?.length,
-          'snrBack': tr.snrBack?.join(', '),
+          AppLocalizations.of(context).routeLen: tr.route?.length,
+          AppLocalizations.of(context).hops: tr.route
+              ?.map((e) => e.toString())
+              .join(' -> '),
+          AppLocalizations.of(context).snrTowards: tr.snrTowards?.join(', '),
+          AppLocalizations.of(context).routeBackLen: tr.routeBack?.length,
+          AppLocalizations.of(context).snrBack: tr.snrBack?.join(', '),
         }),
       ),
       KeyVerificationPayloadDto kv => _Section(
         emoji: '🔐',
         title: AppLocalizations.of(context).keyVerification,
         child: _kvTable(context, {
-          'nonce': kv.nonce,
-          'hash1': kv.hash1?.length,
-          'hash2': kv.hash2?.length,
+          AppLocalizations.of(context).nonce: kv.nonce,
+          AppLocalizations.of(context).hash1: kv.hash1?.length,
+          AppLocalizations.of(context).hash2: kv.hash2?.length,
         }),
       ),
       RawPayloadDto r => _Section(
         emoji: '📦',
         title: AppLocalizations.of(context).rawPayload,
         child: _kvTable(context, {
-          'port': '${r.portnum.name}:${r.portnum.id}',
-          'bytes': r.bytes.length,
+          AppLocalizations.of(context).port:
+              '${r.portnum.name}:${r.portnum.id}',
+          AppLocalizations.of(context).bytes: r.bytes.length,
         }),
       ),
     };
@@ -556,18 +593,25 @@ class _MeshtasticEventDetails extends StatelessWidget {
 
   Widget _telemetryDetails(BuildContext context, TelemetryPayloadDto t) {
     final children = <Widget>[
-      _kvTable(context, {'variant': t.variant, 'time': t.time}),
+      _kvTable(context, {
+        AppLocalizations.of(context).variant: t.variant,
+        AppLocalizations.of(context).time: t.time,
+      }),
     ];
 
     if (t.deviceMetrics != null) {
       children.add(_Subheader(AppLocalizations.of(context).deviceMetricsTitle));
       children.add(
         _kvTable(context, {
-          'batteryLevel': t.deviceMetrics!.batteryLevel,
-          'voltage': t.deviceMetrics!.voltage,
-          'channelUtilization': t.deviceMetrics!.channelUtilization,
-          'airUtilTx': t.deviceMetrics!.airUtilTx,
-          'uptimeSeconds': t.deviceMetrics!.uptimeSeconds,
+          AppLocalizations.of(context).telemetryBattery:
+              t.deviceMetrics!.batteryLevel,
+          AppLocalizations.of(context).telemetryVoltage:
+              t.deviceMetrics!.voltage,
+          AppLocalizations.of(context).telemetryChannelUtil:
+              t.deviceMetrics!.channelUtilization,
+          AppLocalizations.of(context).telemetryAirUtilTx:
+              t.deviceMetrics!.airUtilTx,
+          AppLocalizations.of(context).uptime: t.deviceMetrics!.uptimeSeconds,
         }),
       );
     }
@@ -578,23 +622,30 @@ class _MeshtasticEventDetails extends StatelessWidget {
       );
       children.add(
         _kvTable(context, {
-          'temperature': t.environmentMetrics!.temperature,
-          'relativeHumidity': t.environmentMetrics!.relativeHumidity,
-          'barometricPressure': t.environmentMetrics!.barometricPressure,
-          'gasResistance': t.environmentMetrics!.gasResistance,
-          'voltage': t.environmentMetrics!.voltage,
-          'current': t.environmentMetrics!.current,
-          'iaq': t.environmentMetrics!.iaq,
-          'distance': t.environmentMetrics!.distance,
-          'lux': t.environmentMetrics!.lux,
-          'whiteLux': t.environmentMetrics!.whiteLux,
-          'irLux': t.environmentMetrics!.irLux,
-          'uvLux': t.environmentMetrics!.uvLux,
-          'windDirection': t.environmentMetrics!.windDirection,
-          'windSpeed': t.environmentMetrics!.windSpeed,
-          'weight': t.environmentMetrics!.weight,
-          'windGust': t.environmentMetrics!.windGust,
-          'windLull': t.environmentMetrics!.windLull,
+          AppLocalizations.of(context).telemetryTemperature:
+              t.environmentMetrics!.temperature,
+          AppLocalizations.of(context).relativeHumidity:
+              t.environmentMetrics!.relativeHumidity,
+          AppLocalizations.of(context).barometricPressure:
+              t.environmentMetrics!.barometricPressure,
+          AppLocalizations.of(context).gasResistance:
+              t.environmentMetrics!.gasResistance,
+          AppLocalizations.of(context).telemetryVoltage:
+              t.environmentMetrics!.voltage,
+          AppLocalizations.of(context).current: t.environmentMetrics!.current,
+          AppLocalizations.of(context).iaq: t.environmentMetrics!.iaq,
+          AppLocalizations.of(context).distance: t.environmentMetrics!.distance,
+          AppLocalizations.of(context).lux: t.environmentMetrics!.lux,
+          AppLocalizations.of(context).whiteLux: t.environmentMetrics!.whiteLux,
+          AppLocalizations.of(context).irLux: t.environmentMetrics!.irLux,
+          AppLocalizations.of(context).uvLux: t.environmentMetrics!.uvLux,
+          AppLocalizations.of(context).windDirection:
+              t.environmentMetrics!.windDirection,
+          AppLocalizations.of(context).windSpeed:
+              t.environmentMetrics!.windSpeed,
+          AppLocalizations.of(context).weight: t.environmentMetrics!.weight,
+          AppLocalizations.of(context).windGust: t.environmentMetrics!.windGust,
+          AppLocalizations.of(context).windLull: t.environmentMetrics!.windLull,
         }),
       );
     }
@@ -605,25 +656,43 @@ class _MeshtasticEventDetails extends StatelessWidget {
       );
       children.add(
         _kvTable(context, {
-          'pm10Standard': t.airQualityMetrics!.pm10Standard,
-          'pm25Standard': t.airQualityMetrics!.pm25Standard,
-          'pm100Standard': t.airQualityMetrics!.pm100Standard,
-          'pm10Environmental': t.airQualityMetrics!.pm10Environmental,
-          'pm25Environmental': t.airQualityMetrics!.pm25Environmental,
-          'pm100Environmental': t.airQualityMetrics!.pm100Environmental,
-          'particles03um': t.airQualityMetrics!.particles03um,
-          'particles05um': t.airQualityMetrics!.particles05um,
-          'particles10um': t.airQualityMetrics!.particles10um,
-          'particles25um': t.airQualityMetrics!.particles25um,
-          'particles50um': t.airQualityMetrics!.particles50um,
-          'particles100um': t.airQualityMetrics!.particles100um,
-          'co2': t.airQualityMetrics!.co2,
-          'co2Temperature': t.airQualityMetrics!.co2Temperature,
-          'co2Humidity': t.airQualityMetrics!.co2Humidity,
-          'formFormaldehyde': t.airQualityMetrics!.formFormaldehyde,
-          'formHumidity': t.airQualityMetrics!.formHumidity,
-          'formTemperature': t.airQualityMetrics!.formTemperature,
-          'pm40Standard': t.airQualityMetrics!.pm40Standard,
+          AppLocalizations.of(context).pm10Standard:
+              t.airQualityMetrics!.pm10Standard,
+          AppLocalizations.of(context).pm25Standard:
+              t.airQualityMetrics!.pm25Standard,
+          AppLocalizations.of(context).pm100Standard:
+              t.airQualityMetrics!.pm100Standard,
+          AppLocalizations.of(context).pm10Environmental:
+              t.airQualityMetrics!.pm10Environmental,
+          AppLocalizations.of(context).pm25Environmental:
+              t.airQualityMetrics!.pm25Environmental,
+          AppLocalizations.of(context).pm100Environmental:
+              t.airQualityMetrics!.pm100Environmental,
+          AppLocalizations.of(context).particles03um:
+              t.airQualityMetrics!.particles03um,
+          AppLocalizations.of(context).particles05um:
+              t.airQualityMetrics!.particles05um,
+          AppLocalizations.of(context).particles10um:
+              t.airQualityMetrics!.particles10um,
+          AppLocalizations.of(context).particles25um:
+              t.airQualityMetrics!.particles25um,
+          AppLocalizations.of(context).particles50um:
+              t.airQualityMetrics!.particles50um,
+          AppLocalizations.of(context).particles100um:
+              t.airQualityMetrics!.particles100um,
+          AppLocalizations.of(context).telemetryCo2: t.airQualityMetrics!.co2,
+          AppLocalizations.of(context).co2Temperature:
+              t.airQualityMetrics!.co2Temperature,
+          AppLocalizations.of(context).co2Humidity:
+              t.airQualityMetrics!.co2Humidity,
+          AppLocalizations.of(context).formaldehyde:
+              t.airQualityMetrics!.formFormaldehyde,
+          AppLocalizations.of(context).formaldehydeHumidity:
+              t.airQualityMetrics!.formHumidity,
+          AppLocalizations.of(context).formaldehydeTemperature:
+              t.airQualityMetrics!.formTemperature,
+          AppLocalizations.of(context).pm40Standard:
+              t.airQualityMetrics!.pm40Standard,
         }),
       );
     }
@@ -632,12 +701,12 @@ class _MeshtasticEventDetails extends StatelessWidget {
       children.add(_Subheader(AppLocalizations.of(context).powerMetricsTitle));
       children.add(
         _kvTable(context, {
-          'ch1Voltage': t.powerMetrics!.ch1Voltage,
-          'ch1Current': t.powerMetrics!.ch1Current,
-          'ch2Voltage': t.powerMetrics!.ch2Voltage,
-          'ch2Current': t.powerMetrics!.ch2Current,
-          'ch3Voltage': t.powerMetrics!.ch3Voltage,
-          'ch3Current': t.powerMetrics!.ch3Current,
+          AppLocalizations.of(context).ch1Voltage: t.powerMetrics!.ch1Voltage,
+          AppLocalizations.of(context).ch1Current: t.powerMetrics!.ch1Current,
+          AppLocalizations.of(context).ch2Voltage: t.powerMetrics!.ch2Voltage,
+          AppLocalizations.of(context).ch2Current: t.powerMetrics!.ch2Current,
+          AppLocalizations.of(context).ch3Voltage: t.powerMetrics!.ch3Voltage,
+          AppLocalizations.of(context).ch3Current: t.powerMetrics!.ch3Current,
         }),
       );
     }
@@ -646,13 +715,17 @@ class _MeshtasticEventDetails extends StatelessWidget {
       children.add(_Subheader(AppLocalizations.of(context).localStatsTitle));
       children.add(
         _kvTable(context, {
-          'uptimeSeconds': t.localStats!.uptimeSeconds,
-          'channelUtilization': t.localStats!.channelUtilization,
-          'airUtilTx': t.localStats!.airUtilTx,
-          'numPacketsTx': t.localStats!.numPacketsTx,
-          'numPacketsRx': t.localStats!.numPacketsRx,
-          'numPacketsRxBad': t.localStats!.numPacketsRxBad,
-          'numOnlineNodes': t.localStats!.numOnlineNodes,
+          AppLocalizations.of(context).uptime: t.localStats!.uptimeSeconds,
+          AppLocalizations.of(context).telemetryChannelUtil:
+              t.localStats!.channelUtilization,
+          AppLocalizations.of(context).telemetryAirUtilTx:
+              t.localStats!.airUtilTx,
+          AppLocalizations.of(context).numPacketsTx: t.localStats!.numPacketsTx,
+          AppLocalizations.of(context).numPacketsRx: t.localStats!.numPacketsRx,
+          AppLocalizations.of(context).numPacketsRxBad:
+              t.localStats!.numPacketsRxBad,
+          AppLocalizations.of(context).numOnlineNodes:
+              t.localStats!.numOnlineNodes,
         }),
       );
     }
@@ -661,9 +734,10 @@ class _MeshtasticEventDetails extends StatelessWidget {
       children.add(_Subheader(AppLocalizations.of(context).healthMetricsTitle));
       children.add(
         _kvTable(context, {
-          'heartBpm': t.healthMetrics!.heartBpm,
-          'spO2': t.healthMetrics!.spO2,
-          'temperature': t.healthMetrics!.temperature,
+          AppLocalizations.of(context).heartBpm: t.healthMetrics!.heartBpm,
+          AppLocalizations.of(context).spO2: t.healthMetrics!.spO2,
+          AppLocalizations.of(context).telemetryTemperature:
+              t.healthMetrics!.temperature,
         }),
       );
     }
@@ -672,15 +746,19 @@ class _MeshtasticEventDetails extends StatelessWidget {
       children.add(_Subheader(AppLocalizations.of(context).hostMetricsTitle));
       children.add(
         _kvTable(context, {
-          'uptimeSeconds': t.hostMetrics!.uptimeSeconds,
-          'freememBytes': t.hostMetrics!.freememBytes,
-          'diskfree1Bytes': t.hostMetrics!.diskfree1Bytes,
-          'diskfree2Bytes': t.hostMetrics!.diskfree2Bytes,
-          'diskfree3Bytes': t.hostMetrics!.diskfree3Bytes,
-          'load1': t.hostMetrics!.load1,
-          'load5': t.hostMetrics!.load5,
-          'load15': t.hostMetrics!.load15,
-          'userString': t.hostMetrics!.userString,
+          AppLocalizations.of(context).uptime: t.hostMetrics!.uptimeSeconds,
+          AppLocalizations.of(context).freememBytes:
+              t.hostMetrics!.freememBytes,
+          AppLocalizations.of(context).diskfree1Bytes:
+              t.hostMetrics!.diskfree1Bytes,
+          AppLocalizations.of(context).diskfree2Bytes:
+              t.hostMetrics!.diskfree2Bytes,
+          AppLocalizations.of(context).diskfree3Bytes:
+              t.hostMetrics!.diskfree3Bytes,
+          AppLocalizations.of(context).load1: t.hostMetrics!.load1,
+          AppLocalizations.of(context).load5: t.hostMetrics!.load5,
+          AppLocalizations.of(context).load15: t.hostMetrics!.load15,
+          AppLocalizations.of(context).userString: t.hostMetrics!.userString,
         }),
       );
     }
@@ -729,18 +807,21 @@ class _MeshtasticEventDetails extends StatelessWidget {
       children.add(_Subheader(AppLocalizations.of(context).device));
       children.add(
         _kvTable(context, {
-          'role': d.role,
-          'serialEnabled': d.serialEnabled,
-          'buttonGpio': d.buttonGpio,
-          'buzzerGpio': d.buzzerGpio,
-          'rebroadcastMode': d.rebroadcastMode,
-          'nodeInfoBroadcastSecs': d.nodeInfoBroadcastSecs,
-          'doubleTapAsButtonPress': d.doubleTapAsButtonPress,
-          'isManaged': d.isManaged,
-          'disableTripleClick': d.disableTripleClick,
-          'tzdef': d.tzdef,
-          'ledHeartbeatDisabled': d.ledHeartbeatDisabled,
-          'buzzerMode': d.buzzerMode,
+          AppLocalizations.of(context).role: d.role,
+          AppLocalizations.of(context).serialEnabled: d.serialEnabled,
+          AppLocalizations.of(context).buttonGpio: d.buttonGpio,
+          AppLocalizations.of(context).buzzerGpio: d.buzzerGpio,
+          AppLocalizations.of(context).rebroadcastMode: d.rebroadcastMode,
+          AppLocalizations.of(context).nodeInfoBroadcastSecs:
+              d.nodeInfoBroadcastSecs,
+          AppLocalizations.of(context).doubleTapAsButtonPress:
+              d.doubleTapAsButtonPress,
+          AppLocalizations.of(context).isManaged: d.isManaged,
+          AppLocalizations.of(context).disableTripleClick: d.disableTripleClick,
+          AppLocalizations.of(context).timezone: d.tzdef,
+          AppLocalizations.of(context).ledHeartbeatDisabled:
+              d.ledHeartbeatDisabled,
+          AppLocalizations.of(context).buzzerMode: d.buzzerMode,
         }),
       );
     }
@@ -750,20 +831,23 @@ class _MeshtasticEventDetails extends StatelessWidget {
       children.add(_Subheader(AppLocalizations.of(context).position));
       children.add(
         _kvTable(context, {
-          'positionBroadcastSecs': p.positionBroadcastSecs,
-          'positionBroadcastSmartEnabled': p.positionBroadcastSmartEnabled,
-          'fixedPosition': p.fixedPosition,
-          'gpsEnabled': p.gpsEnabled,
-          'gpsUpdateInterval': p.gpsUpdateInterval,
-          'gpsAttemptTime': p.gpsAttemptTime,
-          'positionFlags': p.positionFlags,
-          'rxGpio': p.rxGpio,
-          'txGpio': p.txGpio,
-          'broadcastSmartMinimumDistance': p.broadcastSmartMinimumDistance,
-          'broadcastSmartMinimumIntervalSecs':
+          AppLocalizations.of(context).positionBroadcastSecs:
+              p.positionBroadcastSecs,
+          AppLocalizations.of(context).positionBroadcastSmartEnabled:
+              p.positionBroadcastSmartEnabled,
+          AppLocalizations.of(context).fixedPosition: p.fixedPosition,
+          AppLocalizations.of(context).gpsEnabled: p.gpsEnabled,
+          AppLocalizations.of(context).gpsUpdateInterval: p.gpsUpdateInterval,
+          AppLocalizations.of(context).gpsAttemptTime: p.gpsAttemptTime,
+          AppLocalizations.of(context).positionFlags: p.positionFlags,
+          AppLocalizations.of(context).rxGpio: p.rxGpio,
+          AppLocalizations.of(context).txGpio: p.txGpio,
+          AppLocalizations.of(context).broadcastSmartMinimumDistance:
+              p.broadcastSmartMinimumDistance,
+          AppLocalizations.of(context).broadcastSmartMinimumIntervalSecs:
               p.broadcastSmartMinimumIntervalSecs,
-          'gpsEnGpio': p.gpsEnGpio,
-          'gpsMode': p.gpsMode,
+          AppLocalizations.of(context).gpsEnableGpio: p.gpsEnGpio,
+          AppLocalizations.of(context).gpsMode: p.gpsMode,
         }),
       );
     }
@@ -773,15 +857,18 @@ class _MeshtasticEventDetails extends StatelessWidget {
       children.add(_Subheader(AppLocalizations.of(context).power));
       children.add(
         _kvTable(context, {
-          'isPowerSaving': p.isPowerSaving,
-          'onBatteryShutdownAfterSecs': p.onBatteryShutdownAfterSecs,
-          'adcMultiplierOverride': p.adcMultiplierOverride,
-          'waitBluetoothSecs': p.waitBluetoothSecs,
-          'sdsSecs': p.sdsSecs,
-          'lsSecs': p.lsSecs,
-          'minWakeSecs': p.minWakeSecs,
-          'deviceBatteryInaAddress': p.deviceBatteryInaAddress,
-          'powermonEnables': p.powermonEnables,
+          AppLocalizations.of(context).isPowerSaving: p.isPowerSaving,
+          AppLocalizations.of(context).onBatteryShutdownAfterSecs:
+              p.onBatteryShutdownAfterSecs,
+          AppLocalizations.of(context).adcMultiplierOverride:
+              p.adcMultiplierOverride,
+          AppLocalizations.of(context).waitBluetoothSecs: p.waitBluetoothSecs,
+          AppLocalizations.of(context).sdsSecs: p.sdsSecs,
+          AppLocalizations.of(context).lsSecs: p.lsSecs,
+          AppLocalizations.of(context).minWakeSecs: p.minWakeSecs,
+          AppLocalizations.of(context).deviceBatteryInaAddress:
+              p.deviceBatteryInaAddress,
+          AppLocalizations.of(context).powermonEnables: p.powermonEnables,
         }),
       );
     }
@@ -791,15 +878,17 @@ class _MeshtasticEventDetails extends StatelessWidget {
       children.add(_Subheader(AppLocalizations.of(context).network));
       children.add(
         _kvTable(context, {
-          'wifiEnabled': n.wifiEnabled,
-          'wifiSsid': n.wifiSsid,
-          'wifiPsk': n.wifiPsk != null ? '••••' : null,
-          'ntpServer': n.ntpServer,
-          'ethEnabled': n.ethEnabled,
-          'addressMode': n.addressMode,
-          'rsyslogServer': n.rsyslogServer,
-          'enabledProtocols': n.enabledProtocols,
-          'ipv6Enabled': n.ipv6Enabled,
+          AppLocalizations.of(context).wifiEnabled: n.wifiEnabled,
+          AppLocalizations.of(context).wifiSsid: n.wifiSsid,
+          AppLocalizations.of(context).wifiPsk: n.wifiPsk != null
+              ? '••••'
+              : null,
+          AppLocalizations.of(context).ntpServer: n.ntpServer,
+          AppLocalizations.of(context).ethEnabled: n.ethEnabled,
+          AppLocalizations.of(context).addressMode: n.addressMode,
+          AppLocalizations.of(context).rsyslogServer: n.rsyslogServer,
+          AppLocalizations.of(context).enabledProtocols: n.enabledProtocols,
+          AppLocalizations.of(context).ipv6Enabled: n.ipv6Enabled,
         }),
       );
       if (n.ipv4Config != null) {
@@ -807,10 +896,10 @@ class _MeshtasticEventDetails extends StatelessWidget {
         children.add(
           _Indent(
             child: _kvTable(context, {
-              'ip': i.ip,
-              'gateway': i.gateway,
-              'subnet': i.subnet,
-              'dns': i.dns,
+              AppLocalizations.of(context).ip: i.ip,
+              AppLocalizations.of(context).gateway: i.gateway,
+              AppLocalizations.of(context).subnet: i.subnet,
+              AppLocalizations.of(context).dns: i.dns,
             }),
           ),
         );
@@ -822,18 +911,19 @@ class _MeshtasticEventDetails extends StatelessWidget {
       children.add(_Subheader(AppLocalizations.of(context).display));
       children.add(
         _kvTable(context, {
-          'screenOnSecs': d.screenOnSecs,
-          'autoScreenCarouselSecs': d.autoScreenCarouselSecs,
-          'compassNorthTop': d.compassNorthTop,
-          'flipScreen': d.flipScreen,
-          'units': d.units,
-          'oled': d.oled,
-          'displaymode': d.displaymode,
-          'headingBold': d.headingBold,
-          'wakeOnTapOrMotion': d.wakeOnTapOrMotion,
-          'compassOrientation': d.compassOrientation,
-          'use12hClock': d.use12hClock,
-          'useLongNodeName': d.useLongNodeName,
+          AppLocalizations.of(context).screenOnSecs: d.screenOnSecs,
+          AppLocalizations.of(context).autoScreenCarouselSecs:
+              d.autoScreenCarouselSecs,
+          AppLocalizations.of(context).compassNorthTop: d.compassNorthTop,
+          AppLocalizations.of(context).flipScreen: d.flipScreen,
+          AppLocalizations.of(context).units: d.units,
+          AppLocalizations.of(context).oled: d.oled,
+          AppLocalizations.of(context).displaymode: d.displaymode,
+          AppLocalizations.of(context).headingBold: d.headingBold,
+          AppLocalizations.of(context).wakeOnTapOrMotion: d.wakeOnTapOrMotion,
+          AppLocalizations.of(context).compassOrientation: d.compassOrientation,
+          AppLocalizations.of(context).use12hClock: d.use12hClock,
+          AppLocalizations.of(context).useLongNodeName: d.useLongNodeName,
         }),
       );
     }
@@ -843,24 +933,27 @@ class _MeshtasticEventDetails extends StatelessWidget {
       children.add(_Subheader(AppLocalizations.of(context).lora));
       children.add(
         _kvTable(context, {
-          'usePreset': l.usePreset,
-          'modemPreset': l.modemPreset,
-          'bandwidth': l.bandwidth,
-          'spreadFactor': l.spreadFactor,
-          'codingRate': l.codingRate,
-          'frequencyOffset': l.frequencyOffset,
-          'region': l.region,
-          'hopLimit': l.hopLimit,
-          'txEnabled': l.txEnabled,
-          'txPower': l.txPower,
-          'channelNum': l.channelNum,
-          'overrideDutyCycle': l.overrideDutyCycle,
-          'sx126xRxBoostedGain': l.sx126xRxBoostedGain,
-          'overrideFrequency': l.overrideFrequency,
-          'paFanDisabled': l.paFanDisabled,
-          'ignoreIncoming': l.ignoreIncoming?.join(', '),
-          'ignoreMqtt': l.ignoreMqtt,
-          'configOkToMqtt': l.configOkToMqtt,
+          AppLocalizations.of(context).usePreset: l.usePreset,
+          AppLocalizations.of(context).modemPreset: l.modemPreset,
+          AppLocalizations.of(context).bandwidth: l.bandwidth,
+          AppLocalizations.of(context).spreadFactor: l.spreadFactor,
+          AppLocalizations.of(context).codingRate: l.codingRate,
+          AppLocalizations.of(context).frequencyOffset: l.frequencyOffset,
+          AppLocalizations.of(context).region: l.region,
+          AppLocalizations.of(context).hopLimit: l.hopLimit,
+          AppLocalizations.of(context).txEnabled: l.txEnabled,
+          AppLocalizations.of(context).txPower: l.txPower,
+          AppLocalizations.of(context).channelNum: l.channelNum,
+          AppLocalizations.of(context).overrideDutyCycle: l.overrideDutyCycle,
+          AppLocalizations.of(context).sx126xRxBoostedGain:
+              l.sx126xRxBoostedGain,
+          AppLocalizations.of(context).overrideFrequency: l.overrideFrequency,
+          AppLocalizations.of(context).paFanDisabled: l.paFanDisabled,
+          AppLocalizations.of(context).ignoreIncoming: l.ignoreIncoming?.join(
+            ', ',
+          ),
+          AppLocalizations.of(context).ignoreMqtt: l.ignoreMqtt,
+          AppLocalizations.of(context).configOkToMqtt: l.configOkToMqtt,
         }),
       );
     }
@@ -870,9 +963,9 @@ class _MeshtasticEventDetails extends StatelessWidget {
       children.add(_Subheader(AppLocalizations.of(context).bluetooth));
       children.add(
         _kvTable(context, {
-          'enabled': b.enabled,
-          'mode': b.mode,
-          'fixedPin': b.fixedPin,
+          AppLocalizations.of(context).enabled: b.enabled,
+          AppLocalizations.of(context).mode: b.mode,
+          AppLocalizations.of(context).fixedPin: b.fixedPin,
         }),
       );
     }
@@ -882,13 +975,16 @@ class _MeshtasticEventDetails extends StatelessWidget {
       children.add(_Subheader(AppLocalizations.of(context).security));
       children.add(
         _kvTable(context, {
-          'publicKey': s.publicKey?.length,
-          'privateKey': s.privateKey != null ? '••••' : null,
-          'adminKeyCount': s.adminKey?.length,
-          'isManaged': s.isManaged,
-          'serialEnabled': s.serialEnabled,
-          'debugLogApiEnabled': s.debugLogApiEnabled,
-          'adminChannelEnabled': s.adminChannelEnabled,
+          AppLocalizations.of(context).publicKey: s.publicKey?.length,
+          AppLocalizations.of(context).privateKey: s.privateKey != null
+              ? '••••'
+              : null,
+          AppLocalizations.of(context).adminKeyCount: s.adminKey?.length,
+          AppLocalizations.of(context).isManaged: s.isManaged,
+          AppLocalizations.of(context).serialEnabled: s.serialEnabled,
+          AppLocalizations.of(context).debugLogApiEnabled: s.debugLogApiEnabled,
+          AppLocalizations.of(context).adminChannelEnabled:
+              s.adminChannelEnabled,
         }),
       );
     }
@@ -913,16 +1009,20 @@ class _MeshtasticEventDetails extends StatelessWidget {
       ); // Reuse mqttProxy key or add mqtt
       children.add(
         _kvTable(context, {
-          'enabled': x.enabled,
-          'address': x.address,
-          'username': x.username,
-          'password': x.password != null ? '••••' : null,
-          'encryptionEnabled': x.encryptionEnabled,
-          'jsonEnabled': x.jsonEnabled,
-          'tlsEnabled': x.tlsEnabled,
-          'root': x.root,
-          'proxyToClientEnabled': x.proxyToClientEnabled,
-          'mapReportingEnabled': x.mapReportingEnabled,
+          AppLocalizations.of(context).enabled: x.enabled,
+          AppLocalizations.of(context).address: x.address,
+          AppLocalizations.of(context).username: x.username,
+          AppLocalizations.of(context).password: x.password != null
+              ? '••••'
+              : null,
+          AppLocalizations.of(context).encryptionEnabled: x.encryptionEnabled,
+          AppLocalizations.of(context).jsonEnabled: x.jsonEnabled,
+          AppLocalizations.of(context).tlsEnabled: x.tlsEnabled,
+          AppLocalizations.of(context).root: x.root,
+          AppLocalizations.of(context).proxyToClientEnabled:
+              x.proxyToClientEnabled,
+          AppLocalizations.of(context).mapReportingEnabled:
+              x.mapReportingEnabled,
         }),
       );
       if (x.mapReportSettings != null) {
@@ -930,9 +1030,12 @@ class _MeshtasticEventDetails extends StatelessWidget {
         children.add(
           _Indent(
             child: _kvTable(context, {
-              'publishIntervalSecs': s.publishIntervalSecs,
-              'positionPrecision': s.positionPrecision,
-              'shouldReportLocation': s.shouldReportLocation,
+              AppLocalizations.of(context).publishIntervalSecs:
+                  s.publishIntervalSecs,
+              AppLocalizations.of(context).positionPrecision:
+                  s.positionPrecision,
+              AppLocalizations.of(context).shouldReportLocation:
+                  s.shouldReportLocation,
             }),
           ),
         );
@@ -943,20 +1046,31 @@ class _MeshtasticEventDetails extends StatelessWidget {
       children.add(_Subheader(AppLocalizations.of(context).telemetry));
       children.add(
         _kvTable(context, {
-          'deviceUpdateInterval': x.deviceUpdateInterval,
-          'environmentUpdateInterval': x.environmentUpdateInterval,
-          'environmentMeasurementEnabled': x.environmentMeasurementEnabled,
-          'environmentScreenEnabled': x.environmentScreenEnabled,
-          'environmentDisplayFahrenheit': x.environmentDisplayFahrenheit,
-          'airQualityEnabled': x.airQualityEnabled,
-          'airQualityInterval': x.airQualityInterval,
-          'powerMeasurementEnabled': x.powerMeasurementEnabled,
-          'powerUpdateInterval': x.powerUpdateInterval,
-          'powerScreenEnabled': x.powerScreenEnabled,
-          'healthMeasurementEnabled': x.healthMeasurementEnabled,
-          'healthUpdateInterval': x.healthUpdateInterval,
-          'healthScreenEnabled': x.healthScreenEnabled,
-          'deviceTelemetryEnabled': x.deviceTelemetryEnabled,
+          AppLocalizations.of(context).deviceUpdateInterval:
+              x.deviceUpdateInterval,
+          AppLocalizations.of(context).environmentUpdateInterval:
+              x.environmentUpdateInterval,
+          AppLocalizations.of(context).environmentMeasurementEnabled:
+              x.environmentMeasurementEnabled,
+          AppLocalizations.of(context).environmentScreenEnabled:
+              x.environmentScreenEnabled,
+          AppLocalizations.of(context).environmentDisplayFahrenheit:
+              x.environmentDisplayFahrenheit,
+          AppLocalizations.of(context).airQualityEnabled: x.airQualityEnabled,
+          AppLocalizations.of(context).airQualityInterval: x.airQualityInterval,
+          AppLocalizations.of(context).powerMeasurementEnabled:
+              x.powerMeasurementEnabled,
+          AppLocalizations.of(context).powerUpdateInterval:
+              x.powerUpdateInterval,
+          AppLocalizations.of(context).powerScreenEnabled: x.powerScreenEnabled,
+          AppLocalizations.of(context).healthMeasurementEnabled:
+              x.healthMeasurementEnabled,
+          AppLocalizations.of(context).healthUpdateInterval:
+              x.healthUpdateInterval,
+          AppLocalizations.of(context).healthScreenEnabled:
+              x.healthScreenEnabled,
+          AppLocalizations.of(context).deviceTelemetryEnabled:
+              x.deviceTelemetryEnabled,
         }),
       );
     }
@@ -965,14 +1079,15 @@ class _MeshtasticEventDetails extends StatelessWidget {
       children.add(_Subheader(AppLocalizations.of(context).serial));
       children.add(
         _kvTable(context, {
-          'enabled': x.enabled,
-          'echo': x.echo,
-          'rxd': x.rxd,
-          'txd': x.txd,
-          'baud': x.baud,
-          'timeout': x.timeout,
-          'mode': x.mode,
-          'overrideConsoleSerialPort': x.overrideConsoleSerialPort,
+          AppLocalizations.of(context).enabled: x.enabled,
+          AppLocalizations.of(context).echo: x.echo,
+          AppLocalizations.of(context).rxd: x.rxd,
+          AppLocalizations.of(context).txd: x.txd,
+          AppLocalizations.of(context).baud: x.baud,
+          AppLocalizations.of(context).timeout: x.timeout,
+          AppLocalizations.of(context).mode: x.mode,
+          AppLocalizations.of(context).overrideConsoleSerialPort:
+              x.overrideConsoleSerialPort,
         }),
       );
     }
@@ -981,13 +1096,14 @@ class _MeshtasticEventDetails extends StatelessWidget {
       children.add(_Subheader(AppLocalizations.of(context).storeForward));
       children.add(
         _kvTable(context, {
-          'enabled': x.enabled,
-          'heartbeat': x.heartbeat,
-          'records': x.records,
-          'historyReturnMax': x.historyReturnMax,
-          'historyReturnWindow': x.historyReturnWindow,
-          'isServer': x.isServer,
-          'emitControlSignals': x.emitControlSignals,
+          AppLocalizations.of(context).enabled: x.enabled,
+          AppLocalizations.of(context).heartbeat: x.heartbeat,
+          AppLocalizations.of(context).records: x.records,
+          AppLocalizations.of(context).historyReturnMax: x.historyReturnMax,
+          AppLocalizations.of(context).historyReturnWindow:
+              x.historyReturnWindow,
+          AppLocalizations.of(context).isServer: x.isServer,
+          AppLocalizations.of(context).emitControlSignals: x.emitControlSignals,
         }),
       );
     }
@@ -996,10 +1112,10 @@ class _MeshtasticEventDetails extends StatelessWidget {
       children.add(_Subheader(AppLocalizations.of(context).rangeTest));
       children.add(
         _kvTable(context, {
-          'enabled': x.enabled,
-          'sender': x.sender,
-          'save': x.save,
-          'clearOnReboot': x.clearOnReboot,
+          AppLocalizations.of(context).enabled: x.enabled,
+          AppLocalizations.of(context).sender: x.sender,
+          AppLocalizations.of(context).save: x.save,
+          AppLocalizations.of(context).clearOnReboot: x.clearOnReboot,
         }),
       );
     }
@@ -1010,21 +1126,21 @@ class _MeshtasticEventDetails extends StatelessWidget {
       );
       children.add(
         _kvTable(context, {
-          'enabled': x.enabled,
-          'outputMs': x.outputMs,
-          'output': x.output,
-          'active': x.active,
-          'alertMessage': x.alertMessage,
-          'alertBell': x.alertBell,
-          'usePwm': x.usePwm,
-          'outputVibra': x.outputVibra,
-          'outputBuzzer': x.outputBuzzer,
-          'alertMessageVibra': x.alertMessageVibra,
-          'alertMessageBuzzer': x.alertMessageBuzzer,
-          'alertBellVibra': x.alertBellVibra,
-          'alertBellBuzzer': x.alertBellBuzzer,
-          'nagTimeout': x.nagTimeout,
-          'useI2sAsBuzzer': x.useI2sAsBuzzer,
+          AppLocalizations.of(context).enabled: x.enabled,
+          AppLocalizations.of(context).outputMs: x.outputMs,
+          AppLocalizations.of(context).output: x.output,
+          AppLocalizations.of(context).active: x.active,
+          AppLocalizations.of(context).alertMessage: x.alertMessage,
+          AppLocalizations.of(context).alertBell: x.alertBell,
+          AppLocalizations.of(context).usePwm: x.usePwm,
+          AppLocalizations.of(context).outputVibra: x.outputVibra,
+          AppLocalizations.of(context).outputBuzzer: x.outputBuzzer,
+          AppLocalizations.of(context).alertMessageVibra: x.alertMessageVibra,
+          AppLocalizations.of(context).alertMessageBuzzer: x.alertMessageBuzzer,
+          AppLocalizations.of(context).alertBellVibra: x.alertBellVibra,
+          AppLocalizations.of(context).alertBellBuzzer: x.alertBellBuzzer,
+          AppLocalizations.of(context).nagTimeout: x.nagTimeout,
+          AppLocalizations.of(context).useI2sAsBuzzer: x.useI2sAsBuzzer,
         }),
       );
     }
@@ -1033,13 +1149,13 @@ class _MeshtasticEventDetails extends StatelessWidget {
       children.add(_Subheader(AppLocalizations.of(context).audio));
       children.add(
         _kvTable(context, {
-          'codec2Enabled': x.codec2Enabled,
-          'pttPin': x.pttPin,
-          'bitrate': x.bitrate,
-          'i2sWs': x.i2sWs,
-          'i2sSd': x.i2sSd,
-          'i2sDin': x.i2sDin,
-          'i2sSck': x.i2sSck,
+          AppLocalizations.of(context).codec2Enabled: x.codec2Enabled,
+          AppLocalizations.of(context).pttPin: x.pttPin,
+          AppLocalizations.of(context).bitrate: x.bitrate,
+          AppLocalizations.of(context).i2sWs: x.i2sWs,
+          AppLocalizations.of(context).i2sSd: x.i2sSd,
+          AppLocalizations.of(context).i2sDin: x.i2sDin,
+          AppLocalizations.of(context).i2sSck: x.i2sSck,
         }),
       );
     }
@@ -1048,9 +1164,9 @@ class _MeshtasticEventDetails extends StatelessWidget {
       children.add(_Subheader(AppLocalizations.of(context).neighborInfo));
       children.add(
         _kvTable(context, {
-          'enabled': x.enabled,
-          'updateInterval': x.updateInterval,
-          'transmitOverLora': x.transmitOverLora,
+          AppLocalizations.of(context).enabled: x.enabled,
+          AppLocalizations.of(context).updateInterval: x.updateInterval,
+          AppLocalizations.of(context).transmitOverLora: x.transmitOverLora,
         }),
       );
     }
@@ -1059,9 +1175,11 @@ class _MeshtasticEventDetails extends StatelessWidget {
       children.add(_Subheader(AppLocalizations.of(context).remoteHardware));
       children.add(
         _kvTable(context, {
-          'enabled': x.enabled,
-          'allowUndefinedPinAccess': x.allowUndefinedPinAccess,
-          'availablePinsCount': x.availablePins?.length,
+          AppLocalizations.of(context).enabled: x.enabled,
+          AppLocalizations.of(context).allowUndefinedPinAccess:
+              x.allowUndefinedPinAccess,
+          AppLocalizations.of(context).availablePinsCount:
+              x.availablePins?.length,
         }),
       );
       if (x.availablePins != null && x.availablePins!.isNotEmpty) {
@@ -1074,9 +1192,9 @@ class _MeshtasticEventDetails extends StatelessWidget {
                     (p) => Padding(
                       padding: const EdgeInsets.symmetric(vertical: 2),
                       child: _kvTable(context, {
-                        'gpioPin': p.gpioPin,
-                        'name': p.name,
-                        'type': p.type,
+                        AppLocalizations.of(context).gpioPin: p.gpioPin,
+                        AppLocalizations.of(context).name: p.name,
+                        AppLocalizations.of(context).type: p.type,
                       }),
                     ),
                   )
@@ -1091,10 +1209,11 @@ class _MeshtasticEventDetails extends StatelessWidget {
       children.add(_Subheader(AppLocalizations.of(context).paxcounter));
       children.add(
         _kvTable(context, {
-          'enabled': x.enabled,
-          'paxcounterUpdateInterval': x.paxcounterUpdateInterval,
-          'wifiThreshold': x.wifiThreshold,
-          'bleThreshold': x.bleThreshold,
+          AppLocalizations.of(context).enabled: x.enabled,
+          AppLocalizations.of(context).paxcounterUpdateInterval:
+              x.paxcounterUpdateInterval,
+          AppLocalizations.of(context).wifiThreshold: x.wifiThreshold,
+          AppLocalizations.of(context).bleThreshold: x.bleThreshold,
         }),
       );
     }
@@ -1103,17 +1222,20 @@ class _MeshtasticEventDetails extends StatelessWidget {
       children.add(_Subheader(AppLocalizations.of(context).cannedMessage));
       children.add(
         _kvTable(context, {
-          'rotary1Enabled': x.rotary1Enabled,
-          'inputbrokerPinA': x.inputbrokerPinA,
-          'inputbrokerPinB': x.inputbrokerPinB,
-          'inputbrokerPinPress': x.inputbrokerPinPress,
-          'inputbrokerEventCw': x.inputbrokerEventCw,
-          'inputbrokerEventCcw': x.inputbrokerEventCcw,
-          'inputbrokerEventPress': x.inputbrokerEventPress,
-          'updown1Enabled': x.updown1Enabled,
-          'enabled(deprecated)': x.enabled,
-          'allowInputSource': x.allowInputSource,
-          'sendBell': x.sendBell,
+          AppLocalizations.of(context).rotary1Enabled: x.rotary1Enabled,
+          AppLocalizations.of(context).inputbrokerPinA: x.inputbrokerPinA,
+          AppLocalizations.of(context).inputbrokerPinB: x.inputbrokerPinB,
+          AppLocalizations.of(context).inputbrokerPinPress:
+              x.inputbrokerPinPress,
+          AppLocalizations.of(context).inputbrokerEventCw: x.inputbrokerEventCw,
+          AppLocalizations.of(context).inputbrokerEventCcw:
+              x.inputbrokerEventCcw,
+          AppLocalizations.of(context).inputbrokerEventPress:
+              x.inputbrokerEventPress,
+          AppLocalizations.of(context).updown1Enabled: x.updown1Enabled,
+          AppLocalizations.of(context).enabledDeprecated: x.enabled,
+          AppLocalizations.of(context).allowInputSource: x.allowInputSource,
+          AppLocalizations.of(context).sendBell: x.sendBell,
         }),
       );
     }
@@ -1122,11 +1244,11 @@ class _MeshtasticEventDetails extends StatelessWidget {
       children.add(_Subheader(AppLocalizations.of(context).ambientLighting));
       children.add(
         _kvTable(context, {
-          'ledState': x.ledState,
-          'current': x.current,
-          'red': x.red,
-          'green': x.green,
-          'blue': x.blue,
+          AppLocalizations.of(context).ledState: x.ledState,
+          AppLocalizations.of(context).current: x.current,
+          AppLocalizations.of(context).red: x.red,
+          AppLocalizations.of(context).green: x.green,
+          AppLocalizations.of(context).blue: x.blue,
         }),
       );
     }
@@ -1135,14 +1257,16 @@ class _MeshtasticEventDetails extends StatelessWidget {
       children.add(_Subheader(AppLocalizations.of(context).detectionSensor));
       children.add(
         _kvTable(context, {
-          'enabled': x.enabled,
-          'minimumBroadcastSecs': x.minimumBroadcastSecs,
-          'stateBroadcastSecs': x.stateBroadcastSecs,
-          'sendBell': x.sendBell,
-          'name': x.name,
-          'monitorPin': x.monitorPin,
-          'detectionTriggerType': x.detectionTriggerType,
-          'usePullup': x.usePullup,
+          AppLocalizations.of(context).enabled: x.enabled,
+          AppLocalizations.of(context).minimumBroadcastSecs:
+              x.minimumBroadcastSecs,
+          AppLocalizations.of(context).stateBroadcastSecs: x.stateBroadcastSecs,
+          AppLocalizations.of(context).sendBell: x.sendBell,
+          AppLocalizations.of(context).name: x.name,
+          AppLocalizations.of(context).monitorPin: x.monitorPin,
+          AppLocalizations.of(context).detectionTriggerType:
+              x.detectionTriggerType,
+          AppLocalizations.of(context).usePullup: x.usePullup,
         }),
       );
     }
@@ -1151,17 +1275,21 @@ class _MeshtasticEventDetails extends StatelessWidget {
       children.add(_Subheader(AppLocalizations.of(context).dtnOverlay));
       children.add(
         _kvTable(context, {
-          'enabled': x.enabled,
-          'ttlMinutes': x.ttlMinutes,
-          'initialDelayBaseMs': x.initialDelayBaseMs,
-          'retryBackoffMs': x.retryBackoffMs,
-          'maxTries': x.maxTries,
-          'lateFallbackEnabled': x.lateFallbackEnabled,
-          'fallbackTailPercent': x.fallbackTailPercent,
-          'milestonesEnabled': x.milestonesEnabled,
-          'perDestMinSpacingMs': x.perDestMinSpacingMs,
-          'maxActiveDm': x.maxActiveDm,
-          'probeFwplusNearDeadline': x.probeFwplusNearDeadline,
+          AppLocalizations.of(context).enabled: x.enabled,
+          AppLocalizations.of(context).ttlMinutes: x.ttlMinutes,
+          AppLocalizations.of(context).initialDelayBaseMs: x.initialDelayBaseMs,
+          AppLocalizations.of(context).retryBackoffMs: x.retryBackoffMs,
+          AppLocalizations.of(context).maxTries: x.maxTries,
+          AppLocalizations.of(context).lateFallbackEnabled:
+              x.lateFallbackEnabled,
+          AppLocalizations.of(context).fallbackTailPercent:
+              x.fallbackTailPercent,
+          AppLocalizations.of(context).milestonesEnabled: x.milestonesEnabled,
+          AppLocalizations.of(context).perDestMinSpacingMs:
+              x.perDestMinSpacingMs,
+          AppLocalizations.of(context).maxActiveDm: x.maxActiveDm,
+          AppLocalizations.of(context).probeFwplusNearDeadline:
+              x.probeFwplusNearDeadline,
         }),
       );
     }
@@ -1170,14 +1298,14 @@ class _MeshtasticEventDetails extends StatelessWidget {
       children.add(_Subheader(AppLocalizations.of(context).broadcastAssist));
       children.add(
         _kvTable(context, {
-          'enabled': x.enabled,
-          'degreeThreshold': x.degreeThreshold,
-          'dupThreshold': x.dupThreshold,
-          'windowMs': x.windowMs,
-          'maxExtraHops': x.maxExtraHops,
-          'jitterMs': x.jitterMs,
-          'airtimeGuard': x.airtimeGuard,
-          'allowedPorts': x.allowedPorts?.join(', '),
+          AppLocalizations.of(context).enabled: x.enabled,
+          AppLocalizations.of(context).degreeThreshold: x.degreeThreshold,
+          AppLocalizations.of(context).dupThreshold: x.dupThreshold,
+          AppLocalizations.of(context).windowMs: x.windowMs,
+          AppLocalizations.of(context).maxExtraHops: x.maxExtraHops,
+          AppLocalizations.of(context).jitterMs: x.jitterMs,
+          AppLocalizations.of(context).airtimeGuard: x.airtimeGuard,
+          AppLocalizations.of(context).allowedPorts: x.allowedPorts?.join(', '),
         }),
       );
     }
@@ -1185,7 +1313,10 @@ class _MeshtasticEventDetails extends StatelessWidget {
       final x = m.nodeMod!;
       children.add(_Subheader(AppLocalizations.of(context).nodeMod));
       children.add(
-        _kvTable(context, {'textStatus': x.textStatus, 'emoji': x.emoji}),
+        _kvTable(context, {
+          AppLocalizations.of(context).textStatus: x.textStatus,
+          AppLocalizations.of(context).emoji: x.emoji,
+        }),
       );
     }
     if (m.nodeModAdmin != null) {
@@ -1193,49 +1324,68 @@ class _MeshtasticEventDetails extends StatelessWidget {
       children.add(_Subheader(AppLocalizations.of(context).nodeModAdmin));
       children.add(
         _kvTable(context, {
-          'snifferEnabled': x.snifferEnabled,
-          'doNotSendPrvOverMqtt': x.doNotSendPrvOverMqtt,
-          'localStatsOverMeshEnabled': x.localStatsOverMeshEnabled,
-          'localStatsExtendedOverMeshEnabled':
+          AppLocalizations.of(context).snifferEnabled: x.snifferEnabled,
+          AppLocalizations.of(context).doNotSendPrvOverMqtt:
+              x.doNotSendPrvOverMqtt,
+          AppLocalizations.of(context).localStatsOverMeshEnabled:
+              x.localStatsOverMeshEnabled,
+          AppLocalizations.of(context).localStatsExtendedOverMeshEnabled:
               x.localStatsExtendedOverMeshEnabled,
-          'idlegameEnabled': x.idlegameEnabled,
-          'additionalChutil': x.additionalChutil,
-          'additionalTxutil': x.additionalTxutil,
-          'additionalPoliteChannelPercent': x.additionalPoliteChannelPercent,
-          'additionalPoliteDutyCyclePercent':
+          AppLocalizations.of(context).idlegameEnabled: x.idlegameEnabled,
+          AppLocalizations.of(context).additionalChutil: x.additionalChutil,
+          AppLocalizations.of(context).additionalTxutil: x.additionalTxutil,
+          AppLocalizations.of(context).additionalPoliteChannelPercent:
+              x.additionalPoliteChannelPercent,
+          AppLocalizations.of(context).additionalPoliteDutyCyclePercent:
               x.additionalPoliteDutyCyclePercent,
-          'currentTxUtilLimit': x.currentTxUtilLimit,
-          'currentMaxChannelUtilPercent': x.currentMaxChannelUtilPercent,
-          'currentPoliteChannelUtilPercent': x.currentPoliteChannelUtilPercent,
-          'currentPoliteDutyCyclePercent': x.currentPoliteDutyCyclePercent,
-          'autoResponderEnabled': x.autoResponderEnabled,
-          'autoResponderText': x.autoResponderText,
-          'autoRedirectMessages': x.autoRedirectMessages,
-          'autoRedirectTargetNodeId': x.autoRedirectTargetNodeId,
-          'telemetryLimiterEnabled': x.telemetryLimiterEnabled,
-          'telemetryLimiterPacketsPerMinute':
+          AppLocalizations.of(context).currentTxUtilLimit: x.currentTxUtilLimit,
+          AppLocalizations.of(context).currentMaxChannelUtilPercent:
+              x.currentMaxChannelUtilPercent,
+          AppLocalizations.of(context).currentPoliteChannelUtilPercent:
+              x.currentPoliteChannelUtilPercent,
+          AppLocalizations.of(context).currentPoliteDutyCyclePercent:
+              x.currentPoliteDutyCyclePercent,
+          AppLocalizations.of(context).autoResponderEnabled:
+              x.autoResponderEnabled,
+          AppLocalizations.of(context).autoResponderText: x.autoResponderText,
+          AppLocalizations.of(context).autoRedirectMessages:
+              x.autoRedirectMessages,
+          AppLocalizations.of(context).autoRedirectTargetNodeId:
+              x.autoRedirectTargetNodeId,
+          AppLocalizations.of(context).telemetryLimiterEnabled:
+              x.telemetryLimiterEnabled,
+          AppLocalizations.of(context).telemetryLimiterPacketsPerMinute:
               x.telemetryLimiterPacketsPerMinute,
-          'telemetryLimiterAutoChanutilEnabled':
+          AppLocalizations.of(context).telemetryLimiterAutoChanutilEnabled:
               x.telemetryLimiterAutoChanutilEnabled,
-          'telemetryLimiterAutoChanutilThreshold':
+          AppLocalizations.of(context).telemetryLimiterAutoChanutilThreshold:
               x.telemetryLimiterAutoChanutilThreshold,
-          'positionLimiterEnabled': x.positionLimiterEnabled,
-          'positionLimiterTimeMinutesThreshold':
+          AppLocalizations.of(context).positionLimiterEnabled:
+              x.positionLimiterEnabled,
+          AppLocalizations.of(context).positionLimiterTimeMinutesThreshold:
               x.positionLimiterTimeMinutesThreshold,
-          'opportunisticFloodingEnabled': x.opportunisticFloodingEnabled,
-          'opportunisticBaseDelayMs': x.opportunisticBaseDelayMs,
-          'opportunisticHopDelayMs': x.opportunisticHopDelayMs,
-          'opportunisticSnrGainMs': x.opportunisticSnrGainMs,
-          'opportunisticJitterMs': x.opportunisticJitterMs,
-          'opportunisticCancelOnFirstHear': x.opportunisticCancelOnFirstHear,
-          'opportunisticAuto': x.opportunisticAuto,
+          AppLocalizations.of(context).opportunisticFloodingEnabled:
+              x.opportunisticFloodingEnabled,
+          AppLocalizations.of(context).opportunisticBaseDelayMs:
+              x.opportunisticBaseDelayMs,
+          AppLocalizations.of(context).opportunisticHopDelayMs:
+              x.opportunisticHopDelayMs,
+          AppLocalizations.of(context).opportunisticSnrGainMs:
+              x.opportunisticSnrGainMs,
+          AppLocalizations.of(context).opportunisticJitterMs:
+              x.opportunisticJitterMs,
+          AppLocalizations.of(context).opportunisticCancelOnFirstHear:
+              x.opportunisticCancelOnFirstHear,
+          AppLocalizations.of(context).opportunisticAuto: x.opportunisticAuto,
         }),
       );
     }
     if (m.idleGame != null) {
       final x = m.idleGame!;
       children.add(_Subheader(AppLocalizations.of(context).idleGame));
-      children.add(_kvTable(context, {'variant': x.variant}));
+      children.add(
+        _kvTable(context, {AppLocalizations.of(context).variant: x.variant}),
+      );
     }
     if (children.isEmpty) return Text(AppLocalizations.of(context).emptyState);
     return Column(
@@ -1248,22 +1398,23 @@ class _MeshtasticEventDetails extends StatelessWidget {
     final children = <Widget>[];
     children.add(
       _kvTable(context, {
-        'version': u.version,
-        'screenBrightness': u.screenBrightness,
-        'screenTimeout': u.screenTimeout,
-        'screenLock': u.screenLock,
-        'settingsLock': u.settingsLock,
-        'pinCode': u.pinCode,
-        'theme': u.theme,
-        'alertEnabled': u.alertEnabled,
-        'bannerEnabled': u.bannerEnabled,
-        'ringToneId': u.ringToneId,
-        'language': u.language,
-        'compassMode': u.compassMode,
-        'screenRgbColor': u.screenRgbColor,
-        'isClockfaceAnalog': u.isClockfaceAnalog,
-        'gpsFormat': u.gpsFormat,
-        'calibrationDataLen': u.calibrationData?.length,
+        AppLocalizations.of(context).version: u.version,
+        AppLocalizations.of(context).screenBrightness: u.screenBrightness,
+        AppLocalizations.of(context).screenTimeout: u.screenTimeout,
+        AppLocalizations.of(context).screenLock: u.screenLock,
+        AppLocalizations.of(context).settingsLock: u.settingsLock,
+        AppLocalizations.of(context).pinCode: u.pinCode,
+        AppLocalizations.of(context).theme: u.theme,
+        AppLocalizations.of(context).alertEnabled: u.alertEnabled,
+        AppLocalizations.of(context).bannerEnabled: u.bannerEnabled,
+        AppLocalizations.of(context).ringToneId: u.ringToneId,
+        AppLocalizations.of(context).language: u.language,
+        AppLocalizations.of(context).compassMode: u.compassMode,
+        AppLocalizations.of(context).screenRgbColor: u.screenRgbColor,
+        AppLocalizations.of(context).isClockfaceAnalog: u.isClockfaceAnalog,
+        AppLocalizations.of(context).gpsFormat: u.gpsFormat,
+        AppLocalizations.of(context).calibrationDataLen:
+            u.calibrationData?.length,
       }),
     );
     if (u.nodeFilter != null) {
@@ -1272,9 +1423,9 @@ class _MeshtasticEventDetails extends StatelessWidget {
       children.add(_Subheader(AppLocalizations.of(context).nodeFilter));
       children.add(
         _kvTable(context, {
-          'filterEnabled': f.filterEnabled,
-          'minSnr': f.minSnr,
-          'hideIgnoredNodes': f.hideIgnoredNodes,
+          AppLocalizations.of(context).filterEnabled: f.filterEnabled,
+          AppLocalizations.of(context).minSnr: f.minSnr,
+          AppLocalizations.of(context).hideIgnoredNodes: f.hideIgnoredNodes,
         }),
       );
     }
@@ -1284,8 +1435,8 @@ class _MeshtasticEventDetails extends StatelessWidget {
       children.add(_Subheader(AppLocalizations.of(context).nodeHighlight));
       children.add(
         _kvTable(context, {
-          'highlightEnabled': h.highlightEnabled,
-          'minSnr': h.minSnr,
+          AppLocalizations.of(context).highlightEnabled: h.highlightEnabled,
+          AppLocalizations.of(context).minSnr: h.minSnr,
         }),
       );
     }
@@ -1295,10 +1446,10 @@ class _MeshtasticEventDetails extends StatelessWidget {
       children.add(_Subheader(AppLocalizations.of(context).map));
       children.add(
         _kvTable(context, {
-          'zoom': m.zoom,
-          'centerLatI': m.centerLatI,
-          'centerLonI': m.centerLonI,
-          'followMe': m.followMe,
+          AppLocalizations.of(context).zoom: m.zoom,
+          AppLocalizations.of(context).centerLatI: m.centerLatI,
+          AppLocalizations.of(context).centerLonI: m.centerLonI,
+          AppLocalizations.of(context).followMe: m.followMe,
         }),
       );
     }
@@ -1312,12 +1463,14 @@ class _MeshtasticEventDetails extends StatelessWidget {
     final children = <Widget>[];
     children.add(
       _kvTable(context, {
-        'name': s.name,
-        'psk': s.psk != null && s.psk!.isNotEmpty ? '****' : null,
-        'id': s.id,
-        'uplinkEnabled': s.uplinkEnabled,
-        'downlinkEnabled': s.downlinkEnabled,
-        'channelNum': s.channelNum,
+        AppLocalizations.of(context).name: s.name,
+        AppLocalizations.of(context).psk: s.psk != null && s.psk!.isNotEmpty
+            ? '****'
+            : null,
+        AppLocalizations.of(context).idTitle: s.id,
+        AppLocalizations.of(context).uplinkEnabled: s.uplinkEnabled,
+        AppLocalizations.of(context).downlinkEnabled: s.downlinkEnabled,
+        AppLocalizations.of(context).channelNum: s.channelNum,
       }),
     );
 
@@ -1325,7 +1478,8 @@ class _MeshtasticEventDetails extends StatelessWidget {
       children.add(
         _Indent(
           child: _kvTable(context, {
-            'positionPrecision': s.moduleSettings!.positionPrecision,
+            AppLocalizations.of(context).positionPrecision:
+                s.moduleSettings!.positionPrecision,
           }),
         ),
       );

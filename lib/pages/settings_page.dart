@@ -185,7 +185,9 @@ class SettingsPage extends StatelessWidget {
                               max: 600,
                               divisions:
                                   118, // (600-10)/5 = 118 steps of 5 seconds
-                              label: '${settings.bleHeartbeatIntervalSeconds}s',
+                              label: AppLocalizations.of(context).secondsSuffix(
+                                settings.bleHeartbeatIntervalSeconds.toString(),
+                              ),
                               onChanged: (value) {
                                 onChangedSettings(
                                   settings.copyWith(
@@ -198,7 +200,9 @@ class SettingsPage extends StatelessWidget {
                           SizedBox(
                             width: 80,
                             child: Text(
-                              '${settings.bleHeartbeatIntervalSeconds}s',
+                              AppLocalizations.of(context).secondsSuffix(
+                                settings.bleHeartbeatIntervalSeconds.toString(),
+                              ),
                               style: Theme.of(context).textTheme.bodyMedium,
                               textAlign: TextAlign.end,
                             ),
@@ -237,11 +241,14 @@ class SettingsPage extends StatelessWidget {
                             child: Slider(
                               value: settings.configTimeoutSeconds
                                   .toDouble()
-                                  .clamp(5.0, 60.0),
+                                  .clamp(5.0, 600.0),
                               min: 5,
-                              max: 60,
-                              divisions: 11, // (60-5)/5 = 11 steps of 5 seconds
-                              label: '${settings.configTimeoutSeconds}s',
+                              max: 600,
+                              divisions:
+                                  119, // (600-5)/5 = 119 steps of 5 seconds
+                              label: AppLocalizations.of(context).secondsSuffix(
+                                settings.configTimeoutSeconds.toString(),
+                              ),
                               onChanged: (value) {
                                 onChangedSettings(
                                   settings.copyWith(
@@ -254,7 +261,9 @@ class SettingsPage extends StatelessWidget {
                           SizedBox(
                             width: 80,
                             child: Text(
-                              '${settings.configTimeoutSeconds}s',
+                              AppLocalizations.of(context).secondsSuffix(
+                                settings.configTimeoutSeconds.toString(),
+                              ),
                               style: Theme.of(context).textTheme.bodyMedium,
                               textAlign: TextAlign.end,
                             ),

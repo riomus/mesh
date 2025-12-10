@@ -4,7 +4,6 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:mesh/widgets/mesh_app_bar.dart';
 import 'package:mesh/services/device_status_store.dart';
 import 'package:mesh/l10n/app_localizations.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 // Mock BluetoothDevice since we can't instantiate it easily with all properties
 class MockBluetoothDevice extends BluetoothDevice {

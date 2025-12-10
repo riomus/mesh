@@ -63,14 +63,27 @@ class _DeviceTileState extends State<DeviceTile> {
 
   void _subscribeStatus() {
     final id = widget.result.device.remoteId.str;
-    _sub = DeviceStatusStore.instance.statusStream(id).listen((s) {
-      if (!mounted) return;
-      setState(() {
-        _connecting = s.state == DeviceConnectionState.connecting;
-        _connected = s.state == DeviceConnectionState.connected;
-        _rssi = s.rssi ?? _rssi; // keep last known value if null
-      });
-    });
+    _sub = DeviceStatusStore.instance
+        .statusStream(id)
+        .listen(
+          (s) {
+            if (!mounted) return;
+            setState(() {
+              _connecting = s.state == DeviceConnectionState.connecting;
+              _connected = s.state == DeviceConnectionState.connected;
+              _rssi = s.rssi ?? _rssi; // keep last known value if null
+            });
+          },
+          onError: (e) {
+            print('[DeviceTile] Error in status stream for $id: $e');
+            if (mounted) {
+              setState(() {
+                _connecting = false;
+                _connected = false;
+              });
+            }
+          },
+        );
   }
 
   Future<void> _connect() async {
@@ -90,13 +103,17 @@ class _DeviceTileState extends State<DeviceTile> {
       );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppLocalizations.of(context).connectFailedError(e.toString()),
-            ),
-          ),
-        );
+        String message;
+        if (e is ScanRequiredException) {
+          message = AppLocalizations.of(context).scanRequiredFirst;
+        } else {
+          message = AppLocalizations.of(
+            context,
+          ).connectFailedError(e.toString());
+        }
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
       }
     } finally {
       if (mounted) setState(() => _connecting = false);

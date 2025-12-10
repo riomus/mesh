@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mesh/widgets/rssi_bar.dart';
+import 'package:mesh/l10n/app_localizations.dart';
 
 void main() {
   testWidgets('RssiBar renders correctly in ListTile trailing', (
@@ -8,6 +9,8 @@ void main() {
   ) async {
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: ListView(
             children: const [

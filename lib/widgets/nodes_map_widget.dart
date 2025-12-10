@@ -53,17 +53,22 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
 
     // Listen for trace updates to keep the map live
     if (widget.highlightedTrace != null) {
-      _traceSub = TracerouteService.instance.listenAllTraces().listen((traces) {
-        if (!mounted || _activeTrace == null) return;
-        final updated = traces.firstWhereOrNull(
-          (t) => t.requestId == _activeTrace!.requestId,
-        );
-        if (updated != null && updated != _activeTrace) {
-          setState(() {
-            _activeTrace = updated;
-          });
-        }
-      });
+      _traceSub = TracerouteService.instance.listenAllTraces().listen(
+        (traces) {
+          if (!mounted || _activeTrace == null) return;
+          final updated = traces.firstWhereOrNull(
+            (t) => t.requestId == _activeTrace!.requestId,
+          );
+          if (updated != null && updated != _activeTrace) {
+            setState(() {
+              _activeTrace = updated;
+            });
+          }
+        },
+        onError: (e) {
+          print('[NodesMapWidget] Error in trace stream: $e');
+        },
+      );
     }
   }
 
@@ -198,7 +203,7 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
           num: nodeId,
           user: UserDto(
             longName: AppLocalizations.of(context).localDevice,
-            shortName: 'ME',
+            shortName: AppLocalizations.of(context).me,
           ),
           position: null,
           lastHeard: 0,
@@ -468,9 +473,12 @@ class _NodesMapWidgetState extends State<NodesMapWidget>
 
     String _getNodeDebugLabel(int? nodeNum, int? sourceNodeId) {
       if (_activeTrace == null || nodeNum == null) return '';
-      if (nodeNum == _activeTrace!.targetNodeId) return ' [Target]';
-      if (nodeNum == sourceNodeId) return ' [Source]';
-      if (_activeTrace!.ackNodeIds.contains(nodeNum)) return ' [Ack]';
+      if (nodeNum == _activeTrace!.targetNodeId)
+        return ' ${AppLocalizations.of(context).targetLabel}';
+      if (nodeNum == sourceNodeId)
+        return ' ${AppLocalizations.of(context).sourceLabel}';
+      if (_activeTrace!.ackNodeIds.contains(nodeNum))
+        return ' ${AppLocalizations.of(context).ackLabel}';
       return '';
     }
 

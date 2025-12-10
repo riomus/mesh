@@ -10,7 +10,7 @@ import 'meshtastic_client.dart';
 import 'device_communication_event_service.dart';
 
 /// Meshtastic IP client that connects via TCP.
-class MeshtasticIpClient implements MeshtasticClient {
+class MeshtasticIpClient extends MeshtasticClient {
   final String host;
   final int port;
   final String

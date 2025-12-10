@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import '../meshtastic/model/meshtastic_models.dart';
 
 /// Aggregated state of a Meshtastic device using DTOs.
@@ -9,33 +11,42 @@ class DeviceState {
   final List<NodeInfoDto> nodes;
   final MyInfoDto? myNodeInfo;
   final DeviceMetadataDto? metadata;
+  final DeviceUiConfigDto? deviceUiConfig;
+  final Uint8List? sessionPasskey;
 
   const DeviceState({
     required this.deviceId,
+    this.myNodeInfo,
+    this.nodes = const [],
+    this.channels = const [],
     this.config,
     this.moduleConfig,
-    this.channels = const [],
-    this.nodes = const [],
-    this.myNodeInfo,
     this.metadata,
+    this.deviceUiConfig,
+    this.sessionPasskey,
   });
 
   DeviceState copyWith({
+    String? deviceId,
+    MyInfoDto? myNodeInfo,
+    List<NodeInfoDto>? nodes,
+    List<ChannelDto>? channels,
     ConfigDto? config,
     ModuleConfigDto? moduleConfig,
-    List<ChannelDto>? channels,
-    List<NodeInfoDto>? nodes,
-    MyInfoDto? myNodeInfo,
     DeviceMetadataDto? metadata,
+    DeviceUiConfigDto? deviceUiConfig,
+    Uint8List? sessionPasskey,
   }) {
     return DeviceState(
-      deviceId: deviceId,
+      deviceId: deviceId ?? this.deviceId,
+      myNodeInfo: myNodeInfo ?? this.myNodeInfo,
+      nodes: nodes ?? this.nodes,
+      channels: channels ?? this.channels,
       config: config ?? this.config,
       moduleConfig: moduleConfig ?? this.moduleConfig,
-      channels: channels ?? this.channels,
-      nodes: nodes ?? this.nodes,
-      myNodeInfo: myNodeInfo ?? this.myNodeInfo,
       metadata: metadata ?? this.metadata,
+      deviceUiConfig: deviceUiConfig ?? this.deviceUiConfig,
+      sessionPasskey: sessionPasskey ?? this.sessionPasskey,
     );
   }
 }

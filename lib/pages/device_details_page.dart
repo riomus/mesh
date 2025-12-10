@@ -22,6 +22,8 @@ import '../widgets/telemetry_widget.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../blocs/device/device_bloc.dart';
 import '../blocs/device/device_state.dart' as bloc_state;
+import '../services/device_communication_event_service.dart';
+import '../meshtastic/model/meshtastic_event.dart';
 
 class DeviceDetailsPage extends StatefulWidget {
   final BluetoothDevice device;
@@ -47,6 +49,7 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
   // Connection status reflected from DeviceStatusStore to preserve across rebuilds
   bool _connecting = false;
   bool _connected = false;
+  bool _loadingConfig = false; // Track if we're currently requesting config
   int? _rssi; // live RSSI from DeviceStatusStore while connected
   // Logs are now shown via reusable LogsViewer widget; no manual buffering here.
   StreamSubscription<LogEvent>?
@@ -55,6 +58,8 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
   Stream<LogEvent>? _deviceLogStream;
   // Device status subscription (global store)
   StreamSubscription<DeviceStatus>? _statusSub;
+  // Config event subscription to listen for ConfigCompleteEvent
+  StreamSubscription<DeviceEvent>? _configEventSub;
 
   String _bestName() {
     if (widget.scanResult?.advertisementData.advName.isNotEmpty == true) {
@@ -81,12 +86,18 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
     final hasState =
         context.read<DeviceBloc>().state.getDeviceState(id) != null;
 
+    // If already loading, don't start another request
+    if (_loadingConfig) return;
+
     if (isConnected && !hasState) {
       LoggingService.instance.push(
         tags: {'deviceId': id, 'class': 'DeviceDetailsPage'},
         level: 'info',
         message: 'Connected but no state, auto-refreshing config...',
       );
+      if (mounted) setState(() => _loadingConfig = true);
+      _startListeningForConfigComplete();
+
       try {
         final client = await DeviceStatusStore.instance.connect(widget.device);
         await client.requestConfig();
@@ -96,8 +107,66 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
           level: 'warn',
           message: 'Failed to auto-refresh config: $e',
         );
+        if (mounted) setState(() => _loadingConfig = false);
+        _configEventSub?.cancel();
+        _configEventSub = null;
       }
     }
+  }
+
+  void _startListeningForConfigComplete() {
+    final id = widget.device.remoteId.str;
+    // Cancel any existing subscription
+    _configEventSub?.cancel();
+
+    // Listen for ConfigCompleteEvent or timeout after 10 seconds
+    _configEventSub = DeviceCommunicationEventService.instance
+        .listen()
+        .where((event) {
+          final deviceId = event.tags['deviceId']?.firstOrNull;
+          return deviceId == id;
+        })
+        .timeout(
+          const Duration(seconds: 10),
+          onTimeout: (sink) {
+            LoggingService.instance.push(
+              tags: {'deviceId': id, 'class': 'DeviceDetailsPage'},
+              level: 'warn',
+              message: 'Config request timed out after 10 seconds',
+            );
+            sink.close();
+          },
+        )
+        .listen(
+          (event) {
+            if (event.payload is! MeshtasticDeviceEventPayload) return;
+
+            final meshEvent =
+                (event.payload as MeshtasticDeviceEventPayload).event;
+            if (meshEvent is ConfigCompleteEvent) {
+              LoggingService.instance.push(
+                tags: {'deviceId': id, 'class': 'DeviceDetailsPage'},
+                level: 'info',
+                message: 'Config complete event received',
+              );
+              if (mounted) setState(() => _loadingConfig = false);
+              _configEventSub?.cancel();
+              _configEventSub = null;
+            }
+          },
+          onError: (e) {
+            LoggingService.instance.push(
+              tags: {'deviceId': id, 'class': 'DeviceDetailsPage'},
+              level: 'warn',
+              message: 'Error listening for config complete: $e',
+            );
+            if (mounted) setState(() => _loadingConfig = false);
+          },
+          onDone: () {
+            // Timeout occurred
+            if (mounted) setState(() => _loadingConfig = false);
+          },
+        );
   }
 
   void _initDeviceLogStream() {
@@ -125,6 +194,7 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
   void dispose() {
     _logSub?.cancel();
     _statusSub?.cancel();
+    _configEventSub?.cancel();
     super.dispose();
   }
 
@@ -401,34 +471,54 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                   );
 
                   if (deviceState == null && _connected) {
-                    // Connected but no state? Try to request it if we haven't recently.
-                    // Or just show a manual refresh button.
-                    // Auto-refresh if we haven't tried recently (simple debounce could be added here,
-                    // but for now relying on user interaction or simple one-shot).
-                    // Actually, let's just show the button but also trigger a fetch if it's been a while?
-                    // For now, just the button is safer to avoid loops.
-                    return _Section(
-                      title: AppLocalizations.of(context).deviceState,
-                      children: [
-                        ListTile(
-                          leading: const Icon(Icons.warning_amber),
-                          title: Text(
-                            AppLocalizations.of(context).stateMissing,
+                    // Connected but no state?
+                    if (_loadingConfig) {
+                      // Currently loading config
+                      return _Section(
+                        title: AppLocalizations.of(context).deviceState,
+                        children: [
+                          ListTile(
+                            leading: const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                            title: Text(
+                              AppLocalizations.of(context).loadingConfig,
+                            ),
+                            subtitle: Text(
+                              AppLocalizations.of(
+                                context,
+                              ).pleaseWaitFetchingConfig,
+                            ),
                           ),
-                          subtitle: Text(
-                            AppLocalizations.of(context).connectToViewState,
+                        ],
+                      );
+                    } else {
+                      // Connected but no state and not loading? Show refresh button
+                      return _Section(
+                        title: AppLocalizations.of(context).deviceState,
+                        children: [
+                          ListTile(
+                            leading: const Icon(Icons.warning_amber),
+                            title: Text(
+                              AppLocalizations.of(context).stateMissing,
+                            ),
+                            subtitle: Text(
+                              AppLocalizations.of(context).connectToViewState,
+                            ),
+                            trailing: IconButton.filledTonal(
+                              icon: const Icon(Icons.refresh),
+                              onPressed: () async {
+                                final client = await DeviceStatusStore.instance
+                                    .connect(widget.device);
+                                await client.requestConfig();
+                              },
+                            ),
                           ),
-                          trailing: IconButton.filledTonal(
-                            icon: const Icon(Icons.refresh),
-                            onPressed: () async {
-                              final client = await DeviceStatusStore.instance
-                                  .connect(widget.device);
-                              await client.requestConfig();
-                            },
-                          ),
-                        ),
-                      ],
-                    );
+                        ],
+                      );
+                    }
                   } else if (deviceState == null) {
                     return _Section(
                       title: AppLocalizations.of(context).deviceState,
@@ -447,7 +537,10 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                   }
                   return Column(
                     children: [
-                      DeviceStateWidget(state: deviceState),
+                      DeviceStateWidget(
+                        state: deviceState,
+                        deviceId: widget.device.remoteId.str,
+                      ),
                       if (deviceState.myNodeInfo?.myNodeNum != null)
                         TelemetryWidget(
                           nodeId: deviceState.myNodeInfo!.myNodeNum!,
@@ -630,6 +723,11 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
           Future.delayed(const Duration(milliseconds: 500), () {
             if (mounted) _checkAndRefreshConfig();
           });
+        } else {
+          // When disconnected, reset loading state
+          _loadingConfig = false;
+          _configEventSub?.cancel();
+          _configEventSub = null;
         }
       });
       if (s.state == DeviceConnectionState.error && s.error != null) {

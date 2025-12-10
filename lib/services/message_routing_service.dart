@@ -190,255 +190,267 @@ class MessageRoutingService {
   }
 
   void _subscribeToEvents() {
-    DeviceCommunicationEventService.instance.listenAll().listen(_handleEvent);
+    DeviceCommunicationEventService.instance.listenAll().listen(
+      _handleEvent,
+      onError: (e, s) {
+        print('[MessageRoutingService] Error in event stream: $e');
+        print('[MessageRoutingService] Stack trace: $s');
+      },
+    );
   }
 
   Future<void> _handleEvent(DeviceEvent event) async {
-    if (event.payload is MeshtasticDeviceEventPayload) {
-      final meshPayload = event.payload as MeshtasticDeviceEventPayload;
-      final deviceId = event.tags['deviceId']?.firstOrNull;
+    try {
+      if (event.payload is MeshtasticDeviceEventPayload) {
+        final meshPayload = event.payload as MeshtasticDeviceEventPayload;
+        final deviceId = event.tags['deviceId']?.firstOrNull;
 
-      if (deviceId != null) {
-        _updateInternalState(deviceId, meshPayload.event);
-      }
+        if (deviceId != null) {
+          _updateInternalState(deviceId, meshPayload.event);
+        }
 
-      if (meshPayload.event is MeshPacketEvent) {
-        final packetEvent = meshPayload.event as MeshPacketEvent;
-        final packet = packetEvent.packet;
+        if (meshPayload.event is MeshPacketEvent) {
+          final packetEvent = meshPayload.event as MeshPacketEvent;
+          final packet = packetEvent.packet;
 
-        if (packetEvent.decoded is TextPayloadDto) {
-          final textPayload = packetEvent.decoded as TextPayloadDto;
+          if (packetEvent.decoded is TextPayloadDto) {
+            final textPayload = packetEvent.decoded as TextPayloadDto;
 
-          if (deviceId == null) return;
+            if (deviceId == null) return;
 
-          // Determine room
-          String? roomId;
-          if (packet.to == 0xFFFFFFFF) {
-            // Broadcast
-            final channelIndex = packet.channel ?? 0;
-            roomId = 'ch_${deviceId}_$channelIndex';
-            if (!_rooms.containsKey(roomId)) {
-              _rooms[roomId] = ChatRoom(
-                id: roomId,
-                name: 'Channel $channelIndex',
-                isDirect: false,
-                deviceId: deviceId,
-                channelIndex: channelIndex,
-              );
-              _messages[roomId] = [];
-              _emitRooms();
-            }
-          } else {
-            // Direct Message
-            final otherNodeId = packet.from;
-            if (otherNodeId != null) {
-              roomId = 'dm_${deviceId}_$otherNodeId';
+            // Determine room
+            String? roomId;
+            if (packet.to == 0xFFFFFFFF) {
+              // Broadcast
+              final channelIndex = packet.channel ?? 0;
+              roomId = 'ch_${deviceId}_$channelIndex';
               if (!_rooms.containsKey(roomId)) {
                 _rooms[roomId] = ChatRoom(
                   id: roomId,
-                  name: 'Node $otherNodeId',
-                  isDirect: true,
+                  name: 'Channel $channelIndex',
+                  isDirect: false,
                   deviceId: deviceId,
-                  otherNodeId: otherNodeId,
+                  channelIndex: channelIndex,
                 );
                 _messages[roomId] = [];
                 _emitRooms();
               }
-            }
-          }
-
-          if (roomId != null) {
-            final message = ChatMessage(
-              id: packet.id.toString(),
-              roomId: roomId,
-              text: textPayload.text,
-              isMe: false, // Assuming incoming
-              timestamp: DateTime.fromMillisecondsSinceEpoch(
-                (packet.rxTime ?? 0) * 1000,
-              ),
-              status: MessageStatus.received,
-              packetId: packet.id,
-              packetDetails: {
-                'from': packet.from,
-                'to': packet.to,
-                'snr': packet.rxSnr,
-                'rssi': packet.rxRssi,
-                'hopLimit': packet.hopLimit,
-              },
-              authorNodeId: packet.from,
-              deviceId: deviceId,
-              statusHistory: [
-                MessageStatusHistoryEntry(
-                  status: MessageStatus.received,
-                  timestamp: DateTime.now(),
-                  sourceNodeId: packet.from,
-                ),
-              ],
-            );
-            print('DEBUG: Adding message to room $roomId: ${message.text}');
-            _addMessage(roomId, message);
-
-            // Resolve names for notification
-            String title = 'New Message';
-            String body = textPayload.text;
-
-            final deviceState = _deviceStates[deviceId];
-            if (deviceState != null) {
-              // Source Device Name
-              String sourceName = 'Device';
-              final myNodeNum = deviceState.myNodeInfo?.myNodeNum;
-              if (myNodeNum != null) {
-                final myNode = deviceState.nodes.firstWhere(
-                  (n) => n.num == myNodeNum,
-                  orElse: () => NodeInfoDto(num: myNodeNum),
-                );
-                sourceName =
-                    myNode.user?.longName ?? myNode.user?.shortName ?? 'Device';
-              }
-
-              // Author Name
-              String authorName = 'Unknown';
-              final authorNode = deviceState.nodes.firstWhere(
-                (n) => n.num == packet.from,
-                orElse: () => NodeInfoDto(num: packet.from),
-              );
-
-              if (authorNode.user?.longName?.isNotEmpty == true) {
-                authorName = authorNode.user!.longName!;
-              } else if (authorNode.user?.shortName?.isNotEmpty == true) {
-                authorName = authorNode.user!.shortName!;
-              } else {
-                authorName = 'Node ${packet.from}';
-              }
-
-              title = '$authorName ($sourceName)';
-            }
-
-            await _notificationService.showNotification(
-              (packet.id ?? DateTime.now().millisecondsSinceEpoch) % 2147483647,
-              title,
-              body,
-              roomId,
-            );
-          }
-        } else if (packetEvent.decoded is RoutingPayloadDto) {
-          final routing = packetEvent.decoded as RoutingPayloadDto;
-          final deviceId = event.tags['deviceId']?.firstOrNull;
-
-          // Handle Routing/ACK
-          if (deviceId != null) {
-            final fromNode = packet.from;
-            final myNodeId = _deviceStates[deviceId]?.myNodeInfo?.myNodeNum;
-
-            if (fromNode != null) {
-              // If we have a requestId, we can find the exact message
-              if (routing.requestId != null && routing.requestId != 0) {
-                for (final roomId in _rooms.keys) {
-                  // Only check rooms for this device
-                  if (_rooms[roomId]?.deviceId != deviceId) continue;
-
-                  final roomMessages = _messages[roomId];
-                  if (roomMessages != null) {
-                    final msgIndex = roomMessages.indexWhere(
-                      (m) => m.packetId == routing.requestId,
-                    );
-                    if (msgIndex != -1) {
-                      final msg = roomMessages[msgIndex];
-                      final room = _rooms[roomId]!;
-
-                      // Determine status
-                      MessageStatus newStatus;
-                      if (routing.errorReason != null &&
-                          routing.errorReason != 'NONE') {
-                        newStatus = MessageStatus.failed;
-                      } else {
-                        // Success
-                        if (room.isDirect) {
-                          if (fromNode == room.otherNodeId) {
-                            newStatus = MessageStatus.acked;
-                          } else {
-                            // Local confirmation or relay confirmation
-                            newStatus = MessageStatus.ackedByRelay;
-                          }
-                        } else {
-                          // Broadcast / Channel
-                          if (fromNode == myNodeId) {
-                            // Local confirmation means sent to mesh successfully
-                            newStatus = MessageStatus.acked;
-                          } else {
-                            // Rebroadcast heard from someone else
-                            newStatus = MessageStatus.ackedByRelay;
-                          }
-                        }
-                      }
-
-                      _updateMessageStatus(
-                        roomId,
-                        msg.id,
-                        newStatus,
-                        ackFrom: fromNode,
-                      );
-                      break; // Found the message, stop searching
-                    }
-                  }
+            } else {
+              // Direct Message
+              final otherNodeId = packet.from;
+              if (otherNodeId != null) {
+                roomId = 'dm_${deviceId}_$otherNodeId';
+                if (!_rooms.containsKey(roomId)) {
+                  _rooms[roomId] = ChatRoom(
+                    id: roomId,
+                    name: 'Node $otherNodeId',
+                    isDirect: true,
+                    deviceId: deviceId,
+                    otherNodeId: otherNodeId,
+                  );
+                  _messages[roomId] = [];
+                  _emitRooms();
                 }
-              } else {
-                // Fallback for missing requestId (old behavior)
-                // Iterate through all rooms to find messages awaiting ACK
-                for (final roomId in _rooms.keys) {
-                  final room = _rooms[roomId]!;
-                  if (room.deviceId != deviceId) continue;
+              }
+            }
 
-                  // For direct messages, we can determine if this is receiver vs relay
-                  if (room.isDirect) {
+            if (roomId != null) {
+              final message = ChatMessage(
+                id: packet.id.toString(),
+                roomId: roomId,
+                text: textPayload.text,
+                isMe: false, // Assuming incoming
+                timestamp: DateTime.fromMillisecondsSinceEpoch(
+                  (packet.rxTime ?? 0) * 1000,
+                ),
+                status: MessageStatus.received,
+                packetId: packet.id,
+                packetDetails: {
+                  'from': packet.from,
+                  'to': packet.to,
+                  'snr': packet.rxSnr,
+                  'rssi': packet.rxRssi,
+                  'hopLimit': packet.hopLimit,
+                },
+                authorNodeId: packet.from,
+                deviceId: deviceId,
+                statusHistory: [
+                  MessageStatusHistoryEntry(
+                    status: MessageStatus.received,
+                    timestamp: DateTime.now(),
+                    sourceNodeId: packet.from,
+                  ),
+                ],
+              );
+              print('DEBUG: Adding message to room $roomId: ${message.text}');
+              _addMessage(roomId, message);
+
+              // Resolve names for notification
+              String title = 'New Message';
+              String body = textPayload.text;
+
+              final deviceState = _deviceStates[deviceId];
+              if (deviceState != null) {
+                // Source Device Name
+                String sourceName = 'Device';
+                final myNodeNum = deviceState.myNodeInfo?.myNodeNum;
+                if (myNodeNum != null) {
+                  final myNode = deviceState.nodes.firstWhere(
+                    (n) => n.num == myNodeNum,
+                    orElse: () => NodeInfoDto(num: myNodeNum),
+                  );
+                  sourceName =
+                      myNode.user?.longName ??
+                      myNode.user?.shortName ??
+                      'Device';
+                }
+
+                // Author Name
+                String authorName = 'Unknown';
+                final authorNode = deviceState.nodes.firstWhere(
+                  (n) => n.num == packet.from,
+                  orElse: () => NodeInfoDto(num: packet.from),
+                );
+
+                if (authorNode.user?.longName?.isNotEmpty == true) {
+                  authorName = authorNode.user!.longName!;
+                } else if (authorNode.user?.shortName?.isNotEmpty == true) {
+                  authorName = authorNode.user!.shortName!;
+                } else {
+                  authorName = 'Node ${packet.from}';
+                }
+
+                title = '$authorName ($sourceName)';
+              }
+
+              await _notificationService.showNotification(
+                (packet.id ?? DateTime.now().millisecondsSinceEpoch) %
+                    2147483647,
+                title,
+                body,
+                roomId,
+              );
+            }
+          } else if (packetEvent.decoded is RoutingPayloadDto) {
+            final routing = packetEvent.decoded as RoutingPayloadDto;
+            final deviceId = event.tags['deviceId']?.firstOrNull;
+
+            // Handle Routing/ACK
+            if (deviceId != null) {
+              final fromNode = packet.from;
+              final myNodeId = _deviceStates[deviceId]?.myNodeInfo?.myNodeNum;
+
+              if (fromNode != null) {
+                // If we have a requestId, we can find the exact message
+                if (routing.requestId != null && routing.requestId != 0) {
+                  for (final roomId in _rooms.keys) {
+                    // Only check rooms for this device
+                    if (_rooms[roomId]?.deviceId != deviceId) continue;
+
                     final roomMessages = _messages[roomId];
                     if (roomMessages != null) {
-                      // Find messages that are pending ACK
-                      for (final msg in roomMessages) {
-                        if (msg.status == MessageStatus.sent ||
-                            msg.status == MessageStatus.sending) {
-                          // Determine if this ACK is from the receiver or a relay
-                          final isFromReceiver = (fromNode == room.otherNodeId);
-                          final newStatus =
-                              (routing.errorReason != null &&
-                                  routing.errorReason != 'NONE')
-                              ? MessageStatus.failed
-                              : (isFromReceiver
-                                    ? MessageStatus.acked
-                                    : MessageStatus.ackedByRelay);
+                      final msgIndex = roomMessages.indexWhere(
+                        (m) => m.packetId == routing.requestId,
+                      );
+                      if (msgIndex != -1) {
+                        final msg = roomMessages[msgIndex];
+                        final room = _rooms[roomId]!;
 
-                          _updateMessageStatus(
-                            roomId,
-                            msg.id,
-                            newStatus,
-                            ackFrom: fromNode,
-                          );
-                          // ACK the first pending message we find
-                          break;
+                        // Determine status
+                        MessageStatus newStatus;
+                        if (routing.errorReason != null &&
+                            routing.errorReason != 'NONE') {
+                          newStatus = MessageStatus.failed;
+                        } else {
+                          // Success
+                          if (room.isDirect) {
+                            if (fromNode == room.otherNodeId) {
+                              newStatus = MessageStatus.acked;
+                            } else {
+                              // Local confirmation or relay confirmation
+                              newStatus = MessageStatus.ackedByRelay;
+                            }
+                          } else {
+                            // Broadcast / Channel
+                            if (fromNode == myNodeId) {
+                              // Local confirmation means sent to mesh successfully
+                              newStatus = MessageStatus.acked;
+                            } else {
+                              // Rebroadcast heard from someone else
+                              newStatus = MessageStatus.ackedByRelay;
+                            }
+                          }
                         }
+
+                        _updateMessageStatus(
+                          roomId,
+                          msg.id,
+                          newStatus,
+                          ackFrom: fromNode,
+                        );
+                        break; // Found the message, stop searching
                       }
                     }
                   }
-                  // For channel messages, we treat any ACK as relay ACK
-                  else if (!room.isDirect) {
-                    final roomMessages = _messages[roomId];
-                    if (roomMessages != null) {
-                      for (final msg in roomMessages) {
-                        if (msg.status == MessageStatus.sent ||
-                            msg.status == MessageStatus.sending) {
-                          final newStatus =
-                              (routing.errorReason != null &&
-                                  routing.errorReason != 'NONE')
-                              ? MessageStatus.failed
-                              : MessageStatus.ackedByRelay;
+                } else {
+                  // Fallback for missing requestId (old behavior)
+                  // Iterate through all rooms to find messages awaiting ACK
+                  for (final roomId in _rooms.keys) {
+                    final room = _rooms[roomId]!;
+                    if (room.deviceId != deviceId) continue;
 
-                          _updateMessageStatus(
-                            roomId,
-                            msg.id,
-                            newStatus,
-                            ackFrom: fromNode,
-                          );
-                          break;
+                    // For direct messages, we can determine if this is receiver vs relay
+                    if (room.isDirect) {
+                      final roomMessages = _messages[roomId];
+                      if (roomMessages != null) {
+                        // Find messages that are pending ACK
+                        for (final msg in roomMessages) {
+                          if (msg.status == MessageStatus.sent ||
+                              msg.status == MessageStatus.sending) {
+                            // Determine if this ACK is from the receiver or a relay
+                            final isFromReceiver =
+                                (fromNode == room.otherNodeId);
+                            final newStatus =
+                                (routing.errorReason != null &&
+                                    routing.errorReason != 'NONE')
+                                ? MessageStatus.failed
+                                : (isFromReceiver
+                                      ? MessageStatus.acked
+                                      : MessageStatus.ackedByRelay);
+
+                            _updateMessageStatus(
+                              roomId,
+                              msg.id,
+                              newStatus,
+                              ackFrom: fromNode,
+                            );
+                            // ACK the first pending message we find
+                            break;
+                          }
+                        }
+                      }
+                    }
+                    // For channel messages, we treat any ACK as relay ACK
+                    else if (!room.isDirect) {
+                      final roomMessages = _messages[roomId];
+                      if (roomMessages != null) {
+                        for (final msg in roomMessages) {
+                          if (msg.status == MessageStatus.sent ||
+                              msg.status == MessageStatus.sending) {
+                            final newStatus =
+                                (routing.errorReason != null &&
+                                    routing.errorReason != 'NONE')
+                                ? MessageStatus.failed
+                                : MessageStatus.ackedByRelay;
+
+                            _updateMessageStatus(
+                              roomId,
+                              msg.id,
+                              newStatus,
+                              ackFrom: fromNode,
+                            );
+                            break;
+                          }
                         }
                       }
                     }
@@ -449,6 +461,9 @@ class MessageRoutingService {
           }
         }
       }
+    } catch (e, s) {
+      print('[MessageRoutingService] Error handling event: $e');
+      print('[MessageRoutingService] Stack trace: $s');
     }
   }
 

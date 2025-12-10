@@ -12,6 +12,7 @@ import 'simulation_meshtastic_device.dart';
 import 'device_communication_event_service.dart';
 import 'recent_devices_service.dart';
 import 'settings_service.dart';
+import 'ble_exceptions.dart';
 import '../meshtastic/model/meshtastic_event.dart';
 
 /// Represents the connection state for a device along with optional error.
@@ -221,12 +222,20 @@ class DeviceStatusStore {
       } catch (_) {}
       entry.client = null;
 
-      entry._update(DeviceConnectionState.error, error: e);
+      Object error = e;
+      // Check for common "device not found" errors from flutter_blue_plus
+      // Android: "Device not found"
+      // iOS: might differ, but "Device not found" is a good catch-all heuristic for now
+      if (e.toString().contains("Device not found")) {
+        error = ScanRequiredException();
+      }
+
+      entry._update(DeviceConnectionState.error, error: error);
       entry._scheduleErrorRemoval();
       _connectedDevicesController.add(connectedDevices);
-      _log(id, 'Connect failed: $e', level: 'error');
-      completer.completeError(e);
-      rethrow;
+      _log(id, 'Connect failed: $error', level: 'error');
+      completer.completeError(error);
+      throw error;
     } finally {
       entry.connecting = null;
     }
@@ -424,9 +433,21 @@ class DeviceStatusStore {
 
   /// Disconnect the device and dispose its client. Keeps the entry so status
   /// can be replayed as `disconnected`.
-  Future<void> disconnect(String deviceId) async {
+  ///
+  /// [userInitiated] - If true, marks this as a user-initiated disconnect,
+  /// which will prevent automatic reconnection attempts.
+  Future<void> disconnect(String deviceId, {bool userInitiated = true}) async {
     final entry = _entries[deviceId];
     if (entry == null) return;
+
+    // Mark as user disconnect to prevent auto-reconnect
+    if (userInitiated) {
+      entry._userDisconnect = true;
+    }
+
+    // Cancel any pending reconnection attempts
+    entry._cancelReconnection();
+
     try {
       // Politely inform the radio first via ToRadio(disconnect=true)
       if (entry.client != null) {
@@ -541,6 +562,10 @@ class _Entry {
   Timer? _errorRemovalTimer;
   // Stored device name for display
   String? deviceName;
+  // Reconnection tracking
+  bool _userDisconnect = false;
+  int _reconnectAttempts = 0;
+  Timer? _reconnectTimer;
 
   _Entry(this.device)
     : deviceId = device!.remoteId.str,
@@ -619,7 +644,120 @@ class _Entry {
           DeviceStatusStore.instance.connectedDevices,
         );
         DeviceStatusStore._log(deviceId, 'Disconnected (device event)');
-        // Push a lightweight device communication event for user-visible notification
+
+        // Determine if we should attempt auto-reconnect
+        final settings = SettingsService.instance.current;
+        final shouldReconnect =
+            !_userDisconnect && (settings?.autoReconnectEnabled ?? true);
+
+        if (shouldReconnect) {
+          DeviceStatusStore._log(
+            deviceId,
+            'Unexpected disconnect detected, will attempt reconnection',
+          );
+          _attemptReconnection();
+        } else {
+          DeviceStatusStore._log(
+            deviceId,
+            'User-initiated disconnect or auto-reconnect disabled, not reconnecting',
+          );
+          // Push a lightweight device communication event for user-visible notification
+          try {
+            DeviceCommunicationEventService.instance.push(
+              tags: {
+                'network': 'meshtastic',
+                'deviceId': deviceId,
+                'class': 'DeviceStatusStore',
+              },
+              summary: 'Device disconnected',
+            );
+          } catch (_) {}
+        }
+      }
+    });
+  }
+
+  /// Attempt to reconnect to the device with exponential backoff.
+  Future<void> _attemptReconnection() async {
+    // Cancel any existing reconnection timer
+    _reconnectTimer?.cancel();
+
+    final settings = SettingsService.instance.current;
+    final maxAttempts = settings?.maxReconnectAttempts ?? 3;
+    final baseDelay = settings?.reconnectBaseDelaySeconds ?? 1;
+
+    if (_reconnectAttempts >= maxAttempts) {
+      DeviceStatusStore._log(
+        deviceId,
+        'Max reconnection attempts ($maxAttempts) reached, giving up',
+        level: 'warn',
+      );
+      _reconnectAttempts = 0;
+      // Notify user that reconnection failed
+      try {
+        DeviceCommunicationEventService.instance.push(
+          tags: {
+            'network': 'meshtastic',
+            'deviceId': deviceId,
+            'class': 'DeviceStatusStore',
+          },
+          summary: 'Reconnection failed after $maxAttempts attempts',
+        );
+      } catch (_) {}
+      return;
+    }
+
+    _reconnectAttempts++;
+
+    // Calculate exponential backoff delay
+    final delaySeconds = baseDelay * (1 << (_reconnectAttempts - 1));
+    final delay = Duration(seconds: delaySeconds);
+
+    DeviceStatusStore._log(
+      deviceId,
+      'Scheduling reconnection attempt $_reconnectAttempts/$maxAttempts in ${delaySeconds}s',
+    );
+
+    // Notify user about reconnection attempt
+    try {
+      DeviceCommunicationEventService.instance.push(
+        tags: {
+          'network': 'meshtastic',
+          'deviceId': deviceId,
+          'class': 'DeviceStatusStore',
+        },
+        summary: 'Reconnecting (attempt $_reconnectAttempts/$maxAttempts)...',
+      );
+    } catch (_) {}
+
+    _reconnectTimer = Timer(delay, () async {
+      if (device == null) {
+        DeviceStatusStore._log(
+          deviceId,
+          'Device is null, cannot reconnect',
+          level: 'error',
+        );
+        return;
+      }
+
+      DeviceStatusStore._log(
+        deviceId,
+        'Executing reconnection attempt $_reconnectAttempts/$maxAttempts',
+      );
+
+      try {
+        // Attempt to reconnect
+        await DeviceStatusStore.instance.connect(
+          device!,
+          deviceName: deviceName,
+        );
+
+        // Success! Reset attempts
+        DeviceStatusStore._log(deviceId, 'Reconnection successful');
+        _reconnectAttempts = 0;
+        _userDisconnect = false;
+
+        // Notify user of successful reconnection
         try {
           DeviceCommunicationEventService.instance.push(
             tags: {
@@ -627,11 +765,48 @@ class _Entry {
               'deviceId': deviceId,
               'class': 'DeviceStatusStore',
             },
-            summary: 'Device disconnected',
+            summary: 'Reconnected successfully',
           );
         } catch (_) {}
+      } catch (e) {
+        DeviceStatusStore._log(
+          deviceId,
+          'Reconnection attempt $_reconnectAttempts failed: $e',
+          level: 'warn',
+        );
+
+        // Check if this is a permanent error
+        if (e is BlePermanentException) {
+          DeviceStatusStore._log(
+            deviceId,
+            'Permanent error detected, stopping reconnection attempts',
+            level: 'error',
+          );
+          _reconnectAttempts = 0;
+          try {
+            DeviceCommunicationEventService.instance.push(
+              tags: {
+                'network': 'meshtastic',
+                'deviceId': deviceId,
+                'class': 'DeviceStatusStore',
+              },
+              summary: 'Reconnection failed: ${e.toString()}',
+            );
+          } catch (_) {}
+          return;
+        }
+
+        // Schedule next attempt
+        await _attemptReconnection();
       }
     });
+  }
+
+  /// Cancel any pending reconnection attempts.
+  void _cancelReconnection() {
+    _reconnectTimer?.cancel();
+    _reconnectTimer = null;
+    _reconnectAttempts = 0;
   }
 
   void _subscribeClientRssi() {
@@ -653,4 +828,9 @@ class _Entry {
     _clientRssiSub = null;
     DeviceStatusStore._log(deviceId, 'Unsubscribed from client RSSI');
   }
+}
+
+class ScanRequiredException implements Exception {
+  @override
+  String toString() => 'ScanRequiredException';
 }

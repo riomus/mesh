@@ -12,7 +12,8 @@ import 'logging_service.dart';
 
 import 'chatting_device.dart';
 
-class SimulationMeshtasticDevice implements MeshtasticClient, ChattingDevice {
+class SimulationMeshtasticDevice extends MeshtasticClient
+    implements ChattingDevice {
   final String _deviceId = 'SIM-DEVICE-001';
   final StreamController<MeshtasticEvent> _eventsController =
       StreamController<MeshtasticEvent>.broadcast();

@@ -33,12 +33,17 @@ class _TracesPageState extends State<TracesPage> {
     // Load initial traces
     _traces = _tracerouteService.getAllTraces();
     // Subscribe to updates
-    _traceSub = _tracerouteService.listenAllTraces().listen((traces) {
-      if (!mounted) return;
-      setState(() {
-        _traces = traces;
-      });
-    });
+    _traceSub = _tracerouteService.listenAllTraces().listen(
+      (traces) {
+        if (!mounted) return;
+        setState(() {
+          _traces = traces;
+        });
+      },
+      onError: (e) {
+        print('[TracesPage] Error in trace stream: $e');
+      },
+    );
   }
 
   @override

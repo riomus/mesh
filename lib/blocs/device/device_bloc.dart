@@ -17,6 +17,22 @@ class DeviceBloc extends Bloc<DeviceEvent, DevicesState> {
   }
 
   void _init() {
+    // Initialize with any existing states from the service
+    final existingStates = DeviceStateService.instance.allStates;
+    if (existingStates.isNotEmpty) {
+      LoggingService.instance.push(
+        tags: {'class': 'DeviceBloc'},
+        level: 'info',
+        message:
+            'Initializing DeviceBloc with ${existingStates.length} existing device state(s)',
+      );
+      // Add events for all existing device states
+      for (final deviceState in existingStates.values) {
+        add(DeviceStateUpdated(deviceState));
+      }
+    }
+
+    // Then subscribe to future updates
     _subscription = DeviceStateService.instance.streamAll.listen(
       (state) => add(DeviceStateUpdated(state)),
       onError: (e, s) {

@@ -9,6 +9,10 @@ class _PrefsKeys {
   static const String bleHeartbeatInterval = 'settings.bleHeartbeatInterval';
   static const String configTimeout = 'settings.configTimeout';
   static const String tracerouteMinInterval = 'settings.tracerouteMinInterval';
+  static const String autoReconnectEnabled = 'settings.autoReconnectEnabled';
+  static const String maxReconnectAttempts = 'settings.maxReconnectAttempts';
+  static const String reconnectBaseDelaySeconds =
+      'settings.reconnectBaseDelaySeconds';
 }
 
 /// Simple model for app settings.
@@ -21,6 +25,12 @@ class AppSettings {
   configTimeoutSeconds; // Config complete timeout in seconds (default: 15)
   final int
   tracerouteMinIntervalSeconds; // Minimum seconds between traceroute requests (default: 30)
+  final bool
+  autoReconnectEnabled; // Automatically reconnect on unexpected disconnect (default: true)
+  final int
+  maxReconnectAttempts; // Maximum number of reconnection attempts (default: 3)
+  final int
+  reconnectBaseDelaySeconds; // Base delay for exponential backoff (default: 1)
 
   const AppSettings({
     this.locale,
@@ -28,6 +38,9 @@ class AppSettings {
     this.bleHeartbeatIntervalSeconds = 60,
     this.configTimeoutSeconds = 15,
     this.tracerouteMinIntervalSeconds = 30,
+    this.autoReconnectEnabled = true,
+    this.maxReconnectAttempts = 3,
+    this.reconnectBaseDelaySeconds = 1,
   });
 
   AppSettings copyWith({
@@ -36,6 +49,9 @@ class AppSettings {
     int? bleHeartbeatIntervalSeconds,
     int? configTimeoutSeconds,
     int? tracerouteMinIntervalSeconds,
+    bool? autoReconnectEnabled,
+    int? maxReconnectAttempts,
+    int? reconnectBaseDelaySeconds,
   }) => AppSettings(
     locale: locale ?? this.locale,
     adminPassword: adminPassword ?? this.adminPassword,
@@ -44,6 +60,10 @@ class AppSettings {
     configTimeoutSeconds: configTimeoutSeconds ?? this.configTimeoutSeconds,
     tracerouteMinIntervalSeconds:
         tracerouteMinIntervalSeconds ?? this.tracerouteMinIntervalSeconds,
+    autoReconnectEnabled: autoReconnectEnabled ?? this.autoReconnectEnabled,
+    maxReconnectAttempts: maxReconnectAttempts ?? this.maxReconnectAttempts,
+    reconnectBaseDelaySeconds:
+        reconnectBaseDelaySeconds ?? this.reconnectBaseDelaySeconds,
   );
 }
 
@@ -73,6 +93,12 @@ class SettingsService {
     final configTimeout = prefs.getInt(_PrefsKeys.configTimeout) ?? 15;
     final tracerouteMinInterval =
         prefs.getInt(_PrefsKeys.tracerouteMinInterval) ?? 30;
+    final autoReconnectEnabled =
+        prefs.getBool(_PrefsKeys.autoReconnectEnabled) ?? true;
+    final maxReconnectAttempts =
+        prefs.getInt(_PrefsKeys.maxReconnectAttempts) ?? 3;
+    final reconnectBaseDelaySeconds =
+        prefs.getInt(_PrefsKeys.reconnectBaseDelaySeconds) ?? 1;
 
     Locale? locale;
     if (lang != null && lang.isNotEmpty) {
@@ -87,6 +113,9 @@ class SettingsService {
       bleHeartbeatIntervalSeconds: bleHeartbeatInterval,
       configTimeoutSeconds: configTimeout,
       tracerouteMinIntervalSeconds: tracerouteMinInterval,
+      autoReconnectEnabled: autoReconnectEnabled,
+      maxReconnectAttempts: maxReconnectAttempts,
+      reconnectBaseDelaySeconds: reconnectBaseDelaySeconds,
     );
     _cachedSettings = settings;
     return settings;
@@ -126,6 +155,21 @@ class SettingsService {
     await prefs.setInt(
       _PrefsKeys.tracerouteMinInterval,
       settings.tracerouteMinIntervalSeconds,
+    );
+
+    await prefs.setBool(
+      _PrefsKeys.autoReconnectEnabled,
+      settings.autoReconnectEnabled,
+    );
+
+    await prefs.setInt(
+      _PrefsKeys.maxReconnectAttempts,
+      settings.maxReconnectAttempts,
+    );
+
+    await prefs.setInt(
+      _PrefsKeys.reconnectBaseDelaySeconds,
+      settings.reconnectBaseDelaySeconds,
     );
   }
 }

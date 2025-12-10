@@ -93,12 +93,28 @@ class _ChatWidgetState extends State<ChatWidget> {
   void _subscribeToMessages() {
     _messageSub = MessageRoutingService.instance
         .getMessagesForRoom(widget.roomId)
-        .listen((messages) {
-          setState(() {
-            _messages = messages;
-          });
-          _scrollToBottom();
-        });
+        .listen(
+          (messages) {
+            setState(() {
+              _messages = messages;
+            });
+            _scrollToBottom();
+          },
+          onError: (e) {
+            print('[ChatWidget] Error in messages stream: $e');
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    AppLocalizations.of(
+                      context,
+                    ).errorLoadingMessages(e.toString()),
+                  ),
+                ),
+              );
+            }
+          },
+        );
   }
 
   void _scrollToBottom() {

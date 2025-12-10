@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'logging_service.dart';
 import 'device_communication_event_service.dart';
+import 'ble_exceptions.dart';
 
 // Protobufs
 import '../generated/meshtastic/meshtastic/mesh.pb.dart' as mesh;
@@ -19,7 +20,7 @@ import 'meshtastic_client.dart';
 /// - Drain FromRadio until empty for initial download
 /// - Subscribe to FromNum notifications; on notify, drain FromRadio until empty
 /// - Provide public API to send ToRadio messages
-class MeshtasticBleClient implements MeshtasticClient {
+class MeshtasticBleClient extends MeshtasticClient {
   // UUIDs (lowercase normalized)
   static const String serviceUuid = '6ba1b218-15a8-461f-9fa8-5dcae273eafd';
   static const String toRadioUuid = 'f75c76d2-129e-4dad-a1dd-7866124401e7';
@@ -85,15 +86,11 @@ class MeshtasticBleClient implements MeshtasticClient {
     // Check if already connected at the OS level
     var isConnected = false;
     try {
-      // We can check the current connection state from the device stream's latest value if available,
-      // or check the list of connected devices from FlutterBluePlus.
-      final connectedDevices = await FlutterBluePlus.connectedSystemDevices;
+      // Check system devices (bonded devices on Android, connected devices on iOS)
+      final connectedDevices = await FlutterBluePlus.systemDevices([]);
       if (connectedDevices.any((d) => d.remoteId == device.remoteId)) {
         isConnected = true;
         _log('Device is already connected at OS level');
-      } else {
-        // Fallback: check the device's current state if possible, though connectedSystemDevices is more reliable for "already paired/connected"
-        // Note: device.connectionState is a stream.
       }
     } catch (e) {
       _log('Failed to check existing connection status: $e', level: 'warn');
@@ -105,11 +102,25 @@ class MeshtasticBleClient implements MeshtasticClient {
         requestMtu = null;
       }
 
-      await device.connect(
-        timeout: timeout,
-        license: License.free,
-        mtu: requestMtu,
-      );
+      try {
+        _log('Initiating BLE connection (timeout: ${timeout.inSeconds}s)...');
+        await device.connect(
+          timeout: timeout,
+          license: License.free,
+          mtu: requestMtu,
+        );
+        _log('BLE connection established');
+      } on TimeoutException {
+        _log(
+          'BLE connection timed out after ${timeout.inSeconds}s',
+          level: 'error',
+        );
+        throw BleConnectionTimeoutException(device.remoteId.str, timeout);
+      } catch (e) {
+        _log('BLE connection failed: $e', level: 'error');
+        // Categorize the error
+        throw BleErrorHelper.categorize(device.remoteId.str, e);
+      }
     } else {
       _log('Skipping connect() call because device is already connected');
     }
@@ -130,8 +141,23 @@ class MeshtasticBleClient implements MeshtasticClient {
       _mtu = device.mtuNow; // best effort
     }
 
-    await _discoverAndBindCharacteristics();
-    await requestConfig();
+    try {
+      _log('Discovering services and binding characteristics...');
+      await _discoverAndBindCharacteristics();
+      _log('Service discovery complete');
+    } catch (e) {
+      _log('Service discovery failed: $e', level: 'error');
+      rethrow;
+    }
+
+    try {
+      _log('Requesting device configuration...');
+      await requestConfig();
+      _log('Configuration request complete');
+    } catch (e) {
+      _log('Configuration request failed: $e', level: 'error');
+      rethrow;
+    }
 
     // Start listening for connection state changes for logging/cleanup
     _connStateSub?.cancel();

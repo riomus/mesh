@@ -5,7 +5,7 @@ import '../meshtastic/model/meshtastic_event.dart';
 
 /// Stub implementation of MeshtasticUsbClient for web platform.
 /// USB serial communication is not supported on web.
-class MeshtasticUsbClient implements MeshtasticClient {
+class MeshtasticUsbClient extends MeshtasticClient {
   final String portName;
   final String deviceId;
 

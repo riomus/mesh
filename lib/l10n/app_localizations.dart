@@ -362,6 +362,12 @@ abstract class AppLocalizations {
   /// **'Disconnected'**
   String get statusDisconnected;
 
+  /// No description provided for @statusReconnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnecting (attempt {attempt}/{max})...'**
+  String statusReconnecting(Object attempt, Object max);
+
   /// No description provided for @mapRefPrefix.
   ///
   /// In en, this message translates to:
@@ -655,6 +661,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Device error'**
   String get deviceError;
+
+  /// No description provided for @scanRequiredFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Device not found. Please scan for devices first.'**
+  String get scanRequiredFirst;
 
   /// No description provided for @eventsTitle.
   ///
@@ -1466,6 +1478,18 @@ abstract class AppLocalizations {
   /// **'Connect to the device to view its state'**
   String get connectToViewState;
 
+  /// No description provided for @loadingConfig.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading Config'**
+  String get loadingConfig;
+
+  /// No description provided for @pleaseWaitFetchingConfig.
+  ///
+  /// In en, this message translates to:
+  /// **'Please wait while fetching device configuration...'**
+  String get pleaseWaitFetchingConfig;
+
   /// No description provided for @notifications.
   ///
   /// In en, this message translates to:
@@ -1535,7 +1559,7 @@ abstract class AppLocalizations {
   /// No description provided for @sessionKeyRequested.
   ///
   /// In en, this message translates to:
-  /// **'Session key requested'**
+  /// **'sessionKeyRequested'**
   String get sessionKeyRequested;
 
   /// No description provided for @stateMissing.
@@ -1607,7 +1631,7 @@ abstract class AppLocalizations {
   /// No description provided for @save.
   ///
   /// In en, this message translates to:
-  /// **'Save'**
+  /// **'save'**
   String get save;
 
   /// No description provided for @hostInputLabel.
@@ -1703,7 +1727,7 @@ abstract class AppLocalizations {
   /// No description provided for @password.
   ///
   /// In en, this message translates to:
-  /// **'Password'**
+  /// **'password'**
   String get password;
 
   /// No description provided for @connectToIpDevice.
@@ -1949,7 +1973,7 @@ abstract class AppLocalizations {
   /// No description provided for @serialEnabled.
   ///
   /// In en, this message translates to:
-  /// **'Serial Enabled'**
+  /// **'serialEnabled'**
   String get serialEnabled;
 
   /// No description provided for @buttonGpio.
@@ -1985,7 +2009,7 @@ abstract class AppLocalizations {
   /// No description provided for @isManaged.
   ///
   /// In en, this message translates to:
-  /// **'Is Managed'**
+  /// **'isManaged'**
   String get isManaged;
 
   /// No description provided for @disableTripleClick.
@@ -2159,37 +2183,37 @@ abstract class AppLocalizations {
   /// No description provided for @screenOnSecs.
   ///
   /// In en, this message translates to:
-  /// **'Screen On Secs'**
+  /// **'screenOnSecs'**
   String get screenOnSecs;
 
   /// No description provided for @autoScreenCarouselSecs.
   ///
   /// In en, this message translates to:
-  /// **'Auto Screen Carousel Secs'**
+  /// **'autoScreenCarouselSecs'**
   String get autoScreenCarouselSecs;
 
   /// No description provided for @compassNorthTop.
   ///
   /// In en, this message translates to:
-  /// **'Compass North Top'**
+  /// **'compassNorthTop'**
   String get compassNorthTop;
 
   /// No description provided for @flipScreen.
   ///
   /// In en, this message translates to:
-  /// **'Flip Screen'**
+  /// **'flipScreen'**
   String get flipScreen;
 
   /// No description provided for @units.
   ///
   /// In en, this message translates to:
-  /// **'Units'**
+  /// **'units'**
   String get units;
 
   /// No description provided for @oled.
   ///
   /// In en, this message translates to:
-  /// **'OLED'**
+  /// **'oled'**
   String get oled;
 
   /// No description provided for @displayMode.
@@ -2201,91 +2225,91 @@ abstract class AppLocalizations {
   /// No description provided for @headingBold.
   ///
   /// In en, this message translates to:
-  /// **'Heading Bold'**
+  /// **'headingBold'**
   String get headingBold;
 
   /// No description provided for @wakeOnTapOrMotion.
   ///
   /// In en, this message translates to:
-  /// **'Wake On Tap Or Motion'**
+  /// **'wakeOnTapOrMotion'**
   String get wakeOnTapOrMotion;
 
   /// No description provided for @compassOrientation.
   ///
   /// In en, this message translates to:
-  /// **'Compass Orientation'**
+  /// **'compassOrientation'**
   String get compassOrientation;
 
   /// No description provided for @use12hClock.
   ///
   /// In en, this message translates to:
-  /// **'Use 12h Clock'**
+  /// **'use12hClock'**
   String get use12hClock;
 
   /// No description provided for @useLongNodeName.
   ///
   /// In en, this message translates to:
-  /// **'Use Long Node Name'**
+  /// **'useLongNodeName'**
   String get useLongNodeName;
 
   /// No description provided for @region.
   ///
   /// In en, this message translates to:
-  /// **'Region'**
+  /// **'region'**
   String get region;
 
   /// No description provided for @modemPreset.
   ///
   /// In en, this message translates to:
-  /// **'Modem Preset'**
+  /// **'modemPreset'**
   String get modemPreset;
 
   /// No description provided for @hopLimit.
   ///
   /// In en, this message translates to:
-  /// **'Hop Limit'**
+  /// **'hopLimit'**
   String get hopLimit;
 
   /// No description provided for @txEnabled.
   ///
   /// In en, this message translates to:
-  /// **'TX Enabled'**
+  /// **'txEnabled'**
   String get txEnabled;
 
   /// No description provided for @txPower.
   ///
   /// In en, this message translates to:
-  /// **'TX Power'**
+  /// **'txPower'**
   String get txPower;
 
   /// No description provided for @enabled.
   ///
   /// In en, this message translates to:
-  /// **'Enabled'**
+  /// **'enabled'**
   String get enabled;
 
   /// No description provided for @mode.
   ///
   /// In en, this message translates to:
-  /// **'Mode'**
+  /// **'mode'**
   String get mode;
 
   /// No description provided for @fixedPin.
   ///
   /// In en, this message translates to:
-  /// **'Fixed PIN'**
+  /// **'fixedPin'**
   String get fixedPin;
 
   /// No description provided for @publicKey.
   ///
   /// In en, this message translates to:
-  /// **'Public Key'**
+  /// **'publicKey'**
   String get publicKey;
 
   /// No description provided for @privateKey.
   ///
   /// In en, this message translates to:
-  /// **'Private Key'**
+  /// **'privateKey'**
   String get privateKey;
 
   /// No description provided for @adminKeys.
@@ -2297,25 +2321,25 @@ abstract class AppLocalizations {
   /// No description provided for @debugLogApiEnabled.
   ///
   /// In en, this message translates to:
-  /// **'Debug Log API Enabled'**
+  /// **'debugLogApiEnabled'**
   String get debugLogApiEnabled;
 
   /// No description provided for @adminChannelEnabled.
   ///
   /// In en, this message translates to:
-  /// **'Admin Channel Enabled'**
+  /// **'adminChannelEnabled'**
   String get adminChannelEnabled;
 
   /// No description provided for @address.
   ///
   /// In en, this message translates to:
-  /// **'Address'**
+  /// **'address'**
   String get address;
 
   /// No description provided for @username.
   ///
   /// In en, this message translates to:
-  /// **'Username'**
+  /// **'username'**
   String get username;
 
   /// No description provided for @encryption.
@@ -2357,13 +2381,13 @@ abstract class AppLocalizations {
   /// No description provided for @deviceUpdateInterval.
   ///
   /// In en, this message translates to:
-  /// **'Device Update Interval'**
+  /// **'deviceUpdateInterval'**
   String get deviceUpdateInterval;
 
   /// No description provided for @environmentUpdateInterval.
   ///
   /// In en, this message translates to:
-  /// **'Environment Update Interval'**
+  /// **'environmentUpdateInterval'**
   String get environmentUpdateInterval;
 
   /// No description provided for @environmentMeasurement.
@@ -2387,7 +2411,7 @@ abstract class AppLocalizations {
   /// No description provided for @airQualityInterval.
   ///
   /// In en, this message translates to:
-  /// **'Air Quality Interval'**
+  /// **'airQualityInterval'**
   String get airQualityInterval;
 
   /// No description provided for @powerMeasurement.
@@ -2399,7 +2423,7 @@ abstract class AppLocalizations {
   /// No description provided for @powerUpdateInterval.
   ///
   /// In en, this message translates to:
-  /// **'Power Update Interval'**
+  /// **'powerUpdateInterval'**
   String get powerUpdateInterval;
 
   /// No description provided for @powerScreen.
@@ -2417,7 +2441,7 @@ abstract class AppLocalizations {
   /// No description provided for @healthUpdateInterval.
   ///
   /// In en, this message translates to:
-  /// **'Health Update Interval'**
+  /// **'healthUpdateInterval'**
   String get healthUpdateInterval;
 
   /// No description provided for @healthScreen.
@@ -2435,31 +2459,31 @@ abstract class AppLocalizations {
   /// No description provided for @echo.
   ///
   /// In en, this message translates to:
-  /// **'Echo'**
+  /// **'echo'**
   String get echo;
 
   /// No description provided for @rxd.
   ///
   /// In en, this message translates to:
-  /// **'RXD'**
+  /// **'rxd'**
   String get rxd;
 
   /// No description provided for @txd.
   ///
   /// In en, this message translates to:
-  /// **'TXD'**
+  /// **'txd'**
   String get txd;
 
   /// No description provided for @baud.
   ///
   /// In en, this message translates to:
-  /// **'Baud'**
+  /// **'baud'**
   String get baud;
 
   /// No description provided for @timeout.
   ///
   /// In en, this message translates to:
-  /// **'Timeout'**
+  /// **'timeout'**
   String get timeout;
 
   /// No description provided for @overrideConsole.
@@ -2471,193 +2495,193 @@ abstract class AppLocalizations {
   /// No description provided for @heartbeat.
   ///
   /// In en, this message translates to:
-  /// **'Heartbeat'**
+  /// **'heartbeat'**
   String get heartbeat;
 
   /// No description provided for @records.
   ///
   /// In en, this message translates to:
-  /// **'Records'**
+  /// **'records'**
   String get records;
 
   /// No description provided for @historyReturnMax.
   ///
   /// In en, this message translates to:
-  /// **'History Return Max'**
+  /// **'historyReturnMax'**
   String get historyReturnMax;
 
   /// No description provided for @historyReturnWindow.
   ///
   /// In en, this message translates to:
-  /// **'History Return Window'**
+  /// **'historyReturnWindow'**
   String get historyReturnWindow;
 
   /// No description provided for @isServer.
   ///
   /// In en, this message translates to:
-  /// **'Is Server'**
+  /// **'isServer'**
   String get isServer;
 
   /// No description provided for @emitControlSignals.
   ///
   /// In en, this message translates to:
-  /// **'Emit Control Signals'**
+  /// **'emitControlSignals'**
   String get emitControlSignals;
 
   /// No description provided for @sender.
   ///
   /// In en, this message translates to:
-  /// **'Sender'**
+  /// **'sender'**
   String get sender;
 
   /// No description provided for @clearOnReboot.
   ///
   /// In en, this message translates to:
-  /// **'Clear on Reboot'**
+  /// **'clearOnReboot'**
   String get clearOnReboot;
 
   /// No description provided for @outputMs.
   ///
   /// In en, this message translates to:
-  /// **'Output MS'**
+  /// **'outputMs'**
   String get outputMs;
 
   /// No description provided for @output.
   ///
   /// In en, this message translates to:
-  /// **'Output'**
+  /// **'output'**
   String get output;
 
   /// No description provided for @active.
   ///
   /// In en, this message translates to:
-  /// **'Active'**
+  /// **'active'**
   String get active;
 
   /// No description provided for @alertMessage.
   ///
   /// In en, this message translates to:
-  /// **'Alert Message'**
+  /// **'alertMessage'**
   String get alertMessage;
 
   /// No description provided for @alertBell.
   ///
   /// In en, this message translates to:
-  /// **'Alert Bell'**
+  /// **'alertBell'**
   String get alertBell;
 
   /// No description provided for @usePwm.
   ///
   /// In en, this message translates to:
-  /// **'Use PWM'**
+  /// **'usePwm'**
   String get usePwm;
 
   /// No description provided for @outputVibra.
   ///
   /// In en, this message translates to:
-  /// **'Output Vibra'**
+  /// **'outputVibra'**
   String get outputVibra;
 
   /// No description provided for @outputBuzzer.
   ///
   /// In en, this message translates to:
-  /// **'Output Buzzer'**
+  /// **'outputBuzzer'**
   String get outputBuzzer;
 
   /// No description provided for @nagTimeout.
   ///
   /// In en, this message translates to:
-  /// **'Nag Timeout'**
+  /// **'nagTimeout'**
   String get nagTimeout;
 
   /// No description provided for @useI2sAsBuzzer.
   ///
   /// In en, this message translates to:
-  /// **'Use I2S as Buzzer'**
+  /// **'useI2sAsBuzzer'**
   String get useI2sAsBuzzer;
 
   /// No description provided for @codec2Enabled.
   ///
   /// In en, this message translates to:
-  /// **'Codec2 Enabled'**
+  /// **'codec2Enabled'**
   String get codec2Enabled;
 
   /// No description provided for @pttPin.
   ///
   /// In en, this message translates to:
-  /// **'PTT Pin'**
+  /// **'pttPin'**
   String get pttPin;
 
   /// No description provided for @bitrate.
   ///
   /// In en, this message translates to:
-  /// **'Bitrate'**
+  /// **'bitrate'**
   String get bitrate;
 
   /// No description provided for @i2sWs.
   ///
   /// In en, this message translates to:
-  /// **'I2S WS'**
+  /// **'i2sWs'**
   String get i2sWs;
 
   /// No description provided for @i2sSd.
   ///
   /// In en, this message translates to:
-  /// **'I2S SD'**
+  /// **'i2sSd'**
   String get i2sSd;
 
   /// No description provided for @i2sDin.
   ///
   /// In en, this message translates to:
-  /// **'I2S DIN'**
+  /// **'i2sDin'**
   String get i2sDin;
 
   /// No description provided for @i2sSck.
   ///
   /// In en, this message translates to:
-  /// **'I2S SCK'**
+  /// **'i2sSck'**
   String get i2sSck;
 
   /// No description provided for @updateInterval.
   ///
   /// In en, this message translates to:
-  /// **'Update Interval'**
+  /// **'updateInterval'**
   String get updateInterval;
 
   /// No description provided for @transmitOverLora.
   ///
   /// In en, this message translates to:
-  /// **'Transmit Over LoRa'**
+  /// **'transmitOverLora'**
   String get transmitOverLora;
 
   /// No description provided for @allowUndefinedPinAccess.
   ///
   /// In en, this message translates to:
-  /// **'Allow Undefined Pin Access'**
+  /// **'allowUndefinedPinAccess'**
   String get allowUndefinedPinAccess;
 
   /// No description provided for @paxcounterUpdateInterval.
   ///
   /// In en, this message translates to:
-  /// **'Paxcounter Update Interval'**
+  /// **'paxcounterUpdateInterval'**
   String get paxcounterUpdateInterval;
 
   /// No description provided for @wifiThreshold.
   ///
   /// In en, this message translates to:
-  /// **'WiFi Threshold'**
+  /// **'wifiThreshold'**
   String get wifiThreshold;
 
   /// No description provided for @bleThreshold.
   ///
   /// In en, this message translates to:
-  /// **'BLE Threshold'**
+  /// **'bleThreshold'**
   String get bleThreshold;
 
   /// No description provided for @rotary1Enabled.
   ///
   /// In en, this message translates to:
-  /// **'Rotary1 Enabled'**
+  /// **'rotary1Enabled'**
   String get rotary1Enabled;
 
   /// No description provided for @inputBrokerPinA.
@@ -2687,43 +2711,43 @@ abstract class AppLocalizations {
   /// No description provided for @allowInputSource.
   ///
   /// In en, this message translates to:
-  /// **'Allow Input Source'**
+  /// **'allowInputSource'**
   String get allowInputSource;
 
   /// No description provided for @sendBell.
   ///
   /// In en, this message translates to:
-  /// **'Send Bell'**
+  /// **'sendBell'**
   String get sendBell;
 
   /// No description provided for @ledState.
   ///
   /// In en, this message translates to:
-  /// **'LED State'**
+  /// **'ledState'**
   String get ledState;
 
   /// No description provided for @current.
   ///
   /// In en, this message translates to:
-  /// **'Current'**
+  /// **'current'**
   String get current;
 
   /// No description provided for @red.
   ///
   /// In en, this message translates to:
-  /// **'Red'**
+  /// **'red'**
   String get red;
 
   /// No description provided for @green.
   ///
   /// In en, this message translates to:
-  /// **'Green'**
+  /// **'green'**
   String get green;
 
   /// No description provided for @blue.
   ///
   /// In en, this message translates to:
-  /// **'Blue'**
+  /// **'blue'**
   String get blue;
 
   /// No description provided for @minBroadcastSecs.
@@ -2735,13 +2759,13 @@ abstract class AppLocalizations {
   /// No description provided for @stateBroadcastSecs.
   ///
   /// In en, this message translates to:
-  /// **'State Broadcast Secs'**
+  /// **'stateBroadcastSecs'**
   String get stateBroadcastSecs;
 
   /// No description provided for @monitorPin.
   ///
   /// In en, this message translates to:
-  /// **'Monitor Pin'**
+  /// **'monitorPin'**
   String get monitorPin;
 
   /// No description provided for @triggerType.
@@ -2753,91 +2777,91 @@ abstract class AppLocalizations {
   /// No description provided for @usePullup.
   ///
   /// In en, this message translates to:
-  /// **'Use Pullup'**
+  /// **'usePullup'**
   String get usePullup;
 
   /// No description provided for @ttlMinutes.
   ///
   /// In en, this message translates to:
-  /// **'TTL Minutes'**
+  /// **'ttlMinutes'**
   String get ttlMinutes;
 
   /// No description provided for @initialDelayBaseMs.
   ///
   /// In en, this message translates to:
-  /// **'Initial Delay Base MS'**
+  /// **'initialDelayBaseMs'**
   String get initialDelayBaseMs;
 
   /// No description provided for @retryBackoffMs.
   ///
   /// In en, this message translates to:
-  /// **'Retry Backoff MS'**
+  /// **'retryBackoffMs'**
   String get retryBackoffMs;
 
   /// No description provided for @maxTries.
   ///
   /// In en, this message translates to:
-  /// **'Max Tries'**
+  /// **'maxTries'**
   String get maxTries;
 
   /// No description provided for @degreeThreshold.
   ///
   /// In en, this message translates to:
-  /// **'Degree Threshold'**
+  /// **'degreeThreshold'**
   String get degreeThreshold;
 
   /// No description provided for @dupThreshold.
   ///
   /// In en, this message translates to:
-  /// **'Dup Threshold'**
+  /// **'dupThreshold'**
   String get dupThreshold;
 
   /// No description provided for @windowMs.
   ///
   /// In en, this message translates to:
-  /// **'Window MS'**
+  /// **'windowMs'**
   String get windowMs;
 
   /// No description provided for @maxExtraHops.
   ///
   /// In en, this message translates to:
-  /// **'Max Extra Hops'**
+  /// **'maxExtraHops'**
   String get maxExtraHops;
 
   /// No description provided for @jitterMs.
   ///
   /// In en, this message translates to:
-  /// **'Jitter MS'**
+  /// **'jitterMs'**
   String get jitterMs;
 
   /// No description provided for @airtimeGuard.
   ///
   /// In en, this message translates to:
-  /// **'Airtime Guard'**
+  /// **'airtimeGuard'**
   String get airtimeGuard;
 
   /// No description provided for @textStatus.
   ///
   /// In en, this message translates to:
-  /// **'Text Status'**
+  /// **'textStatus'**
   String get textStatus;
 
   /// No description provided for @emoji.
   ///
   /// In en, this message translates to:
-  /// **'Emoji'**
+  /// **'emoji'**
   String get emoji;
 
   /// No description provided for @snifferEnabled.
   ///
   /// In en, this message translates to:
-  /// **'Sniffer Enabled'**
+  /// **'snifferEnabled'**
   String get snifferEnabled;
 
   /// No description provided for @doNotSendPrvOverMqtt.
   ///
   /// In en, this message translates to:
-  /// **'Do Not Send PRV Over MQTT'**
+  /// **'doNotSendPrvOverMqtt'**
   String get doNotSendPrvOverMqtt;
 
   /// No description provided for @localStatsOverMesh.
@@ -2849,25 +2873,25 @@ abstract class AppLocalizations {
   /// No description provided for @idlegameEnabled.
   ///
   /// In en, this message translates to:
-  /// **'Idle Game Enabled'**
+  /// **'idlegameEnabled'**
   String get idlegameEnabled;
 
   /// No description provided for @autoResponderEnabled.
   ///
   /// In en, this message translates to:
-  /// **'Auto Responder Enabled'**
+  /// **'autoResponderEnabled'**
   String get autoResponderEnabled;
 
   /// No description provided for @autoResponderText.
   ///
   /// In en, this message translates to:
-  /// **'Auto Responder Text'**
+  /// **'autoResponderText'**
   String get autoResponderText;
 
   /// No description provided for @autoRedirectMessages.
   ///
   /// In en, this message translates to:
-  /// **'Auto Redirect Messages'**
+  /// **'autoRedirectMessages'**
   String get autoRedirectMessages;
 
   /// No description provided for @autoRedirectTarget.
@@ -3289,6 +3313,2100 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Source: {name}'**
   String sourceNodePrefix(Object name);
+
+  /// No description provided for @me.
+  ///
+  /// In en, this message translates to:
+  /// **'ME'**
+  String get me;
+
+  /// No description provided for @targetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'[Target]'**
+  String get targetLabel;
+
+  /// No description provided for @sourceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'[Source]'**
+  String get sourceLabel;
+
+  /// No description provided for @ackLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'[Ack]'**
+  String get ackLabel;
+
+  /// No description provided for @traceStreamError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error in trace stream: {error}'**
+  String traceStreamError(Object error);
+
+  /// No description provided for @errorLoadingMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading messages: {error}'**
+  String errorLoadingMessages(Object error);
+
+  /// No description provided for @configSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error saving config: {error}'**
+  String configSaveError(Object error);
+
+  /// No description provided for @myNodeNumLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'myNodeNum={num}'**
+  String myNodeNumLabel(Object num);
+
+  /// No description provided for @nodeNumLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'num={num}'**
+  String nodeNumLabel(Object num);
+
+  /// No description provided for @idLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'id={id}'**
+  String idLabel(Object id);
+
+  /// No description provided for @channelIndexLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'index={index}'**
+  String channelIndexLabel(Object index);
+
+  /// No description provided for @freeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'free={value}'**
+  String freeLabel(Object value);
+
+  /// No description provided for @maxLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'max={value}'**
+  String maxLabel(Object value);
+
+  /// No description provided for @fwLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'fw={value}'**
+  String fwLabel(Object value);
+
+  /// No description provided for @hwLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'hw={value}'**
+  String hwLabel(Object value);
+
+  /// No description provided for @roleKey.
+  ///
+  /// In en, this message translates to:
+  /// **'role={value}'**
+  String roleKey(Object value);
+
+  /// No description provided for @wifiLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'wifi'**
+  String get wifiLabel;
+
+  /// No description provided for @btLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'bt'**
+  String get btLabel;
+
+  /// No description provided for @ethLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'eth'**
+  String get ethLabel;
+
+  /// No description provided for @bytesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} bytes'**
+  String bytesLabel(Object value);
+
+  /// No description provided for @fromLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'from={value}'**
+  String fromLabel(Object value);
+
+  /// No description provided for @toLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'to={value}'**
+  String toLabel(Object value);
+
+  /// No description provided for @chLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'ch={value}'**
+  String chLabel(Object value);
+
+  /// No description provided for @nonceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'nonce={value}'**
+  String nonceLabel(Object value);
+
+  /// No description provided for @nA.
+  ///
+  /// In en, this message translates to:
+  /// **'N/A'**
+  String get nA;
+
+  /// No description provided for @secondsSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}s'**
+  String secondsSuffix(Object value);
+
+  /// No description provided for @myNodeNum.
+  ///
+  /// In en, this message translates to:
+  /// **'myNodeNum'**
+  String get myNodeNum;
+
+  /// No description provided for @rebootCount.
+  ///
+  /// In en, this message translates to:
+  /// **'rebootCount'**
+  String get rebootCount;
+
+  /// No description provided for @minAppVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'minAppVersion'**
+  String get minAppVersion;
+
+  /// No description provided for @firmwareEdition.
+  ///
+  /// In en, this message translates to:
+  /// **'firmwareEdition'**
+  String get firmwareEdition;
+
+  /// No description provided for @nodedbCount.
+  ///
+  /// In en, this message translates to:
+  /// **'nodedbCount'**
+  String get nodedbCount;
+
+  /// No description provided for @pioEnv.
+  ///
+  /// In en, this message translates to:
+  /// **'pioEnv'**
+  String get pioEnv;
+
+  /// No description provided for @deviceId.
+  ///
+  /// In en, this message translates to:
+  /// **'deviceId'**
+  String get deviceId;
+
+  /// No description provided for @nodeNum.
+  ///
+  /// In en, this message translates to:
+  /// **'num'**
+  String get nodeNum;
+
+  /// No description provided for @userLongName.
+  ///
+  /// In en, this message translates to:
+  /// **'user.longName'**
+  String get userLongName;
+
+  /// No description provided for @userShortName.
+  ///
+  /// In en, this message translates to:
+  /// **'user.shortName'**
+  String get userShortName;
+
+  /// No description provided for @positionLat.
+  ///
+  /// In en, this message translates to:
+  /// **'position.lat'**
+  String get positionLat;
+
+  /// No description provided for @positionLon.
+  ///
+  /// In en, this message translates to:
+  /// **'position.lon'**
+  String get positionLon;
+
+  /// No description provided for @lastHeard.
+  ///
+  /// In en, this message translates to:
+  /// **'lastHeard'**
+  String get lastHeard;
+
+  /// No description provided for @isFavorite.
+  ///
+  /// In en, this message translates to:
+  /// **'isFavorite'**
+  String get isFavorite;
+
+  /// No description provided for @isIgnored.
+  ///
+  /// In en, this message translates to:
+  /// **'isIgnored'**
+  String get isIgnored;
+
+  /// No description provided for @isKeyManuallyVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'isKeyManuallyVerified'**
+  String get isKeyManuallyVerified;
+
+  /// No description provided for @volt.
+  ///
+  /// In en, this message translates to:
+  /// **'volt'**
+  String get volt;
+
+  /// No description provided for @chUtil.
+  ///
+  /// In en, this message translates to:
+  /// **'chUtil'**
+  String get chUtil;
+
+  /// No description provided for @airUtil.
+  ///
+  /// In en, this message translates to:
+  /// **'airUtil'**
+  String get airUtil;
+
+  /// No description provided for @uptime.
+  ///
+  /// In en, this message translates to:
+  /// **'uptime'**
+  String get uptime;
+
+  /// No description provided for @res.
+  ///
+  /// In en, this message translates to:
+  /// **'res'**
+  String get res;
+
+  /// No description provided for @size.
+  ///
+  /// In en, this message translates to:
+  /// **'size'**
+  String get size;
+
+  /// No description provided for @maxlen.
+  ///
+  /// In en, this message translates to:
+  /// **'maxlen'**
+  String get maxlen;
+
+  /// No description provided for @meshPacketId.
+  ///
+  /// In en, this message translates to:
+  /// **'meshPacketId'**
+  String get meshPacketId;
+
+  /// No description provided for @firmware.
+  ///
+  /// In en, this message translates to:
+  /// **'fw'**
+  String get firmware;
+
+  /// No description provided for @hardware.
+  ///
+  /// In en, this message translates to:
+  /// **'hw'**
+  String get hardware;
+
+  /// No description provided for @wifi.
+  ///
+  /// In en, this message translates to:
+  /// **'wifi'**
+  String get wifi;
+
+  /// No description provided for @ethernet.
+  ///
+  /// In en, this message translates to:
+  /// **'eth'**
+  String get ethernet;
+
+  /// No description provided for @stateVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'stateVer'**
+  String get stateVersion;
+
+  /// No description provided for @canShutdown.
+  ///
+  /// In en, this message translates to:
+  /// **'canShutdown'**
+  String get canShutdown;
+
+  /// No description provided for @hasRemoteHw.
+  ///
+  /// In en, this message translates to:
+  /// **'hasRemoteHw'**
+  String get hasRemoteHw;
+
+  /// No description provided for @hasPKC.
+  ///
+  /// In en, this message translates to:
+  /// **'hasPKC'**
+  String get hasPKC;
+
+  /// No description provided for @excluded.
+  ///
+  /// In en, this message translates to:
+  /// **'excluded'**
+  String get excluded;
+
+  /// No description provided for @hasFwPlus.
+  ///
+  /// In en, this message translates to:
+  /// **'hasFwPlus'**
+  String get hasFwPlus;
+
+  /// No description provided for @hasNodemod.
+  ///
+  /// In en, this message translates to:
+  /// **'hasNodemod'**
+  String get hasNodemod;
+
+  /// No description provided for @topic.
+  ///
+  /// In en, this message translates to:
+  /// **'topic'**
+  String get topic;
+
+  /// No description provided for @retained.
+  ///
+  /// In en, this message translates to:
+  /// **'retained'**
+  String get retained;
+
+  /// No description provided for @text.
+  ///
+  /// In en, this message translates to:
+  /// **'text'**
+  String get text;
+
+  /// No description provided for @dataLength.
+  ///
+  /// In en, this message translates to:
+  /// **'dataLen'**
+  String get dataLength;
+
+  /// No description provided for @fileName.
+  ///
+  /// In en, this message translates to:
+  /// **'name'**
+  String get fileName;
+
+  /// No description provided for @sizeBytes.
+  ///
+  /// In en, this message translates to:
+  /// **'sizeBytes'**
+  String get sizeBytes;
+
+  /// No description provided for @message.
+  ///
+  /// In en, this message translates to:
+  /// **'message'**
+  String get message;
+
+  /// No description provided for @replyId.
+  ///
+  /// In en, this message translates to:
+  /// **'replyId'**
+  String get replyId;
+
+  /// No description provided for @time.
+  ///
+  /// In en, this message translates to:
+  /// **'time'**
+  String get time;
+
+  /// No description provided for @payloadVariant.
+  ///
+  /// In en, this message translates to:
+  /// **'payloadVariant'**
+  String get payloadVariant;
+
+  /// No description provided for @source.
+  ///
+  /// In en, this message translates to:
+  /// **'source'**
+  String get source;
+
+  /// No description provided for @control.
+  ///
+  /// In en, this message translates to:
+  /// **'control'**
+  String get control;
+
+  /// No description provided for @seq.
+  ///
+  /// In en, this message translates to:
+  /// **'seq'**
+  String get seq;
+
+  /// No description provided for @crc16.
+  ///
+  /// In en, this message translates to:
+  /// **'crc16'**
+  String get crc16;
+
+  /// No description provided for @buffer.
+  ///
+  /// In en, this message translates to:
+  /// **'buffer'**
+  String get buffer;
+
+  /// No description provided for @from.
+  ///
+  /// In en, this message translates to:
+  /// **'from'**
+  String get from;
+
+  /// No description provided for @to.
+  ///
+  /// In en, this message translates to:
+  /// **'to'**
+  String get to;
+
+  /// No description provided for @rxTime.
+  ///
+  /// In en, this message translates to:
+  /// **'rxTime'**
+  String get rxTime;
+
+  /// No description provided for @rxRssi.
+  ///
+  /// In en, this message translates to:
+  /// **'rxRssi'**
+  String get rxRssi;
+
+  /// No description provided for @rxSnr.
+  ///
+  /// In en, this message translates to:
+  /// **'rxSnr'**
+  String get rxSnr;
+
+  /// No description provided for @wantAck.
+  ///
+  /// In en, this message translates to:
+  /// **'wantAck'**
+  String get wantAck;
+
+  /// No description provided for @priority.
+  ///
+  /// In en, this message translates to:
+  /// **'priority'**
+  String get priority;
+
+  /// No description provided for @transport.
+  ///
+  /// In en, this message translates to:
+  /// **'transport'**
+  String get transport;
+
+  /// No description provided for @hopStart.
+  ///
+  /// In en, this message translates to:
+  /// **'hopStart'**
+  String get hopStart;
+
+  /// No description provided for @encrypted.
+  ///
+  /// In en, this message translates to:
+  /// **'encrypted'**
+  String get encrypted;
+
+  /// No description provided for @pkiEncrypted.
+  ///
+  /// In en, this message translates to:
+  /// **'pkiEncrypted'**
+  String get pkiEncrypted;
+
+  /// No description provided for @nextHop.
+  ///
+  /// In en, this message translates to:
+  /// **'nextHop'**
+  String get nextHop;
+
+  /// No description provided for @relayNode.
+  ///
+  /// In en, this message translates to:
+  /// **'relayNode'**
+  String get relayNode;
+
+  /// No description provided for @txAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'txAfter'**
+  String get txAfter;
+
+  /// No description provided for @latI.
+  ///
+  /// In en, this message translates to:
+  /// **'latI'**
+  String get latI;
+
+  /// No description provided for @lonI.
+  ///
+  /// In en, this message translates to:
+  /// **'lonI'**
+  String get lonI;
+
+  /// No description provided for @altitude.
+  ///
+  /// In en, this message translates to:
+  /// **'alt'**
+  String get altitude;
+
+  /// No description provided for @gpsAccuracy.
+  ///
+  /// In en, this message translates to:
+  /// **'gpsAcc'**
+  String get gpsAccuracy;
+
+  /// No description provided for @sats.
+  ///
+  /// In en, this message translates to:
+  /// **'sats'**
+  String get sats;
+
+  /// No description provided for @locationSource.
+  ///
+  /// In en, this message translates to:
+  /// **'locSource'**
+  String get locationSource;
+
+  /// No description provided for @altitudeSource.
+  ///
+  /// In en, this message translates to:
+  /// **'altSource'**
+  String get altitudeSource;
+
+  /// No description provided for @tsMillisAdj.
+  ///
+  /// In en, this message translates to:
+  /// **'tsMillisAdj'**
+  String get tsMillisAdj;
+
+  /// No description provided for @altHae.
+  ///
+  /// In en, this message translates to:
+  /// **'altHae'**
+  String get altHae;
+
+  /// No description provided for @altGeoSep.
+  ///
+  /// In en, this message translates to:
+  /// **'altGeoSep'**
+  String get altGeoSep;
+
+  /// No description provided for @pDOP.
+  ///
+  /// In en, this message translates to:
+  /// **'pDOP'**
+  String get pDOP;
+
+  /// No description provided for @hDOP.
+  ///
+  /// In en, this message translates to:
+  /// **'hDOP'**
+  String get hDOP;
+
+  /// No description provided for @vDOP.
+  ///
+  /// In en, this message translates to:
+  /// **'vDOP'**
+  String get vDOP;
+
+  /// No description provided for @groundSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'groundSpeed'**
+  String get groundSpeed;
+
+  /// No description provided for @groundTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'groundTrack'**
+  String get groundTrack;
+
+  /// No description provided for @fixQuality.
+  ///
+  /// In en, this message translates to:
+  /// **'fixQuality'**
+  String get fixQuality;
+
+  /// No description provided for @fixType.
+  ///
+  /// In en, this message translates to:
+  /// **'fixType'**
+  String get fixType;
+
+  /// No description provided for @sensorId.
+  ///
+  /// In en, this message translates to:
+  /// **'sensorId'**
+  String get sensorId;
+
+  /// No description provided for @nextUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'nextUpdate'**
+  String get nextUpdate;
+
+  /// No description provided for @seqNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'seqNumber'**
+  String get seqNumber;
+
+  /// No description provided for @precisionBits.
+  ///
+  /// In en, this message translates to:
+  /// **'precisionBits'**
+  String get precisionBits;
+
+  /// No description provided for @expire.
+  ///
+  /// In en, this message translates to:
+  /// **'expire'**
+  String get expire;
+
+  /// No description provided for @lockedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'lockedTo'**
+  String get lockedTo;
+
+  /// No description provided for @description.
+  ///
+  /// In en, this message translates to:
+  /// **'desc'**
+  String get description;
+
+  /// No description provided for @icon.
+  ///
+  /// In en, this message translates to:
+  /// **'icon'**
+  String get icon;
+
+  /// No description provided for @mac.
+  ///
+  /// In en, this message translates to:
+  /// **'mac'**
+  String get mac;
+
+  /// No description provided for @isLicensed.
+  ///
+  /// In en, this message translates to:
+  /// **'isLicensed'**
+  String get isLicensed;
+
+  /// No description provided for @isUnmessagable.
+  ///
+  /// In en, this message translates to:
+  /// **'isUnmessagable'**
+  String get isUnmessagable;
+
+  /// No description provided for @variant.
+  ///
+  /// In en, this message translates to:
+  /// **'variant'**
+  String get variant;
+
+  /// No description provided for @errorReason.
+  ///
+  /// In en, this message translates to:
+  /// **'errorReason'**
+  String get errorReason;
+
+  /// No description provided for @requestId.
+  ///
+  /// In en, this message translates to:
+  /// **'requestId'**
+  String get requestId;
+
+  /// No description provided for @type.
+  ///
+  /// In en, this message translates to:
+  /// **'type'**
+  String get type;
+
+  /// No description provided for @gpioMask.
+  ///
+  /// In en, this message translates to:
+  /// **'gpioMask'**
+  String get gpioMask;
+
+  /// No description provided for @gpioValue.
+  ///
+  /// In en, this message translates to:
+  /// **'gpioValue'**
+  String get gpioValue;
+
+  /// No description provided for @nodeId.
+  ///
+  /// In en, this message translates to:
+  /// **'nodeId'**
+  String get nodeId;
+
+  /// No description provided for @lastSentById.
+  ///
+  /// In en, this message translates to:
+  /// **'lastSentById'**
+  String get lastSentById;
+
+  /// No description provided for @nodeBroadcastIntervalSecs.
+  ///
+  /// In en, this message translates to:
+  /// **'nodeBroadcastIntervalSecs'**
+  String get nodeBroadcastIntervalSecs;
+
+  /// No description provided for @lastRxTime.
+  ///
+  /// In en, this message translates to:
+  /// **'lastRxTime'**
+  String get lastRxTime;
+
+  /// No description provided for @broadcastIntSecs.
+  ///
+  /// In en, this message translates to:
+  /// **'broadcastIntSecs'**
+  String get broadcastIntSecs;
+
+  /// No description provided for @routeLen.
+  ///
+  /// In en, this message translates to:
+  /// **'routeLen'**
+  String get routeLen;
+
+  /// No description provided for @snrTowards.
+  ///
+  /// In en, this message translates to:
+  /// **'snrTowards'**
+  String get snrTowards;
+
+  /// No description provided for @routeBackLen.
+  ///
+  /// In en, this message translates to:
+  /// **'routeBackLen'**
+  String get routeBackLen;
+
+  /// No description provided for @snrBack.
+  ///
+  /// In en, this message translates to:
+  /// **'snrBack'**
+  String get snrBack;
+
+  /// No description provided for @nonce.
+  ///
+  /// In en, this message translates to:
+  /// **'nonce'**
+  String get nonce;
+
+  /// No description provided for @hash1.
+  ///
+  /// In en, this message translates to:
+  /// **'hash1'**
+  String get hash1;
+
+  /// No description provided for @hash2.
+  ///
+  /// In en, this message translates to:
+  /// **'hash2'**
+  String get hash2;
+
+  /// No description provided for @port.
+  ///
+  /// In en, this message translates to:
+  /// **'port'**
+  String get port;
+
+  /// No description provided for @bytes.
+  ///
+  /// In en, this message translates to:
+  /// **'bytes'**
+  String get bytes;
+
+  /// No description provided for @relativeHumidity.
+  ///
+  /// In en, this message translates to:
+  /// **'relativeHumidity'**
+  String get relativeHumidity;
+
+  /// No description provided for @barometricPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'barometricPressure'**
+  String get barometricPressure;
+
+  /// No description provided for @gasResistance.
+  ///
+  /// In en, this message translates to:
+  /// **'gasResistance'**
+  String get gasResistance;
+
+  /// No description provided for @iaq.
+  ///
+  /// In en, this message translates to:
+  /// **'iaq'**
+  String get iaq;
+
+  /// No description provided for @lux.
+  ///
+  /// In en, this message translates to:
+  /// **'lux'**
+  String get lux;
+
+  /// No description provided for @whiteLux.
+  ///
+  /// In en, this message translates to:
+  /// **'whiteLux'**
+  String get whiteLux;
+
+  /// No description provided for @irLux.
+  ///
+  /// In en, this message translates to:
+  /// **'irLux'**
+  String get irLux;
+
+  /// No description provided for @uvLux.
+  ///
+  /// In en, this message translates to:
+  /// **'uvLux'**
+  String get uvLux;
+
+  /// No description provided for @windDirection.
+  ///
+  /// In en, this message translates to:
+  /// **'windDirection'**
+  String get windDirection;
+
+  /// No description provided for @windSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'windSpeed'**
+  String get windSpeed;
+
+  /// No description provided for @weight.
+  ///
+  /// In en, this message translates to:
+  /// **'weight'**
+  String get weight;
+
+  /// No description provided for @windGust.
+  ///
+  /// In en, this message translates to:
+  /// **'windGust'**
+  String get windGust;
+
+  /// No description provided for @windLull.
+  ///
+  /// In en, this message translates to:
+  /// **'windLull'**
+  String get windLull;
+
+  /// No description provided for @pm10Standard.
+  ///
+  /// In en, this message translates to:
+  /// **'pm10Standard'**
+  String get pm10Standard;
+
+  /// No description provided for @pm25Standard.
+  ///
+  /// In en, this message translates to:
+  /// **'pm25Standard'**
+  String get pm25Standard;
+
+  /// No description provided for @pm100Standard.
+  ///
+  /// In en, this message translates to:
+  /// **'pm100Standard'**
+  String get pm100Standard;
+
+  /// No description provided for @pm10Environmental.
+  ///
+  /// In en, this message translates to:
+  /// **'pm10Environmental'**
+  String get pm10Environmental;
+
+  /// No description provided for @pm25Environmental.
+  ///
+  /// In en, this message translates to:
+  /// **'pm25Environmental'**
+  String get pm25Environmental;
+
+  /// No description provided for @pm100Environmental.
+  ///
+  /// In en, this message translates to:
+  /// **'pm100Environmental'**
+  String get pm100Environmental;
+
+  /// No description provided for @particles03um.
+  ///
+  /// In en, this message translates to:
+  /// **'particles03um'**
+  String get particles03um;
+
+  /// No description provided for @particles05um.
+  ///
+  /// In en, this message translates to:
+  /// **'particles05um'**
+  String get particles05um;
+
+  /// No description provided for @particles10um.
+  ///
+  /// In en, this message translates to:
+  /// **'particles10um'**
+  String get particles10um;
+
+  /// No description provided for @particles25um.
+  ///
+  /// In en, this message translates to:
+  /// **'particles25um'**
+  String get particles25um;
+
+  /// No description provided for @particles50um.
+  ///
+  /// In en, this message translates to:
+  /// **'particles50um'**
+  String get particles50um;
+
+  /// No description provided for @particles100um.
+  ///
+  /// In en, this message translates to:
+  /// **'particles100um'**
+  String get particles100um;
+
+  /// No description provided for @co2Temperature.
+  ///
+  /// In en, this message translates to:
+  /// **'co2Temperature'**
+  String get co2Temperature;
+
+  /// No description provided for @co2Humidity.
+  ///
+  /// In en, this message translates to:
+  /// **'co2Humidity'**
+  String get co2Humidity;
+
+  /// No description provided for @formaldehyde.
+  ///
+  /// In en, this message translates to:
+  /// **'formFormaldehyde'**
+  String get formaldehyde;
+
+  /// No description provided for @formaldehydeHumidity.
+  ///
+  /// In en, this message translates to:
+  /// **'formHumidity'**
+  String get formaldehydeHumidity;
+
+  /// No description provided for @formaldehydeTemperature.
+  ///
+  /// In en, this message translates to:
+  /// **'formTemperature'**
+  String get formaldehydeTemperature;
+
+  /// No description provided for @pm40Standard.
+  ///
+  /// In en, this message translates to:
+  /// **'pm40Standard'**
+  String get pm40Standard;
+
+  /// No description provided for @ch1Voltage.
+  ///
+  /// In en, this message translates to:
+  /// **'ch1Voltage'**
+  String get ch1Voltage;
+
+  /// No description provided for @ch1Current.
+  ///
+  /// In en, this message translates to:
+  /// **'ch1Current'**
+  String get ch1Current;
+
+  /// No description provided for @ch2Voltage.
+  ///
+  /// In en, this message translates to:
+  /// **'ch2Voltage'**
+  String get ch2Voltage;
+
+  /// No description provided for @ch2Current.
+  ///
+  /// In en, this message translates to:
+  /// **'ch2Current'**
+  String get ch2Current;
+
+  /// No description provided for @ch3Voltage.
+  ///
+  /// In en, this message translates to:
+  /// **'ch3Voltage'**
+  String get ch3Voltage;
+
+  /// No description provided for @ch3Current.
+  ///
+  /// In en, this message translates to:
+  /// **'ch3Current'**
+  String get ch3Current;
+
+  /// No description provided for @numPacketsTx.
+  ///
+  /// In en, this message translates to:
+  /// **'numPacketsTx'**
+  String get numPacketsTx;
+
+  /// No description provided for @numPacketsRx.
+  ///
+  /// In en, this message translates to:
+  /// **'numPacketsRx'**
+  String get numPacketsRx;
+
+  /// No description provided for @numPacketsRxBad.
+  ///
+  /// In en, this message translates to:
+  /// **'numPacketsRxBad'**
+  String get numPacketsRxBad;
+
+  /// No description provided for @numOnlineNodes.
+  ///
+  /// In en, this message translates to:
+  /// **'numOnlineNodes'**
+  String get numOnlineNodes;
+
+  /// No description provided for @heartBpm.
+  ///
+  /// In en, this message translates to:
+  /// **'heartBpm'**
+  String get heartBpm;
+
+  /// No description provided for @spO2.
+  ///
+  /// In en, this message translates to:
+  /// **'spO2'**
+  String get spO2;
+
+  /// No description provided for @freememBytes.
+  ///
+  /// In en, this message translates to:
+  /// **'freememBytes'**
+  String get freememBytes;
+
+  /// No description provided for @diskfree1Bytes.
+  ///
+  /// In en, this message translates to:
+  /// **'diskfree1Bytes'**
+  String get diskfree1Bytes;
+
+  /// No description provided for @diskfree2Bytes.
+  ///
+  /// In en, this message translates to:
+  /// **'diskfree2Bytes'**
+  String get diskfree2Bytes;
+
+  /// No description provided for @diskfree3Bytes.
+  ///
+  /// In en, this message translates to:
+  /// **'diskfree3Bytes'**
+  String get diskfree3Bytes;
+
+  /// No description provided for @load1.
+  ///
+  /// In en, this message translates to:
+  /// **'load1'**
+  String get load1;
+
+  /// No description provided for @load5.
+  ///
+  /// In en, this message translates to:
+  /// **'load5'**
+  String get load5;
+
+  /// No description provided for @load15.
+  ///
+  /// In en, this message translates to:
+  /// **'load15'**
+  String get load15;
+
+  /// No description provided for @userString.
+  ///
+  /// In en, this message translates to:
+  /// **'userString'**
+  String get userString;
+
+  /// No description provided for @wifiPsk.
+  ///
+  /// In en, this message translates to:
+  /// **'wifiPsk'**
+  String get wifiPsk;
+
+  /// No description provided for @ntpServer.
+  ///
+  /// In en, this message translates to:
+  /// **'ntpServer'**
+  String get ntpServer;
+
+  /// No description provided for @ethEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'ethEnabled'**
+  String get ethEnabled;
+
+  /// No description provided for @addressMode.
+  ///
+  /// In en, this message translates to:
+  /// **'addressMode'**
+  String get addressMode;
+
+  /// No description provided for @rsyslogServer.
+  ///
+  /// In en, this message translates to:
+  /// **'rsyslogServer'**
+  String get rsyslogServer;
+
+  /// No description provided for @enabledProtocols.
+  ///
+  /// In en, this message translates to:
+  /// **'enabledProtocols'**
+  String get enabledProtocols;
+
+  /// No description provided for @ipv6Enabled.
+  ///
+  /// In en, this message translates to:
+  /// **'ipv6Enabled'**
+  String get ipv6Enabled;
+
+  /// No description provided for @ip.
+  ///
+  /// In en, this message translates to:
+  /// **'ip'**
+  String get ip;
+
+  /// No description provided for @gateway.
+  ///
+  /// In en, this message translates to:
+  /// **'gateway'**
+  String get gateway;
+
+  /// No description provided for @subnet.
+  ///
+  /// In en, this message translates to:
+  /// **'subnet'**
+  String get subnet;
+
+  /// No description provided for @dns.
+  ///
+  /// In en, this message translates to:
+  /// **'dns'**
+  String get dns;
+
+  /// No description provided for @displaymode.
+  ///
+  /// In en, this message translates to:
+  /// **'displaymode'**
+  String get displaymode;
+
+  /// No description provided for @usePreset.
+  ///
+  /// In en, this message translates to:
+  /// **'usePreset'**
+  String get usePreset;
+
+  /// No description provided for @bandwidth.
+  ///
+  /// In en, this message translates to:
+  /// **'bandwidth'**
+  String get bandwidth;
+
+  /// No description provided for @spreadFactor.
+  ///
+  /// In en, this message translates to:
+  /// **'spreadFactor'**
+  String get spreadFactor;
+
+  /// No description provided for @codingRate.
+  ///
+  /// In en, this message translates to:
+  /// **'codingRate'**
+  String get codingRate;
+
+  /// No description provided for @frequencyOffset.
+  ///
+  /// In en, this message translates to:
+  /// **'frequencyOffset'**
+  String get frequencyOffset;
+
+  /// No description provided for @channelNum.
+  ///
+  /// In en, this message translates to:
+  /// **'channelNum'**
+  String get channelNum;
+
+  /// No description provided for @overrideDutyCycle.
+  ///
+  /// In en, this message translates to:
+  /// **'overrideDutyCycle'**
+  String get overrideDutyCycle;
+
+  /// No description provided for @sx126xRxBoostedGain.
+  ///
+  /// In en, this message translates to:
+  /// **'sx126xRxBoostedGain'**
+  String get sx126xRxBoostedGain;
+
+  /// No description provided for @overrideFrequency.
+  ///
+  /// In en, this message translates to:
+  /// **'overrideFrequency'**
+  String get overrideFrequency;
+
+  /// No description provided for @paFanDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'paFanDisabled'**
+  String get paFanDisabled;
+
+  /// No description provided for @ignoreIncoming.
+  ///
+  /// In en, this message translates to:
+  /// **'ignoreIncoming'**
+  String get ignoreIncoming;
+
+  /// No description provided for @ignoreMqtt.
+  ///
+  /// In en, this message translates to:
+  /// **'ignoreMqtt'**
+  String get ignoreMqtt;
+
+  /// No description provided for @configOkToMqtt.
+  ///
+  /// In en, this message translates to:
+  /// **'configOkToMqtt'**
+  String get configOkToMqtt;
+
+  /// No description provided for @adminKeyCount.
+  ///
+  /// In en, this message translates to:
+  /// **'adminKeyCount'**
+  String get adminKeyCount;
+
+  /// No description provided for @encryptionEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'encryptionEnabled'**
+  String get encryptionEnabled;
+
+  /// No description provided for @jsonEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'jsonEnabled'**
+  String get jsonEnabled;
+
+  /// No description provided for @tlsEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'tlsEnabled'**
+  String get tlsEnabled;
+
+  /// No description provided for @root.
+  ///
+  /// In en, this message translates to:
+  /// **'root'**
+  String get root;
+
+  /// No description provided for @proxyToClientEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'proxyToClientEnabled'**
+  String get proxyToClientEnabled;
+
+  /// No description provided for @mapReportingEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'mapReportingEnabled'**
+  String get mapReportingEnabled;
+
+  /// No description provided for @publishIntervalSecs.
+  ///
+  /// In en, this message translates to:
+  /// **'publishIntervalSecs'**
+  String get publishIntervalSecs;
+
+  /// No description provided for @positionPrecision.
+  ///
+  /// In en, this message translates to:
+  /// **'positionPrecision'**
+  String get positionPrecision;
+
+  /// No description provided for @shouldReportLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'shouldReportLocation'**
+  String get shouldReportLocation;
+
+  /// No description provided for @environmentMeasurementEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'environmentMeasurementEnabled'**
+  String get environmentMeasurementEnabled;
+
+  /// No description provided for @environmentScreenEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'environmentScreenEnabled'**
+  String get environmentScreenEnabled;
+
+  /// No description provided for @environmentDisplayFahrenheit.
+  ///
+  /// In en, this message translates to:
+  /// **'environmentDisplayFahrenheit'**
+  String get environmentDisplayFahrenheit;
+
+  /// No description provided for @airQualityEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'airQualityEnabled'**
+  String get airQualityEnabled;
+
+  /// No description provided for @powerMeasurementEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'powerMeasurementEnabled'**
+  String get powerMeasurementEnabled;
+
+  /// No description provided for @powerScreenEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'powerScreenEnabled'**
+  String get powerScreenEnabled;
+
+  /// No description provided for @healthMeasurementEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'healthMeasurementEnabled'**
+  String get healthMeasurementEnabled;
+
+  /// No description provided for @healthScreenEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'healthScreenEnabled'**
+  String get healthScreenEnabled;
+
+  /// No description provided for @deviceTelemetryEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'deviceTelemetryEnabled'**
+  String get deviceTelemetryEnabled;
+
+  /// No description provided for @overrideConsoleSerialPort.
+  ///
+  /// In en, this message translates to:
+  /// **'overrideConsoleSerialPort'**
+  String get overrideConsoleSerialPort;
+
+  /// No description provided for @alertMessageVibra.
+  ///
+  /// In en, this message translates to:
+  /// **'alertMessageVibra'**
+  String get alertMessageVibra;
+
+  /// No description provided for @alertMessageBuzzer.
+  ///
+  /// In en, this message translates to:
+  /// **'alertMessageBuzzer'**
+  String get alertMessageBuzzer;
+
+  /// No description provided for @alertBellVibra.
+  ///
+  /// In en, this message translates to:
+  /// **'alertBellVibra'**
+  String get alertBellVibra;
+
+  /// No description provided for @alertBellBuzzer.
+  ///
+  /// In en, this message translates to:
+  /// **'alertBellBuzzer'**
+  String get alertBellBuzzer;
+
+  /// No description provided for @availablePinsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'availablePinsCount'**
+  String get availablePinsCount;
+
+  /// No description provided for @gpioPin.
+  ///
+  /// In en, this message translates to:
+  /// **'gpioPin'**
+  String get gpioPin;
+
+  /// No description provided for @inputbrokerPinA.
+  ///
+  /// In en, this message translates to:
+  /// **'inputbrokerPinA'**
+  String get inputbrokerPinA;
+
+  /// No description provided for @inputbrokerPinB.
+  ///
+  /// In en, this message translates to:
+  /// **'inputbrokerPinB'**
+  String get inputbrokerPinB;
+
+  /// No description provided for @inputbrokerPinPress.
+  ///
+  /// In en, this message translates to:
+  /// **'inputbrokerPinPress'**
+  String get inputbrokerPinPress;
+
+  /// No description provided for @inputbrokerEventCw.
+  ///
+  /// In en, this message translates to:
+  /// **'inputbrokerEventCw'**
+  String get inputbrokerEventCw;
+
+  /// No description provided for @inputbrokerEventCcw.
+  ///
+  /// In en, this message translates to:
+  /// **'inputbrokerEventCcw'**
+  String get inputbrokerEventCcw;
+
+  /// No description provided for @inputbrokerEventPress.
+  ///
+  /// In en, this message translates to:
+  /// **'inputbrokerEventPress'**
+  String get inputbrokerEventPress;
+
+  /// No description provided for @updown1Enabled.
+  ///
+  /// In en, this message translates to:
+  /// **'updown1Enabled'**
+  String get updown1Enabled;
+
+  /// No description provided for @enabledDeprecated.
+  ///
+  /// In en, this message translates to:
+  /// **'enabled(deprecated)'**
+  String get enabledDeprecated;
+
+  /// No description provided for @minimumBroadcastSecs.
+  ///
+  /// In en, this message translates to:
+  /// **'minimumBroadcastSecs'**
+  String get minimumBroadcastSecs;
+
+  /// No description provided for @detectionTriggerType.
+  ///
+  /// In en, this message translates to:
+  /// **'detectionTriggerType'**
+  String get detectionTriggerType;
+
+  /// No description provided for @lateFallbackEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'lateFallbackEnabled'**
+  String get lateFallbackEnabled;
+
+  /// No description provided for @fallbackTailPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'fallbackTailPercent'**
+  String get fallbackTailPercent;
+
+  /// No description provided for @milestonesEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'milestonesEnabled'**
+  String get milestonesEnabled;
+
+  /// No description provided for @perDestMinSpacingMs.
+  ///
+  /// In en, this message translates to:
+  /// **'perDestMinSpacingMs'**
+  String get perDestMinSpacingMs;
+
+  /// No description provided for @maxActiveDm.
+  ///
+  /// In en, this message translates to:
+  /// **'maxActiveDm'**
+  String get maxActiveDm;
+
+  /// No description provided for @probeFwplusNearDeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'probeFwplusNearDeadline'**
+  String get probeFwplusNearDeadline;
+
+  /// No description provided for @allowedPorts.
+  ///
+  /// In en, this message translates to:
+  /// **'allowedPorts'**
+  String get allowedPorts;
+
+  /// No description provided for @localStatsOverMeshEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'localStatsOverMeshEnabled'**
+  String get localStatsOverMeshEnabled;
+
+  /// No description provided for @localStatsExtendedOverMeshEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'localStatsExtendedOverMeshEnabled'**
+  String get localStatsExtendedOverMeshEnabled;
+
+  /// No description provided for @additionalChutil.
+  ///
+  /// In en, this message translates to:
+  /// **'additionalChutil'**
+  String get additionalChutil;
+
+  /// No description provided for @additionalTxutil.
+  ///
+  /// In en, this message translates to:
+  /// **'additionalTxutil'**
+  String get additionalTxutil;
+
+  /// No description provided for @additionalPoliteChannelPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'additionalPoliteChannelPercent'**
+  String get additionalPoliteChannelPercent;
+
+  /// No description provided for @additionalPoliteDutyCyclePercent.
+  ///
+  /// In en, this message translates to:
+  /// **'additionalPoliteDutyCyclePercent'**
+  String get additionalPoliteDutyCyclePercent;
+
+  /// No description provided for @currentTxUtilLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'currentTxUtilLimit'**
+  String get currentTxUtilLimit;
+
+  /// No description provided for @currentMaxChannelUtilPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'currentMaxChannelUtilPercent'**
+  String get currentMaxChannelUtilPercent;
+
+  /// No description provided for @currentPoliteChannelUtilPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'currentPoliteChannelUtilPercent'**
+  String get currentPoliteChannelUtilPercent;
+
+  /// No description provided for @currentPoliteDutyCyclePercent.
+  ///
+  /// In en, this message translates to:
+  /// **'currentPoliteDutyCyclePercent'**
+  String get currentPoliteDutyCyclePercent;
+
+  /// No description provided for @autoRedirectTargetNodeId.
+  ///
+  /// In en, this message translates to:
+  /// **'autoRedirectTargetNodeId'**
+  String get autoRedirectTargetNodeId;
+
+  /// No description provided for @telemetryLimiterEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'telemetryLimiterEnabled'**
+  String get telemetryLimiterEnabled;
+
+  /// No description provided for @telemetryLimiterPacketsPerMinute.
+  ///
+  /// In en, this message translates to:
+  /// **'telemetryLimiterPacketsPerMinute'**
+  String get telemetryLimiterPacketsPerMinute;
+
+  /// No description provided for @telemetryLimiterAutoChanutilEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'telemetryLimiterAutoChanutilEnabled'**
+  String get telemetryLimiterAutoChanutilEnabled;
+
+  /// No description provided for @telemetryLimiterAutoChanutilThreshold.
+  ///
+  /// In en, this message translates to:
+  /// **'telemetryLimiterAutoChanutilThreshold'**
+  String get telemetryLimiterAutoChanutilThreshold;
+
+  /// No description provided for @positionLimiterEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'positionLimiterEnabled'**
+  String get positionLimiterEnabled;
+
+  /// No description provided for @positionLimiterTimeMinutesThreshold.
+  ///
+  /// In en, this message translates to:
+  /// **'positionLimiterTimeMinutesThreshold'**
+  String get positionLimiterTimeMinutesThreshold;
+
+  /// No description provided for @opportunisticFloodingEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'opportunisticFloodingEnabled'**
+  String get opportunisticFloodingEnabled;
+
+  /// No description provided for @opportunisticBaseDelayMs.
+  ///
+  /// In en, this message translates to:
+  /// **'opportunisticBaseDelayMs'**
+  String get opportunisticBaseDelayMs;
+
+  /// No description provided for @opportunisticHopDelayMs.
+  ///
+  /// In en, this message translates to:
+  /// **'opportunisticHopDelayMs'**
+  String get opportunisticHopDelayMs;
+
+  /// No description provided for @opportunisticSnrGainMs.
+  ///
+  /// In en, this message translates to:
+  /// **'opportunisticSnrGainMs'**
+  String get opportunisticSnrGainMs;
+
+  /// No description provided for @opportunisticJitterMs.
+  ///
+  /// In en, this message translates to:
+  /// **'opportunisticJitterMs'**
+  String get opportunisticJitterMs;
+
+  /// No description provided for @opportunisticCancelOnFirstHear.
+  ///
+  /// In en, this message translates to:
+  /// **'opportunisticCancelOnFirstHear'**
+  String get opportunisticCancelOnFirstHear;
+
+  /// No description provided for @opportunisticAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'opportunisticAuto'**
+  String get opportunisticAuto;
+
+  /// No description provided for @version.
+  ///
+  /// In en, this message translates to:
+  /// **'version'**
+  String get version;
+
+  /// No description provided for @screenBrightness.
+  ///
+  /// In en, this message translates to:
+  /// **'screenBrightness'**
+  String get screenBrightness;
+
+  /// No description provided for @screenTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'screenTimeout'**
+  String get screenTimeout;
+
+  /// No description provided for @screenLock.
+  ///
+  /// In en, this message translates to:
+  /// **'screenLock'**
+  String get screenLock;
+
+  /// No description provided for @settingsLock.
+  ///
+  /// In en, this message translates to:
+  /// **'settingsLock'**
+  String get settingsLock;
+
+  /// No description provided for @pinCode.
+  ///
+  /// In en, this message translates to:
+  /// **'pinCode'**
+  String get pinCode;
+
+  /// No description provided for @theme.
+  ///
+  /// In en, this message translates to:
+  /// **'theme'**
+  String get theme;
+
+  /// No description provided for @alertEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'alertEnabled'**
+  String get alertEnabled;
+
+  /// No description provided for @bannerEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'bannerEnabled'**
+  String get bannerEnabled;
+
+  /// No description provided for @ringToneId.
+  ///
+  /// In en, this message translates to:
+  /// **'ringToneId'**
+  String get ringToneId;
+
+  /// No description provided for @language.
+  ///
+  /// In en, this message translates to:
+  /// **'language'**
+  String get language;
+
+  /// No description provided for @compassMode.
+  ///
+  /// In en, this message translates to:
+  /// **'compassMode'**
+  String get compassMode;
+
+  /// No description provided for @screenRgbColor.
+  ///
+  /// In en, this message translates to:
+  /// **'screenRgbColor'**
+  String get screenRgbColor;
+
+  /// No description provided for @isClockfaceAnalog.
+  ///
+  /// In en, this message translates to:
+  /// **'isClockfaceAnalog'**
+  String get isClockfaceAnalog;
+
+  /// No description provided for @gpsFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'gpsFormat'**
+  String get gpsFormat;
+
+  /// No description provided for @calibrationDataLen.
+  ///
+  /// In en, this message translates to:
+  /// **'calibrationDataLen'**
+  String get calibrationDataLen;
+
+  /// No description provided for @filterEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'filterEnabled'**
+  String get filterEnabled;
+
+  /// No description provided for @minSnr.
+  ///
+  /// In en, this message translates to:
+  /// **'minSnr'**
+  String get minSnr;
+
+  /// No description provided for @hideIgnoredNodes.
+  ///
+  /// In en, this message translates to:
+  /// **'hideIgnoredNodes'**
+  String get hideIgnoredNodes;
+
+  /// No description provided for @highlightEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'highlightEnabled'**
+  String get highlightEnabled;
+
+  /// No description provided for @zoom.
+  ///
+  /// In en, this message translates to:
+  /// **'zoom'**
+  String get zoom;
+
+  /// No description provided for @centerLatI.
+  ///
+  /// In en, this message translates to:
+  /// **'centerLatI'**
+  String get centerLatI;
+
+  /// No description provided for @centerLonI.
+  ///
+  /// In en, this message translates to:
+  /// **'centerLonI'**
+  String get centerLonI;
+
+  /// No description provided for @followMe.
+  ///
+  /// In en, this message translates to:
+  /// **'followMe'**
+  String get followMe;
+
+  /// No description provided for @psk.
+  ///
+  /// In en, this message translates to:
+  /// **'psk'**
+  String get psk;
+
+  /// No description provided for @uplinkEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'uplinkEnabled'**
+  String get uplinkEnabled;
+
+  /// No description provided for @downlinkEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'downlinkEnabled'**
+  String get downlinkEnabled;
+
+  /// No description provided for @ownerEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Owner'**
+  String get ownerEditTitle;
+
+  /// No description provided for @ownerLongName.
+  ///
+  /// In en, this message translates to:
+  /// **'Long Name'**
+  String get ownerLongName;
+
+  /// No description provided for @ownerShortName.
+  ///
+  /// In en, this message translates to:
+  /// **'Short Name'**
+  String get ownerShortName;
+
+  /// No description provided for @ownerLongNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Kevin Hester'**
+  String get ownerLongNameHint;
+
+  /// No description provided for @ownerShortNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. KH'**
+  String get ownerShortNameHint;
+
+  /// No description provided for @ownerLongNameHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name for this device'**
+  String get ownerLongNameHelper;
+
+  /// No description provided for @ownerShortNameHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Short name (max 4 characters)'**
+  String get ownerShortNameHelper;
+
+  /// No description provided for @ownerEditAtLeastOneName.
+  ///
+  /// In en, this message translates to:
+  /// **'Please provide at least one name (long or short)'**
+  String get ownerEditAtLeastOneName;
+
+  /// No description provided for @ownerUpdateSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner info updated successfully'**
+  String get ownerUpdateSuccess;
+
+  /// No description provided for @ownerUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update owner info: {error}'**
+  String ownerUpdateFailed(Object error);
+
+  /// No description provided for @configHelpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Configuration Help'**
+  String get configHelpTitle;
+
+  /// No description provided for @readMoreDocumentation.
+  ///
+  /// In en, this message translates to:
+  /// **'Read more in documentation'**
+  String get readMoreDocumentation;
+
+  /// No description provided for @editTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get editTooltip;
+
+  /// No description provided for @deviceRoleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get deviceRoleLabel;
+
+  /// No description provided for @serialEnabledLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial Enabled'**
+  String get serialEnabledLabel;
+
+  /// No description provided for @serialEnabledSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Deprecated upstream'**
+  String get serialEnabledSubtitle;
+
+  /// No description provided for @buttonGpioLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Button GPIO'**
+  String get buttonGpioLabel;
+
+  /// No description provided for @buzzerGpioLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Buzzer GPIO'**
+  String get buzzerGpioLabel;
+
+  /// No description provided for @rebroadcastModeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Rebroadcast Mode'**
+  String get rebroadcastModeLabel;
+
+  /// No description provided for @nodeInfoBroadcastIntervalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Node Info Broadcast Interval (seconds)'**
+  String get nodeInfoBroadcastIntervalLabel;
+
+  /// No description provided for @nodeInfoBroadcastIntervalHint.
+  ///
+  /// In en, this message translates to:
+  /// **'How often to broadcast node info'**
+  String get nodeInfoBroadcastIntervalHint;
+
+  /// No description provided for @doubleTapAsButtonPressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Double Tap as Button Press'**
+  String get doubleTapAsButtonPressLabel;
+
+  /// No description provided for @isManagedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Is Managed'**
+  String get isManagedLabel;
+
+  /// No description provided for @disableTripleClickLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable Triple Click'**
+  String get disableTripleClickLabel;
+
+  /// No description provided for @timezoneDefinitionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Timezone Definition'**
+  String get timezoneDefinitionLabel;
+
+  /// No description provided for @timezoneDefinitionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., PST8PDT,M3.2.0,M11.1.0'**
+  String get timezoneDefinitionHint;
+
+  /// No description provided for @ledHeartbeatDisabledLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'LED Heartbeat Disabled'**
+  String get ledHeartbeatDisabledLabel;
+
+  /// No description provided for @buzzerModeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Buzzer Mode'**
+  String get buzzerModeLabel;
+
+  /// No description provided for @positionBroadcastIntervalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Position Broadcast Interval (seconds)'**
+  String get positionBroadcastIntervalLabel;
+
+  /// No description provided for @smartPositionBroadcastLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart Position Broadcast'**
+  String get smartPositionBroadcastLabel;
+
+  /// No description provided for @fixedPositionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed Position'**
+  String get fixedPositionLabel;
+
+  /// No description provided for @gpsEnabledLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS Enabled'**
+  String get gpsEnabledLabel;
+
+  /// No description provided for @gpsUpdateIntervalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS Update Interval (seconds)'**
+  String get gpsUpdateIntervalLabel;
+
+  /// No description provided for @gpsAttemptTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS Attempt Time (seconds)'**
+  String get gpsAttemptTimeLabel;
+
+  /// No description provided for @positionFlagsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Position Flags'**
+  String get positionFlagsLabel;
+
+  /// No description provided for @rxGpioLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'RX GPIO'**
+  String get rxGpioLabel;
+
+  /// No description provided for @txGpioLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'TX GPIO'**
+  String get txGpioLabel;
+
+  /// No description provided for @smartBroadcastMinDistanceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart Broadcast Min Distance'**
+  String get smartBroadcastMinDistanceLabel;
+
+  /// No description provided for @smartBroadcastMinIntervalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart Broadcast Min Interval (seconds)'**
+  String get smartBroadcastMinIntervalLabel;
+
+  /// No description provided for @gpsEnableGpioLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS Enable GPIO'**
+  String get gpsEnableGpioLabel;
+
+  /// No description provided for @gpsModeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS Mode'**
+  String get gpsModeLabel;
 }
 
 class _AppLocalizationsDelegate

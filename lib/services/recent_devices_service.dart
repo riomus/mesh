@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show compute;
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -76,18 +77,30 @@ class RecentDevicesService {
   List<RecentDevice> get currentDevices => List.unmodifiable(_devices);
 
   Future<void> load() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonString = prefs.getString(_prefsKey);
-    if (jsonString != null) {
-      try {
-        final List<dynamic> list = jsonDecode(jsonString);
-        _devices = list.map((e) => RecentDevice.fromJson(e)).toList();
-        _sort();
-        _controller.add(_devices);
-      } catch (e) {
-        // ignore corruption
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonString = prefs.getString(_prefsKey);
+      if (jsonString != null) {
+        try {
+          // Use compute to offload JSON parsing to isolate (prevents UI freeze)
+          final List<dynamic> list = await compute(_decodeJson, jsonString);
+          _devices = list.map((e) => RecentDevice.fromJson(e)).toList();
+          _sort();
+          _controller.add(_devices);
+        } catch (e) {
+          // Log corruption and clear corrupted data
+          print('[RecentDevicesService] Failed to parse recent devices: $e');
+          await prefs.remove(_prefsKey);
+        }
       }
+    } catch (e) {
+      print('[RecentDevicesService] Error loading recent devices: $e');
     }
+  }
+
+  // Top-level or static function for compute isolate
+  static List<dynamic> _decodeJson(String jsonString) {
+    return jsonDecode(jsonString) as List<dynamic>;
   }
 
   Future<void> add(ScanResult result) async {

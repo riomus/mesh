@@ -43,6 +43,9 @@ class DeviceStateService {
   /// Get the current state for a device.
   DeviceState? getState(String deviceId) => _states[deviceId];
 
+  /// Get all current device states.
+  Map<String, DeviceState> get allStates => Map.unmodifiable(_states);
+
   /// Stream of state updates for a specific device.
   Stream<DeviceState> stream(String deviceId) {
     return _controller.stream.where((s) => s.deviceId == deviceId);
@@ -103,6 +106,9 @@ class DeviceStateService {
             tags: {'deviceId': deviceId, 'class': 'DeviceStateService'},
             level: 'info',
             message: 'Updating ConfigEvent: $newConfig',
+          );
+          print(
+            '[DeviceStateService] Received config update. Device: ${newConfig.device != null}, Position: ${newConfig.position != null}, Power: ${newConfig.power != null}',
           );
           // If we have existing config, merge with it; otherwise use the new config directly
           final updatedConfig = state.config != null
@@ -172,6 +178,58 @@ class DeviceStateService {
         final decoded = meshEvent.decoded;
         final from = meshEvent.packet.from;
 
+        if (decoded is AdminPayloadDto) {
+          if (decoded.sessionPasskey != null) {
+            state = state.copyWith(sessionPasskey: decoded.sessionPasskey);
+            changed = true;
+            print(
+              '[DeviceStateService] Updated session passkey for $deviceId. Length: ${decoded.sessionPasskey!.length}, First 4 bytes: ${decoded.sessionPasskey!.take(4).toList()}',
+            );
+          }
+          if (decoded.config != null && _hasConfigData(decoded.config!)) {
+            final updatedConfig = state.config != null
+                ? state.config!.copyWith(decoded.config!)
+                : decoded.config!;
+            state = state.copyWith(config: updatedConfig);
+            changed = true;
+          }
+          if (decoded.moduleConfig != null &&
+              _hasModuleConfigData(decoded.moduleConfig!)) {
+            final updatedModuleConfig = state.moduleConfig != null
+                ? state.moduleConfig!.copyWith(decoded.moduleConfig!)
+                : decoded.moduleConfig!;
+            state = state.copyWith(moduleConfig: updatedModuleConfig);
+            changed = true;
+          }
+          if (decoded.channel != null) {
+            final newChannel = decoded.channel!;
+            final channels = List<ChannelDto>.from(state.channels);
+            final index = channels.indexWhere(
+              (c) => c.index == newChannel.index,
+            );
+            if (index >= 0) {
+              channels[index] = newChannel;
+            } else {
+              channels.add(newChannel);
+            }
+            state = state.copyWith(channels: channels);
+            changed = true;
+          }
+          if (decoded.owner != null) {
+            // Assuming owner updates myNodeInfo or a specific node?
+            // Usually get_owner_response updates the User of the node.
+            // But which node? The sender?
+            // If it's a response from the device, it's likely the device's user (MyInfo or NodeInfo).
+            // For now, let's assume it updates the node info for the sender (from).
+            // Or maybe it updates myNodeInfo if from == myNodeNum?
+            // Let's leave it for now as it's less critical for "sending config".
+          }
+          if (decoded.deviceUiConfig != null) {
+            state = state.copyWith(deviceUiConfig: decoded.deviceUiConfig);
+            changed = true;
+          }
+        }
+
         if (decoded is PositionPayloadDto && from != null) {
           final newPosition = decoded.position;
           final nodes = List<NodeInfoDto>.from(state.nodes);
@@ -200,6 +258,18 @@ class DeviceStateService {
           state = state.copyWith(nodes: nodes);
           changed = true;
         }
+      } else if (meshEvent is ConfigCompleteEvent) {
+        // Ensure state exists even if no config data was received
+        state = state.copyWith(); // No-op copy just to ensure we have an object
+        changed = true;
+        LoggingService.instance.push(
+          tags: {'deviceId': deviceId, 'class': 'DeviceStateService'},
+          level: 'info',
+          message: 'ConfigCompleteEvent received, ensuring state exists',
+        );
+      } else if (meshEvent is DeviceUiConfigEvent) {
+        state = state.copyWith(deviceUiConfig: meshEvent.uiConfig);
+        changed = true;
       }
 
       if (changed) {

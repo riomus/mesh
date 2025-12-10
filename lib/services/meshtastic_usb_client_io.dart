@@ -8,7 +8,7 @@ import 'logging_service.dart';
 import '../meshtastic/model/meshtastic_event.dart';
 import '../meshtastic/model/meshtastic_mappers.dart';
 
-class MeshtasticUsbClient implements MeshtasticClient {
+class MeshtasticUsbClient extends MeshtasticClient {
   final String portName;
   final String deviceId; // We might need to fetch this from the device
   SerialPort? _port;

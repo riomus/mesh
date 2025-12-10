@@ -124,7 +124,12 @@ class _EventsListWidgetState extends State<EventsListWidget> {
     if (hasInitialSeed) {
       // If the parent already provided an initial set to mirror, avoid double
       // adding by listening live only.
-      _sub = _svc.listenAll().listen(_onEvent);
+      _sub = _svc.listenAll().listen(
+        _onEvent,
+        onError: (e) {
+          print('[EventsListWidget] Error in events stream: $e');
+        },
+      );
       return;
     }
     // Build pre-filters for replay based on provided network/deviceId
@@ -138,7 +143,12 @@ class _EventsListWidgetState extends State<EventsListWidget> {
     final useFilters = allEquals.isNotEmpty;
     _sub = _svc
         .listenWithReplay(allEquals: useFilters ? allEquals : null)
-        .listen(_onEvent);
+        .listen(
+          _onEvent,
+          onError: (e) {
+            print('[EventsListWidget] Error in events replay stream: $e');
+          },
+        );
   }
 
   @override

@@ -21,7 +21,9 @@ class MeshtasticEventTile extends StatelessWidget {
           emoji: '🧩',
           title: AppLocalizations.of(context).myInfo,
           subtitle: e.myInfo.myNodeNum != null
-              ? 'myNodeNum=${e.myInfo.myNodeNum}'
+              ? AppLocalizations.of(
+                  context,
+                ).myNodeNumLabel(e.myInfo.myNodeNum.toString())
               : null,
           color: Colors.indigo,
         );
@@ -29,21 +31,27 @@ class MeshtasticEventTile extends StatelessWidget {
         return _SimpleTile(
           emoji: '🪪',
           title: _nodeTitle(context, e.nodeInfo),
-          subtitle: e.nodeInfo.num != null ? 'num=${e.nodeInfo.num}' : null,
+          subtitle: e.nodeInfo.num != null
+              ? AppLocalizations.of(
+                  context,
+                ).nodeNumLabel(e.nodeInfo.num.toString())
+              : null,
           color: Colors.deepPurple,
         );
-      case ConfigEvent _:
+      case ConfigEvent e:
         return _SimpleTile(
           emoji: '⚙️',
           title: AppLocalizations.of(context).configUpdate,
-          subtitle: null,
+          subtitle: _configSubtitle(context, e.config),
           color: Colors.teal,
         );
       case ConfigCompleteEvent e:
         return _PlainTile(
           emoji: '✅',
           title: AppLocalizations.of(context).configStreamComplete,
-          subtitle: 'id=${e.configCompleteId}',
+          subtitle: AppLocalizations.of(
+            context,
+          ).idLabel(e.configCompleteId.toString()),
           color: Colors.teal,
         );
       case RebootedEvent e:
@@ -55,32 +63,36 @@ class MeshtasticEventTile extends StatelessWidget {
               : AppLocalizations.of(context).noReboot,
           color: Colors.orange,
         );
-      case ModuleConfigEvent _:
+      case ModuleConfigEvent e:
         return _SimpleTile(
           emoji: '🧩',
           title: AppLocalizations.of(context).moduleConfig,
-          subtitle: null,
+          subtitle: _moduleConfigSubtitle(context, e.moduleConfig),
           color: Colors.blueGrey,
         );
       case ChannelEvent e:
         return _SimpleTile(
           emoji: '📡',
           title: AppLocalizations.of(context).channelUpdate,
-          subtitle: e.channel.index != null ? 'index=${e.channel.index}' : null,
+          subtitle: e.channel.index != null
+              ? AppLocalizations.of(
+                  context,
+                ).channelIndexLabel(e.channel.index.toString())
+              : null,
           color: Colors.blue,
         );
       case QueueStatusEvent e:
         return _SimpleTile(
           emoji: '📬',
           title: AppLocalizations.of(context).queueStatus,
-          subtitle: _queuePreview(e.status),
+          subtitle: _queuePreview(context, e.status),
           color: Colors.cyan,
         );
       case DeviceMetadataEvent e:
         return _SimpleTile(
           emoji: '🧰',
           title: AppLocalizations.of(context).deviceMetadata,
-          subtitle: _deviceMetadataPreview(e.metadata),
+          subtitle: _deviceMetadataPreview(context, e.metadata),
           color: Colors.brown,
         );
       case MqttClientProxyEvent _:
@@ -94,7 +106,7 @@ class MeshtasticEventTile extends StatelessWidget {
         return _SimpleTile(
           emoji: '📁',
           title: AppLocalizations.of(context).fileInfo,
-          subtitle: _fileInfoPreview(e.fileInfo),
+          subtitle: _fileInfoPreview(context, e.fileInfo),
           color: Colors.amber,
         );
       case ClientNotificationEvent e:
@@ -134,16 +146,60 @@ class MeshtasticEventTile extends StatelessWidget {
               ? AppLocalizations.of(context).nodeTitleId(num)
               : AppLocalizations.of(context).nodeInfo);
   }
+
+  String? _configSubtitle(BuildContext context, ConfigDto config) {
+    final parts = <String>[];
+    if (config.device != null) parts.add('Device');
+    if (config.position != null) parts.add('Position');
+    if (config.power != null) parts.add('Power');
+    if (config.network != null) parts.add('Network');
+    if (config.display != null) parts.add('Display');
+    if (config.lora != null) parts.add('LoRa');
+    if (config.bluetooth != null) parts.add('Bluetooth');
+    if (config.security != null) parts.add('Security');
+    if (config.sessionkey != null) parts.add('Session Key');
+
+    if (parts.isEmpty) return null;
+    return parts.join(', ');
+  }
+
+  String? _moduleConfigSubtitle(BuildContext context, ModuleConfigDto config) {
+    final parts = <String>[];
+    if (config.mqtt != null) parts.add('MQTT');
+    if (config.telemetry != null) parts.add('Telemetry');
+    if (config.serial != null) parts.add('Serial');
+    if (config.storeForward != null) parts.add('Store & Forward');
+    if (config.rangeTest != null) parts.add('Range Test');
+    if (config.externalNotification != null) parts.add('External Notification');
+    if (config.audio != null) parts.add('Audio');
+    if (config.neighborInfo != null) parts.add('Neighbor Info');
+    if (config.remoteHardware != null) parts.add('Remote Hardware');
+    if (config.paxcounter != null) parts.add('Paxcounter');
+    if (config.cannedMessage != null) parts.add('Canned Message');
+    if (config.ambientLighting != null) parts.add('Ambient Lighting');
+    if (config.detectionSensor != null) parts.add('Detection Sensor');
+    if (config.dtnOverlay != null) parts.add('DTN Overlay');
+    if (config.broadcastAssist != null) parts.add('Broadcast Assist');
+    if (config.nodeMod != null) parts.add('Node Mod');
+    if (config.nodeModAdmin != null) parts.add('Node Mod Admin');
+    if (config.idleGame != null) parts.add('Idle Game');
+
+    if (parts.isEmpty) return null;
+    return parts.join(', ');
+  }
 }
 
-String? _deviceMetadataPreview(DeviceMetadataDto dm) {
+String? _deviceMetadataPreview(BuildContext context, DeviceMetadataDto dm) {
   final parts = <String>[];
-  if (dm.firmwareVersion != null) parts.add('fw=${dm.firmwareVersion}');
-  if (dm.hwModel != null) parts.add('hw=${dm.hwModel}');
-  if (dm.role != null) parts.add('role=${dm.role}');
-  if (dm.hasWifi == true) parts.add('wifi');
-  if (dm.hasBluetooth == true) parts.add('bt');
-  if (dm.hasEthernet == true) parts.add('eth');
+  if (dm.firmwareVersion != null)
+    parts.add(AppLocalizations.of(context).fwLabel(dm.firmwareVersion!));
+  if (dm.hwModel != null)
+    parts.add(AppLocalizations.of(context).hwLabel(dm.hwModel.toString()));
+  if (dm.role != null)
+    parts.add(AppLocalizations.of(context).roleKey(dm.role.toString()));
+  if (dm.hasWifi == true) parts.add(AppLocalizations.of(context).wifiLabel);
+  if (dm.hasBluetooth == true) parts.add(AppLocalizations.of(context).btLabel);
+  if (dm.hasEthernet == true) parts.add(AppLocalizations.of(context).ethLabel);
   if (parts.isEmpty) return null;
   return parts.join(' · ');
 }
@@ -212,7 +268,7 @@ class _PacketTile extends StatelessWidget {
       null => AppLocalizations.of(context).encryptedUnknownPayload,
     };
 
-    final sub = _packetSubtitle(p);
+    final sub = _packetSubtitle(context, p);
 
     Widget trailing;
     if (p.rxRssi != null) {
@@ -279,12 +335,16 @@ class _PacketTile extends StatelessWidget {
         : '🪪 ${AppLocalizations.of(context).userInfo}';
   }
 
-  String _packetSubtitle(MeshPacketDto p) {
+  String _packetSubtitle(BuildContext context, MeshPacketDto p) {
     final parts = <String>[];
-    if (p.from != null) parts.add('from=${p.from}');
-    if (p.to != null) parts.add('to=${p.to}');
-    if (p.channel != null) parts.add('ch=${p.channel}');
-    if (p.id != null) parts.add('id=${p.id}');
+    if (p.from != null)
+      parts.add(AppLocalizations.of(context).fromLabel(p.from.toString()));
+    if (p.to != null)
+      parts.add(AppLocalizations.of(context).toLabel(p.to.toString()));
+    if (p.channel != null)
+      parts.add(AppLocalizations.of(context).chLabel(p.channel.toString()));
+    if (p.id != null)
+      parts.add(AppLocalizations.of(context).idLabel(p.id.toString()));
     return parts.join('  ');
   }
 
@@ -315,8 +375,12 @@ class _PacketTile extends StatelessWidget {
   }
 
   String _paxcounterTitle(BuildContext context, PaxcounterPayloadDto p) {
-    final w = p.wifi != null ? 'wifi=${p.wifi}' : null;
-    final b = p.ble != null ? 'ble=${p.ble}' : null;
+    final w = p.wifi != null
+        ? '${AppLocalizations.of(context).wifiLabel}=${p.wifi}'
+        : null;
+    final b = p.ble != null
+        ? '${AppLocalizations.of(context).btLabel}=${p.ble}'
+        : null;
     final parts = [w, b].whereType<String>().toList();
     final rest = parts.isNotEmpty ? ' · ${parts.join(' ')}' : '';
     return '👥 ${AppLocalizations.of(context).paxcounter}$rest';
@@ -326,7 +390,9 @@ class _PacketTile extends StatelessWidget {
     BuildContext context,
     KeyVerificationPayloadDto kv,
   ) {
-    final n = kv.nonce != null ? 'nonce=${kv.nonce}' : null;
+    final n = kv.nonce != null
+        ? AppLocalizations.of(context).nonceLabel(kv.nonce.toString())
+        : null;
     final parts = [n].whereType<String>().toList();
     final rest = parts.isNotEmpty ? ' (${parts.join(' · ')})' : '';
     return '🔐 ${AppLocalizations.of(context).keyVerification}$rest';
@@ -435,17 +501,21 @@ class _LogTile extends StatelessWidget {
   }
 }
 
-String? _queuePreview(QueueStatusDto s) {
+String? _queuePreview(BuildContext context, QueueStatusDto s) {
   final parts = <String>[];
-  if (s.free != null) parts.add('free=${s.free}');
-  if (s.maxlen != null) parts.add('max=${s.maxlen}');
-  if (s.meshPacketId != null) parts.add('id=${s.meshPacketId}');
+  if (s.free != null)
+    parts.add(AppLocalizations.of(context).freeLabel(s.free.toString()));
+  if (s.maxlen != null)
+    parts.add(AppLocalizations.of(context).maxLabel(s.maxlen.toString()));
+  if (s.meshPacketId != null)
+    parts.add(AppLocalizations.of(context).idLabel(s.meshPacketId.toString()));
   return parts.isEmpty ? null : parts.join('  ');
 }
 
-String? _fileInfoPreview(FileInfoDto f) {
+String? _fileInfoPreview(BuildContext context, FileInfoDto f) {
   final parts = <String>[];
   if (f.fileName != null && f.fileName!.isNotEmpty) parts.add(f.fileName!);
-  if (f.sizeBytes != null) parts.add('${f.sizeBytes} bytes');
+  if (f.sizeBytes != null)
+    parts.add(AppLocalizations.of(context).bytesLabel(f.sizeBytes.toString()));
   return parts.isEmpty ? null : parts.join('  ');
 }
