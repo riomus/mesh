@@ -1134,6 +1134,10 @@ class DeviceStateWidget extends StatelessWidget {
 
     if (client == null || !context.mounted) return;
 
+    // Request session key to ensure we can save changes
+    await client.requestSessionKey(state.myNodeInfo?.myNodeNum);
+    if (!context.mounted) return;
+
     // Find the local node to get current values
     final localNode = state.myNodeInfo?.myNodeNum != null
         ? state.nodes.firstWhereOrNull(
@@ -1147,10 +1151,22 @@ class DeviceStateWidget extends StatelessWidget {
         currentLongName: localNode?.user?.longName,
         currentShortName: localNode?.user?.shortName,
         onSave: ({String? longName, String? shortName}) async {
+          // Begin transaction
+          await client.beginEditSettings(
+            sessionPasskey: state.sessionPasskey,
+            nodeId: state.myNodeInfo?.myNodeNum,
+          );
+          // Set owner
           await client.setOwner(
             longName: longName,
             shortName: shortName,
-            nodeId: null, // null = local node
+            sessionPasskey: state.sessionPasskey,
+            nodeId: state.myNodeInfo?.myNodeNum,
+          );
+          // Commit transaction
+          await client.commitEditSettings(
+            sessionPasskey: state.sessionPasskey,
+            nodeId: state.myNodeInfo?.myNodeNum,
           );
         },
       ),
